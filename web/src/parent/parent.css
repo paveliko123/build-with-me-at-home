@@ -101,3 +101,4 @@
 .parent .codein{font:800 26px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.12em;text-align:center;width:100%;max-width:260px;padding:12px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);text-transform:uppercase}
 .parent .countdown{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--warn-soft);color:var(--warn);border:2px solid var(--warn);border-radius:999px;padding:10px 20px;font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;box-shadow:0 6px 20px rgba(0,0,0,.12);z-index:20;white-space:nowrap}
 .parent .overlay{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;z-index:30}
+.parent .way{display:flex;gap:8px;align-items:baseline;margin:6px 0;line-height:1.6}

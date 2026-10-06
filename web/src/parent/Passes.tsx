@@ -29,7 +29,10 @@ export function GivePass({ kids, passes, shown, setShown, onAddKid, reload }: {
   useEffect(() => { if (!kids.some((k) => k.id === kidId)) setKidId(kids[0]?.id ?? null); }, [kids, kidId]);
 
   const minutes = preset === 'custom' ? Number(custom) : PRESETS[preset].minutes();
-  const pass = passes.find((p) => p.id === shown);
+  // After a reload the newest unopened pass shows again, so its code is never lost.
+  const pass = shown === null
+    ? [...passes].filter((p) => !p.usedAt).sort((a, b) => b.createdAt - a.createdAt)[0]
+    : passes.find((p) => p.id === shown);
 
   const create = async (replace = false) => {
     if (!kidId) return;
@@ -69,7 +72,7 @@ export function GivePass({ kids, passes, shown, setShown, onAddKid, reload }: {
       </div>
       <button className="btn" disabled={busy || !kidId || !(minutes >= 1 && minutes <= 1440)} onClick={() => create()}>Create pass</button>
       <p className="err">{err}</p>
-      {pass && <PassCode pass={pass} onClose={() => setShown(null)} />}
+      {pass && <PassCode pass={pass} onClose={() => setShown('hidden')} />}
     </div>
   );
 }
@@ -82,15 +85,13 @@ function PassCode({ pass, onClose }: { pass: ActivePass; onClose: () => void }) 
   return (
     <div className="qrbox">
       {pass.qr && <img className="qr" src={pass.qr} alt={`QR code for ${name}'s pass`} />}
-      <div style={{ flex: 1, minWidth: 220 }}>
-        <b>{name}'s pass · {lengthText(pass.minutes)}</b><br />
-        {pass.qr && <><span className="muted">Scan with the tablet or phone camera, or</span>{' '}</>}
-        <a href={pass.laptopUrl} target="_blank" rel="noopener">open on this laptop</a>
-        <span className="muted" style={{ fontSize: 13 }}> (locks the parent area here)</span>
-        {pass.typeAt && <div style={{ margin: '8px 0' }}>
-          <span className="muted">Laptop or Chromebook: open</span> <code>{pass.typeAt}</code> <span className="muted">and type</span> <span className="typed">{pass.typedCode}</span>
-        </div>}
-        <span className="muted" style={{ fontSize: 13 }}>One use only: the first device that opens it gets the pass. Works on home Wi-Fi until {timeOfDay(pass.endsAt)}. A device that isn't set up for talking may show a security warning first: set it up with 📱 below.</span>
+      <div style={{ flex: 1, minWidth: 240 }}>
+        <div className="top" style={{ marginBottom: 6 }}><b>{name}'s pass · {lengthText(pass.minutes)}</b><button className="ghost" onClick={onClose}>Hide</button></div>
+        <p className="label" style={{ margin: '8px 0 6px' }}>Open it on one device</p>
+        {pass.qr && <div className="way">📱 <span><b>Tablet or phone:</b> scan the code with the camera</span></div>}
+        <div className="way">💻 <span><b>This laptop:</b> <a className="btn" style={{ display: 'inline-block', textDecoration: 'none', padding: '6px 12px', margin: '2px 4px' }} href={pass.laptopUrl} target="_blank" rel="noopener">Open on this laptop</a><span className="muted" style={{ fontSize: 13 }}>(locks the parent area here)</span></span></div>
+        {pass.typeAt && <div className="way">🧑‍💻 <span><b>Kid's laptop or Chromebook:</b> open <code>{pass.typeAt}</code> and type <span className="typed">{pass.typedCode}</span></span></div>}
+        <span className="muted" style={{ fontSize: 13, display: 'block', marginTop: 8 }}>One use only: the first device that opens it gets the pass. Works on home Wi-Fi until {timeOfDay(pass.endsAt)}. A device that isn't set up for talking may show a security warning first: set it up with 📱 below.</span>
       </div>
     </div>
   );
