@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Usage Experiment E3</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2430;--muted:#5d6475;--line:#e4ded3;--brand:#2f9e6e;--warn:#b7791f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15171c;--card:#1f232b;--ink:#eceef3;--muted:#a3a9b8;--line:#333945;--brand:#4cc08d;--warn:#e0a84a}}
+:root[data-theme="dark"]{--bg:#15171c;--card:#1f232b;--ink:#eceef3;--muted:#a3a9b8;--line:#333945;--brand:#4cc08d;--warn:#e0a84a}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:24px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+h1{font-size:26px;margin:0 0 6px} h2{font-size:18px;margin:0 0 6px} h3{font-size:14px;margin:14px 0 4px;color:var(--muted)}
+.muted{color:var(--muted)} .warn{color:var(--warn);font-weight:600} .note{font-size:13px;color:var(--muted)}
+.mixes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+dl{display:grid;grid-template-columns:1fr;gap:2px;margin:10px 0 0} dt{font-size:12px;color:var(--muted);margin-top:8px} dd{margin:0}
+.bar{position:relative;height:26px;background:var(--bg);border-radius:8px;margin:4px 0;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--brand);opacity:.35;border-radius:8px}
+.bar span{position:relative;padding:0 10px;line-height:26px;font-weight:600}
+code{font-size:13px}
+</style></head><body><main>
+  <div class="card">
+    <h1>Usage experiment (E3)</h1>
+    <p class="muted" style="margin:0">The same scripted Kid session, run three ways on your own Claude plan: Start → Idea → Design → Tech plan with the same answers (one naughty request, one name and school), one build, one round of changes and the edit. Every run started with a cold cache. Measured 06/10/2026, 15:06:15.</p>
+  </div>
+  
+  <section class="card">
+    <h2>What we learned</h2>
+    <ul>
+      <li><b>Does <code>claude -p</code> get the 1-hour cache?</b> Yes: every token written to the cache went to the 1-hour cache.</li>
+      <li><b>Can a check share the guide's cache?</b> Only as an exact fork. Claude Code turns <code>--json-schema</code> into a tool, and tools come first in the cache, so a check with its own reply format misses the guide's cache completely. Mix B's checks reuse the guide's reply format and read its cached instructions.</li>
+      <li><b>What the cache holds:</b> each turn sends the conversation as one new message, so what's reused is the step's instructions (thousands of tokens, the same every turn), not the conversation.</li>
+      <li><b>Plan usage:</b> one whole app took 2–3% of the 5-hour limit in every mix, and the weekly % didn't move. <code>/usage</code> only shows whole percents, so the mixes can't be told apart that way: compare them by the cost estimate and the speed.</li>
+      <li><b>Cost:</b> B costs 31% more than A, and C 71% more. <b>Speed:</b> B's turns are the fastest (8.1 s against 12.4 s for A), because the check of the guide's reply runs after the guide answers, and here the Sonnet fork answered faster than the Haiku check (2.8 s against 6.6 s).</li>
+    </ul>
+  </section>
+  <div class="mixes">
+    <section class="card mix">
+      <h2>A · Sonnet guide, Haiku checks</h2>
+      <p class="muted">Each safety check is a small Haiku call with its own short instructions. Builder: Opus.</p>
+      
+      <dl>
+        <dt>5-hour limit used</dt><dd><b>3%</b> <span class="muted">(31% → 34%)</span></dd>
+        <dt>Weekly limit used</dt><dd><b>0%</b> <span class="muted">(31% → 31%)</span></dd>
+        <dt>Cost estimate (API prices)</dt><dd><b>$0.90</b> <span class="muted">guide $0.39 · checks $0.14 · builder $0.37</span></dd>
+        <dt>Claude calls</dt><dd>52 <span class="muted">(32 checks, 12 kid answers)</span></dd>
+        <dt>Tokens read from cache</dt><dd><b>45%</b> <span class="muted">121k read · 149k new (87k written to the 1-hour cache) · 35k written by Claude</span></dd>
+        <dt>Time per kid turn</dt><dd><b>12.4 s</b> <span class="muted">average · a check takes 6.6 s</span></dd>
+        <dt>Build, then edit</dt><dd><b>106 s</b>, <b>44 s</b></dd>
+        <dt>Safety still works</dt><dd>✅ naughty request flagged · ✅ name and school flagged</dd>
+      </dl>
+    </section>
+    <section class="card mix">
+      <h2>B · Checks as forks of the guide</h2>
+      <p class="muted">Each check repeats the guide&#39;s Sonnet call (same instructions and reply format) with the check asked at the end, so it reads the guide&#39;s cache. Builder: Opus.</p>
+      
+      <dl>
+        <dt>5-hour limit used</dt><dd><b>2%</b> <span class="muted">(34% → 36%)</span></dd>
+        <dt>Weekly limit used</dt><dd><b>0%</b> <span class="muted">(31% → 31%)</span></dd>
+        <dt>Cost estimate (API prices)</dt><dd><b>$1.18</b> <span class="muted">guide $0.39 · checks $0.42 · builder $0.37</span></dd>
+        <dt>Claude calls</dt><dd>52 <span class="muted">(32 checks, 12 kid answers)</span></dd>
+        <dt>Tokens read from cache</dt><dd><b>69%</b> <span class="muted">389k read · 171k new (171k written to the 1-hour cache) · 23k written by Claude</span></dd>
+        <dt>Time per kid turn</dt><dd><b>8.1 s</b> <span class="muted">average · a check takes 2.8 s</span></dd>
+        <dt>Build, then edit</dt><dd><b>286 s</b>, <b>18 s</b></dd>
+        <dt>Safety still works</dt><dd>✅ naughty request flagged · ✅ name and school flagged</dd>
+      </dl>
+    </section>
+    <section class="card mix">
+      <h2>C · Opus throughout</h2>
+      <p class="muted">Guide, checks and builder are all Opus.</p>
+      
+      <dl>
+        <dt>5-hour limit used</dt><dd><b>2%</b> <span class="muted">(36% → 38%)</span></dd>
+        <dt>Weekly limit used</dt><dd><b>0%</b> <span class="muted">(31% → 31%)</span></dd>
+        <dt>Cost estimate (API prices)</dt><dd><b>$1.54</b> <span class="muted">guide $0.92 · checks $0.27 · builder $0.35</span></dd>
+        <dt>Claude calls</dt><dd>52 <span class="muted">(32 checks, 12 kid answers)</span></dd>
+        <dt>Tokens read from cache</dt><dd><b>57%</b> <span class="muted">160k read · 122k new (122k written to the 1-hour cache) · 27k written by Claude</span></dd>
+        <dt>Time per kid turn</dt><dd><b>12.7 s</b> <span class="muted">average · a check takes 3.5 s</span></dd>
+        <dt>Build, then edit</dt><dd><b>79 s</b>, <b>30 s</b></dd>
+        <dt>Safety still works</dt><dd>✅ naughty request flagged · ✅ name and school flagged</dd>
+      </dl>
+    </section></div>
+  
+    <section class="card">
+      <h2>Side by side</h2>
+      <h3>Share of the 5-hour limit</h3><div class="bar"><i style="width:100.0%"></i><span>A: 3%</span></div><div class="bar"><i style="width:66.7%"></i><span>B: 2%</span></div><div class="bar"><i style="width:66.7%"></i><span>C: 2%</span></div>
+      <h3>Cost estimate at API prices</h3><div class="bar"><i style="width:58.6%"></i><span>A: $0.90</span></div><div class="bar"><i style="width:76.7%"></i><span>B: $1.18</span></div><div class="bar"><i style="width:100.0%"></i><span>C: $1.54</span></div>
+      <h3>Cost of the safety checks alone</h3><div class="bar"><i style="width:32.2%"></i><span>A: $0.14</span></div><div class="bar"><i style="width:100.0%"></i><span>B: $0.42</span></div><div class="bar"><i style="width:63.8%"></i><span>C: $0.27</span></div>
+      <h3>Average time per kid turn</h3><div class="bar"><i style="width:97.6%"></i><span>A: 12.4 s</span></div><div class="bar"><i style="width:64.0%"></i><span>B: 8.1 s</span></div><div class="bar"><i style="width:100.0%"></i><span>C: 12.7 s</span></div>
+      <p class="note">The 5-hour % comes from Claude Code's <code>/usage</code>, which shows whole percents and counts everything on the account at the same time (including this build chat), so a 1-point difference is noise. The cost estimate is Claude Code's own <code>total_cost_usd</code> per call: exact for comparing the mixes, but a plan isn't billed in dollars.</p>
+    </section>
+</main></body></html>

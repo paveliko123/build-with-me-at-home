@@ -181,7 +181,7 @@ Build mode: fast — pause only for significant decisions, the planned checkpoin
   Learner check: Open the Parent area and read the report for the app your kid just made. Then open the same report from the Reports folder in File Explorer. Is it what you want to know as a parent? What's missing or too much?
   Commit: `Parent reports, plan usage, alerts and limit reached`
 
-- [ ] **8. Choose the model mix with real usage numbers (E3)**
+- [x] **8. Choose the model mix with real usage numbers (E3)**
   Becomes usable: `npm run e3` runs the scripted journey three ways (A: Sonnet guide + Haiku checks; B: checks as guide forks; C: Opus throughout). It writes `devpost/usage-experiment.html` with % of the 5-hour limit, cache reads, the cost estimate and speed for each, and you pick the mix.
   Why now: Your caching question needs the real pipeline (slices 5–7) to measure. It runs when you're ready to spend about 15–30% of a 5-hour window.
   PRD ref: `prd.md > The Parent Report` (plan usage)
@@ -303,3 +303,6 @@ Activity mode:
 - **Reports keep the facts even without the review, and the usage note is honest** (slice 7, internal).
   - What the build found: the Opus review is one more Claude call, so it can fail at exactly the wrong moment (a limit just hit). And `/usage` measures the whole account, including the parent's own Claude Code use at the same time.
   - What changes: time, rounds, device, flags, timeline and usage always come from the project; if the review can't run, the report says so and shows the facts. The usage line says that anything else on the account counts too, and which kid's session it was shared with. A `simulate-limit` file in the plugin folder simulates a rejected limit for testing.
+- **Mix B is the default, and the experiment changed how a "fork" check is built** (slice 8).
+  - What the build found: Claude Code turns `--json-schema` into a tool, and tools come first in the prompt cache, so a check with its own reply format can't read the guide's cache at all. A fork check therefore reuses the guide's exact system prompt and reply schema, asks the check at the end of the conversation, and returns its verdict as JSON in the "say" field. Plan % (`/usage`) shows whole percents only, so the mixes were compared by Claude Code's cost estimate and speed.
+  - What changes: the learner chose mix B for speed (8.1 s per turn against 12.4 s for A, at 31% more cost; 2–3% of the 5-hour limit per app either way). The mix is one setting (`DEFAULT_MIX`, or `BWM_MIX`). Checks with no conversation (the app's words, the edit check) use the same Sonnet model.

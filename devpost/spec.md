@@ -22,7 +22,7 @@ The app has five pieces, all on the parent's computer:
    - asks Claude to guide, check, build and report
 3. **The parent's Claude Code** (the *brains*). The server runs the parent's own `claude` program in the background ("non-interactive mode"), one conversation per job:
    - the **guide** (Sonnet), which talks with the kid
-   - the **checker** (Haiku), which reads every turn for anything unsuitable or personal
+   - the **checker** (Sonnet, as a fork of the guide's call), which reads every turn for anything unsuitable or personal
    - the **builder** (Opus), which writes the kid's app
    - the **reporter** (Opus), which writes the parent report
 
@@ -98,13 +98,13 @@ PRD ref: `prd.md > The Core Journey`.
 | PIN | Node's built-in `crypto.scrypt` | Hashed PIN, no extra library | [Node crypto](https://nodejs.org/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback) |
 | Packaging | A **Claude Code plugin** and marketplace in the same GitHub repo | Learner decision: the target parent already uses Claude Code | [Plugins reference](https://code.claude.com/docs/en/plugins-reference) |
 
-**Models (starting setup, to be confirmed by the usage experiment):**
+**Models (chosen with the usage experiment, mix B):**
 - guide: `sonnet`
-- checker: `haiku`
+- checker: `sonnet`, run as a fork of the guide's call (same system prompt and reply schema, so it reads the guide's cache)
 - builder: `opus`
 - reporter: `opus`
 
-These come from Build With Me's model comparison. See **Usage Experiment**.
+The mix is one setting in `server/journey/claude.ts` (`DEFAULT_MIX`, or `BWM_MIX=A|B|C`). See **Usage Experiment**.
 
 **Unverified, so check these early:** the `--json-schema` + stream-json combination, isolation from the user-level CLAUDE.md, `/usage` output in `-p` mode, Transformers.js Whisper speed on the test laptop, and iPad and Android certificate install steps. Each is a step in **Build Order and Early Experiments**.
 
@@ -331,6 +331,11 @@ Implements the learner's question about caching and models (see **Decisions and 
 - **What it records for each:** the `/usage` 5-hour % before and after, total tokens, cache-read tokens, the `total_cost_usd` estimate, time per turn, and build time.
 - **Output:** a short HTML results page in `devpost/usage-experiment.html`.
 - **The decision** goes into this spec's **Decisions and Open Issues**. A takes about 5–10% of a 5-hour window per run (estimate), so it runs **when the learner is ready to spend that**.
+- **Result (slice 8, 2026-10-06):** all three runs finished, and safety caught the naughty request and the name and school in each.
+  - A whole app took 2–3% of the 5-hour limit in every mix, and the weekly % didn't move. `/usage` shows whole percents only, so the mixes were compared by the cost estimate and speed.
+  - Cost at API prices: A $0.90, B $1.18 (+31%), C $1.54 (+71%).
+  - Average wait per kid turn: A 12.4 s, B 8.1 s, C 12.7 s. The check of the guide's reply runs after the guide answers, and the Sonnet fork (2.8 s) answered faster than the Haiku check (6.2 s).
+  - **The learner chose B:** "the speed is the major downside now, so any improvement is a plus."
 
 ## Data Model
 
@@ -487,8 +492,12 @@ Riskiest first, so nothing depends on an unproven piece:
   - caches are per model and match only an identical beginning
   - a check reuses the guide's cache only if it runs as a fork of the guide's conversation
   - build starts a new conversation anyway
-- **What's still unknown:** whether `-p` gets the 1-hour cache, and how much cached tokens count against plan limits.
-- **How it gets checked:** **E3** compares setups A, B and C on real plan-usage %. The starting setup is A until then.
+- **What E3 found:**
+  - `-p` gets the 1-hour cache (every cache write was the 1-hour kind).
+  - A check shares the guide's cache only as an exact fork: Claude Code turns `--json-schema` into a tool, and tools come first in the cache, so a check with its own reply format misses it completely.
+  - What's reused is each step's instructions, not the conversation (each turn sends the conversation as one new message).
+  - Plan % can't separate the mixes (whole percents, 2–3% per app in each).
+- **Decision:** mix B (Sonnet guide, Sonnet checks as forks of the guide's call, Opus builder and reporter), chosen for speed. Results in `devpost/usage-experiment.html`.
 
 **The learner's goal, local versus hosted pros and cons, as it shows up in this blueprint (for the build wrap-up):**
 - **Pros:**
@@ -514,7 +523,7 @@ Riskiest first, so nothing depends on an unproven piece:
 **Open (to resolve in the build, not blocking approval):**
 - **E1:** the exact isolation flag set, whether CLAUDE.md is excluded, `--json-schema` with stream-json, and `/usage` parsing.
 - **E2:** iPad and Android certificate steps, the microphone, Whisper latency and accuracy.
-- **E3:** the final model mix.
+- ~~**E3:** the final model mix.~~ Settled: mix B (see **Usage Experiment**).
 - **Mac testing:** only if a Mac is available. Otherwise the README marks Mac as "should work, untested."
 - **The course skills' license:** confirm MIT and copy the notice.
 - **The learner's minor UI tweaks:** after it's running (`prd.md > Open Questions`).

@@ -31,7 +31,30 @@ export interface CallMeta {
   ms: number;
 }
 
-const ROLE_MODEL: Record<'guide' | 'check', Model> = { guide: 'sonnet', check: 'haiku' };
+// ---------- the model mix (spec.md > Usage Experiment, E3) ----------
+// A: a Sonnet guide, Haiku checks, an Opus builder. B: checks run as forks of the guide's own
+// call (same model, same system prompt and reply schema, so they share its prompt cache).
+// C: Opus throughout. The reporter is Opus in every mix.
+export type MixId = 'A' | 'B' | 'C';
+export interface Mix { id: MixId; guide: Model; check: Model; builder: Model; forkChecks: boolean }
+export const MIXES: Record<MixId, Mix> = {
+  A: { id: 'A', guide: 'sonnet', check: 'haiku', builder: 'opus', forkChecks: false },
+  B: { id: 'B', guide: 'sonnet', check: 'sonnet', builder: 'opus', forkChecks: true },
+  C: { id: 'C', guide: 'opus', check: 'opus', builder: 'opus', forkChecks: false },
+};
+export const DEFAULT_MIX: MixId = 'B'; // chosen from E3 (devpost/usage-experiment.html): the fastest turns
+let mixId: MixId = (process.env.BWM_MIX ?? '') in MIXES ? (process.env.BWM_MIX as MixId) : DEFAULT_MIX;
+export const currentMix = (): Mix => MIXES[mixId];
+export function setMix(id: MixId) { mixId = id; }
+
+// The experiment starts every run with a cold cache (a different first line), so one mix
+// never reuses the cache another mix just wrote.
+const salted = (system: string) => (process.env.BWM_PROMPT_SALT ? `[run ${process.env.BWM_PROMPT_SALT}]\n${system}` : system);
+
+/** For the experiment: every finished call, with Claude Code's raw usage numbers. */
+let callListener: ((meta: CallMeta, usage: Record<string, unknown>) => void) | undefined;
+export function onCallDone(fn: typeof callListener) { callListener = fn; }
+
 const GUIDE_TIMEOUT_MS = 120_000;
 
 /** The parent's plan limit was hit (prd.md > Limit Reached). */
@@ -69,11 +92,13 @@ export function renderTurns(turns: Turn[]): string {
 
 function metaOf(label: string, model: Model, r: TurnResult): CallMeta {
   const u = r.usage as Record<string, number>;
-  return {
+  const meta: CallMeta = {
     label, model, costUsd: r.costUsd ?? 0, ms: r.durationMs,
     inputTokens: u.input_tokens ?? 0, outputTokens: u.output_tokens ?? 0,
     cacheReadTokens: u.cache_read_input_tokens ?? 0, cacheWriteTokens: u.cache_creation_input_tokens ?? 0,
   };
+  callListener?.(meta, r.usage);
+  return meta;
 }
 
 /** Test hook (checklist slice 7): a file named "simulate-limit" in the plugin data folder makes
@@ -83,9 +108,9 @@ export const simulatedLimit = () => existsSync(join(pluginDataDir(), 'simulate-l
 const limited = (r: TurnResult) => r.rateLimit?.status === 'rejected' || /rate.?limit|usage limit|limit reached/i.test(r.error ?? '');
 
 async function call(label: string, role: 'guide' | 'check', system: string, prompt: string, schema: unknown, timeoutMs = GUIDE_TIMEOUT_MS, onRateLimit?: (i: RateLimitInfo) => void) {
-  const model = ROLE_MODEL[role];
+  const model = role === 'guide' ? currentMix().guide : currentMix().check;
   if (simulatedLimit()) throw new LimitError(Date.now() + 60 * 60_000);
-  const r = await oneShot({ model, systemPrompt: system, prompt, jsonSchema: claudeSchema(schema), timeoutMs, onRateLimit });
+  const r = await oneShot({ model, systemPrompt: salted(system), prompt, jsonSchema: claudeSchema(schema), timeoutMs, onRateLimit });
   if (limited(r)) throw new LimitError(r.rateLimit?.resetsAt ? r.rateLimit.resetsAt * 1000 : undefined);
   return { r, meta: metaOf(label, model, r) };
 }
@@ -122,8 +147,21 @@ function tryJson(text: string): unknown {
   try { return JSON.parse(text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '')); } catch { return null; }
 }
 
-/** One call with the check model: used by the safety check. */
-export async function callCheck(label: string, system: string, prompt: string, schema: unknown, timeoutMs = 30_000): Promise<{ result: unknown; ok: boolean; meta: CallMeta }> {
+/** The guide's call a check can fork from: its system prompt, conversation and reply schema. */
+export interface ForkFrom { system: string; turns: Turn[]; schema: unknown }
+
+/** One call with the check model: used by the safety check. In a fork-checks mix, a check that
+ *  knows the guide's call runs as that call (same model, system prompt and schema: Claude Code's
+ *  --json-schema is a tool, and a different tool list misses the whole cache), with the check
+ *  asked at the end and its verdict returned as JSON in "say". */
+export async function callCheck(label: string, system: string, prompt: string, schema: unknown, timeoutMs = 30_000, fork?: ForkFrom): Promise<{ result: unknown; ok: boolean; meta: CallMeta }> {
+  if (fork && currentMix().forkChecks) {
+    const conversation = renderTurns(fork.turns).replace(/\n\nNow write your next reply as the guide\.$/, '');
+    const ask = `${conversation}\n\nPAUSE. This is not your next reply. Before it, the app needs a safety check, and you are doing it now.\n\n${system}\n\n${prompt}\n\nPut your answer in the "say" field as one JSON object with the fields above (for example {"verdict":"ok"}) and nothing else; give any other required field an empty or false value.`;
+    const { r, meta } = await call(`${label}-fork`, 'guide', fork.system, ask, fork.schema, Math.max(timeoutMs, 60_000), rateLimitListener);
+    const say = (r.structured as { say?: unknown } | undefined)?.say;
+    return { result: typeof say === 'string' ? tryJson(say) : null, ok: r.ok, meta };
+  }
   const { r, meta } = await call(label, 'check', system, prompt, schema, timeoutMs, rateLimitListener);
   return { result: r.structured ?? tryJson(r.text), ok: r.ok, meta };
 }
@@ -134,15 +172,15 @@ const BUILD_TIMEOUT_MS = 12 * 60_000; // big apps can take several minutes to wr
 
 /** The builder (Opus) writes one complete HTML document, or edits in the EDIT FORMAT (plain text). */
 export async function callBuilder(system: string, prompt: string): Promise<{ text: string; meta: CallMeta }> {
-  const model: Model = 'opus';
+  const model: Model = currentMix().builder;
   if (simulatedLimit()) throw new LimitError(Date.now() + 60 * 60_000);
-  const r = await oneShot({ model, systemPrompt: system, prompt, timeoutMs: BUILD_TIMEOUT_MS, onRateLimit: rateLimitListener });
+  const r = await oneShot({ model, systemPrompt: salted(system), prompt, timeoutMs: BUILD_TIMEOUT_MS, onRateLimit: rateLimitListener });
   if (limited(r)) throw new LimitError(r.rateLimit?.resetsAt ? r.rateLimit.resetsAt * 1000 : undefined);
   if (!r.ok) throw new GuideError(`the builder did not answer: ${(r.error ?? '').slice(0, 200)}`);
   return { text: r.text, meta: metaOf('generateApp', model, r) };
 }
 
-const CHANGES_SCHEMA = {
+export const CHANGES_SCHEMA = {
   type: 'object',
   properties: {
     say: { type: 'string' },

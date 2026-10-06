@@ -58,6 +58,7 @@ function answerFor(reply: any, stage: string, i: number): string {
 async function main() {
   const { startServer } = await import('../server/index.js');
   const { REDIRECT_REPLY } = await import('../server/journey/prompt/safety.js');
+  const mix = (await import('../server/journey/claude.js')).currentMix();
   const server = await startServer({ httpPort: PORT, httpsPort: PORT + 1 });
   const parent = client();
   const started = Date.now();
@@ -123,7 +124,7 @@ async function main() {
     const hides = /const shownDocs = profile\.experience >= 2 \?/.test(readFileSync('web/src/kid/journey/screens/GuideStage.tsx', 'utf8'));
     const reviewAsk = log.filter((l) => l.who === 'Maya' && /look right|would you change|approve/i.test(l.reply?.question ?? ''));
     add('Kid: never asked to review a plan, and plans stay off the screen', hides && reviewAsk.length === 0, `screen hides plans: ${hides}; review questions: ${reviewAsk.length}`);
-    add('usage is recorded per project', pm.usage.calls > 0 && pm.usage.byModel.sonnet > 0 && pm.usage.byModel.haiku > 0, `${pm.usage.calls} calls, $${pm.usage.costUsd.toFixed(2)} estimate, cache read ${pm.usage.cacheReadTokens} tokens`);
+    add('usage is recorded per project', pm.usage.calls > 0 && pm.usage.byModel[mix.guide] > 0 && pm.usage.byModel[mix.check] > 0, `${pm.usage.calls} calls, $${pm.usage.costUsd.toFixed(2)} estimate (mix ${mix.id}), cache read ${pm.usage.cacheReadTokens} tokens`);
     const step = (await parent.call('/api/parent/passes')).body.find((p: any) => p.kidId === maya.id)?.step;
     add("the parent's Active passes shows the kid's step", step === 'Build', String(step));
 

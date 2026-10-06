@@ -3,7 +3,7 @@
 // Ported from Build With Me's functions/src/safetyCheck.ts. Flags go into the project for the
 // parent report. If the check itself fails twice, the turn goes through and is logged: the
 // guide still runs under the strict safety layer.
-import { callCheck, LimitError, type CallMeta } from './claude.js';
+import { callCheck, LimitError, type CallMeta, type ForkFrom } from './claude.js';
 import type { Project } from './project.js';
 import type { AgeGroup } from './types.js';
 
@@ -45,12 +45,12 @@ const LABEL: Record<Direction, string> = {
 };
 
 /** Checks one text. Two tries; if both fail the result is "ok" with failed: true (logged). */
-export async function callSafetyCheck(text: string, direction: Direction, ageGroup: AgeGroup): Promise<SafetyResult> {
+export async function callSafetyCheck(text: string, direction: Direction, ageGroup: AgeGroup, fork?: ForkFrom): Promise<SafetyResult> {
   if (!text.trim()) return { verdict: 'ok' };
   const who = ageGroup === 'kid' ? 'a kid under 13' : 'a teen (13-17)';
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const { result, ok, meta } = await callCheck(`safety-${direction}`, RULES, `${LABEL[direction]} (the person is ${who}):\n"""\n${text.slice(0, 6000)}\n"""`, SCHEMA);
+      const { result, ok, meta } = await callCheck(`safety-${direction}`, RULES, `${LABEL[direction]} (the person is ${who}):\n"""\n${text.slice(0, 6000)}\n"""`, SCHEMA, 30_000, fork);
       const parsed = (result ?? {}) as { verdict?: Verdict; category?: string; masked?: string };
       // No answer at all on a safety check usually means the text itself is the problem.
       if (!ok && !result) return { verdict: 'unsuitable', category: 'refused', meta };

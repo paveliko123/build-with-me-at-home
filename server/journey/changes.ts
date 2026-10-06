@@ -2,7 +2,7 @@
 // updates one list of changes, and the app is rebuilt only when the kid says they're done
 // (then the builder makes the whole list as one version). Both-way safety as in guideTurn.
 
-import { callChanges, GuideError, type CallMeta, type Turn } from './claude.js';
+import { callChanges, CHANGES_SCHEMA, GuideError, type CallMeta, type Turn } from './claude.js';
 import { CHANGES_INSTRUCTIONS } from './prompt/changesLayer.js';
 import { voiceLine } from './prompt/dial.js';
 import { LEAK, LEAK_REPLY, personText, REDIRECT_REPLY, SAFETY_LAYER, WELLBEING_REPLY } from './prompt/safety.js';
@@ -57,7 +57,7 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
       catch (err) { if (err instanceof GuideError) return err; throw err; }
     };
     // Checked at the same time as the list is updated: an unsuitable change never reaches the builder.
-    const [check, first] = await Promise.all([callSafetyCheck(text, 'input', ageGroupOf(p.profile)), listChanges()]);
+    const [check, first] = await Promise.all([callSafetyCheck(text, 'input', ageGroupOf(p.profile), { system, turns: [...past, { role: 'user', text: ask }], schema: CHANGES_SCHEMA }), listChanges()]);
     metas.push(check.meta, ...(first instanceof GuideError ? ((first as any).metas ?? []) : [first.meta]));
     let called = first;
     if (check.verdict === 'unsuitable' || check.verdict === 'wellbeing' || called instanceof GuideError) {

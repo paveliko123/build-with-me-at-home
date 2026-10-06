@@ -23,7 +23,8 @@
     "verify:4": "tsx scripts/verify-4.ts",
     "verify:5": "tsx scripts/verify-5.ts",
     "verify:6": "tsx scripts/verify-6.ts",
-    "verify:7": "tsx scripts/verify-7.ts"
+    "verify:7": "tsx scripts/verify-7.ts",
+    "e3": "tsx scripts/usage-experiment.ts"
   },
   "devDependencies": {
     "@fontsource-variable/nunito": "^5.3.0",

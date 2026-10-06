@@ -150,7 +150,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     <div class="piece" style="--c:var(--accent)"><h3>🖥️ 2. The server</h3><span class="nick">the back office</span>
       <ul><li>A small <b>Node.js</b> program, like Build With Me's Cloud Functions but on the laptop</li><li>Shows the screens to the laptop and to tablets on home Wi-Fi</li><li>Keeps the PIN, kids, passes, projects, apps and reports in <b>plain files</b> in <code>&lt;home&gt;\Build With Me</code></li><li>Turns speech into text <b>on this computer</b> (Whisper)</li><li>Asks Claude to guide, check, build and report</li></ul></div>
     <div class="piece" style="--c:var(--claude)"><h3>🧠 3. The parent's Claude Code</h3><span class="nick">the brains</span>
-      <ul><li>The server runs your own <code>claude</code> in the background, one conversation per job:</li><li><b>Guide</b> (Sonnet), talks with the kid</li><li><b>Checker</b> (Haiku), reads every turn</li><li><b>Builder</b> (Opus), writes the app</li><li><b>Reporter</b> (Opus), writes the report</li><li>Each one <b>sealed off</b> from your setup: no tools, files, plugins or CLAUDE.md. The app never sees your sign-in</li></ul></div>
+      <ul><li>The server runs your own <code>claude</code> in the background, one conversation per job:</li><li><b>Guide</b> (Sonnet), talks with the kid</li><li><b>Checker</b> (Sonnet, a fork of the guide's call), reads every turn</li><li><b>Builder</b> (Opus), writes the app</li><li><b>Reporter</b> (Opus), writes the report</li><li>Each one <b>sealed off</b> from your setup: no tools, files, plugins or CLAUDE.md. The app never sees your sign-in</li></ul></div>
     <div class="piece" style="--c:var(--kid)"><h3>🎨 4. The screens</h3><span class="nick">the front end</span>
       <ul><li>Build With Me's React kid screens</li><li>New parent screens from the approved mockups: PIN, parent home, reports</li></ul></div>
     <div class="piece" style="--c:var(--file)"><h3>🔐 5. The home certificate</h3><span class="nick">the tablet key</span>
@@ -194,7 +194,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     <text x="785" y="76" text-anchor="middle" font-weight="700" font-size="14" fill="var(--ink)">🧠 Your Claude Code</text>
     <g font-size="12" fill="var(--ink)" text-anchor="middle">
       <rect x="678" y="90" width="104" height="40" rx="8" fill="var(--card)" stroke="var(--claude)"/><text x="730" y="108" font-weight="700">Guide</text><text x="730" y="123">Sonnet · live</text>
-      <rect x="790" y="90" width="104" height="40" rx="8" fill="var(--card)" stroke="var(--claude)"/><text x="842" y="108" font-weight="700">Checker</text><text x="842" y="123">Haiku · live</text>
+      <rect x="790" y="90" width="104" height="40" rx="8" fill="var(--card)" stroke="var(--claude)"/><text x="842" y="108" font-weight="700">Checker</text><text x="842" y="123">Sonnet fork · live</text>
       <rect x="678" y="140" width="104" height="40" rx="8" fill="var(--card)" stroke="var(--claude)"/><text x="730" y="158" font-weight="700">Builder</text><text x="730" y="173">Opus · per job</text>
       <rect x="790" y="140" width="104" height="40" rx="8" fill="var(--card)" stroke="var(--claude)"/><text x="842" y="158" font-weight="700">Reporter</text><text x="842" y="173">Opus · per job</text>
       <text x="785" y="205">sealed: no tools · no files</text>
@@ -266,7 +266,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
       </tbody>
     </table>
     <h4>Models: starting setup, to be confirmed by the usage experiment</h4>
-    <p style="margin:0">Guide <code>sonnet</code> · checker <code>haiku</code> · builder <code>opus</code> · reporter <code>opus</code>. These come from Build With Me's model comparison. See <a href="#c-exp">Usage Experiment</a>.</p>
+    <p style="margin:0">Guide <code>sonnet</code> · checker <code>sonnet</code>, run as a fork of the guide's call (same system prompt and reply schema, so it reads the guide's cache) · builder <code>opus</code> · reporter <code>opus</code>. Chosen with the <a href="#c-exp">Usage Experiment</a> (mix B). The mix is one setting in <code>server/journey/claude.ts</code> (<code>DEFAULT_MIX</code>, or <code>BWM_MIX=A|B|C</code>).</p>
     <h4>Unverified, so check these early</h4>
     <p style="margin:0">The <code>--json-schema</code> + stream-json combination · isolation from the user-level CLAUDE.md · <code>/usage</code> output in <code>-p</code> mode · Whisper speed on the test laptop · iPad and Android certificate steps. Each is a step in <a href="#order">Build Order</a>.</p>
   </div>
@@ -560,15 +560,31 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
     <div class="tablewrap"><table>
       <thead><tr><th>Setup</th><th>Guide</th><th>Checker</th><th>Builder / Reporter</th><th>Idea being tested</th></tr></thead>
       <tbody>
-        <tr><td><b>A</b> (start)</td><td>Sonnet</td><td>Haiku, own conversation</td><td>Opus</td><td>Cheap checks, the right model per job</td></tr>
-        <tr><td><b>B</b></td><td>Sonnet</td><td>Sonnet, <b>fork of the guide's conversation</b></td><td>Opus</td><td>Checks reuse the guide's cache</td></tr>
-        <tr><td><b>C</b></td><td>Opus</td><td>Opus fork</td><td>Opus</td><td>One model, one cache all the way</td></tr>
+        <tr><td><b>A</b></td><td>Sonnet</td><td>Haiku, own conversation</td><td>Opus</td><td>Cheap checks, the right model per job</td></tr>
+        <tr><td><b>B</b> (chosen)</td><td>Sonnet</td><td>Sonnet, <b>fork of the guide's conversation</b></td><td>Opus</td><td>Checks reuse the guide's cache</td></tr>
+        <tr><td><b>C</b></td><td>Opus</td><td>Opus, own conversation</td><td>Opus</td><td>One model, one cache all the way</td></tr>
       </tbody>
     </table></div>
     <ul>
       <li><b>Records for each:</b> the <code>/usage</code> 5-hour % before and after, total tokens, cache-read tokens, the <code>total_cost_usd</code> estimate, time per turn, build time.</li>
       <li><b>Output:</b> <code>devpost/usage-experiment.html</code>. The decision goes into Decisions and Open Issues.</li>
       <li>A run takes about 5–10% of a 5-hour window (estimate), so it runs <b>when you're ready to spend that</b>.</li>
+    </ul>
+    <h4>Result (slice 8, 6 Oct 2026)</h4>
+    <p>All three runs finished, and safety caught the naughty request and the name and school in each.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th></th><th>A</th><th>B</th><th>C</th></tr></thead>
+      <tbody>
+        <tr><td>5-hour limit for a whole app</td><td>3%</td><td>2%</td><td>2%</td></tr>
+        <tr><td>Cost at API prices</td><td><b>$0.90</b></td><td>$1.18 (+31%)</td><td>$1.54 (+71%)</td></tr>
+        <tr><td>Average wait per kid turn</td><td>12.4 s</td><td><b>8.1 s</b></td><td>12.7 s</td></tr>
+        <tr><td>One safety check</td><td>6.2 s</td><td>2.8 s</td><td>3.6 s</td></tr>
+      </tbody>
+    </table></div>
+    <ul>
+      <li>The weekly % didn't move. <code>/usage</code> shows whole percents only, so the mixes were compared by the cost estimate and speed.</li>
+      <li>B is fastest because the check of the guide's reply runs after the guide answers, and the Sonnet fork answered faster than the Haiku check.</li>
+      <li><b>You chose B:</b> "the speed is the major downside now, so any improvement is a plus."</li>
     </ul>
   </div></details>
 
@@ -734,8 +750,14 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
   <div class="card why">
     <p style="margin:0 0 6px"><b>The question:</b> "Since my Claude app has a 1-hour cache, is it better for checks to use the same model as the stage, and might designing in Opus carry the cache into build?"</p>
     <p style="margin:0 0 6px"><b>What clarified it:</b> caches are per model and match only an identical beginning. A check reuses the guide's cache only as a fork of the guide's conversation. Build starts a new conversation anyway.</p>
-    <p style="margin:0 0 6px"><b>Still unknown:</b> whether <code>-p</code> gets the 1-hour cache, and how much cached tokens count against plan limits.</p>
-    <p style="margin:0"><b>How it gets checked:</b> <a href="#c-exp">E3</a> compares A, B and C on real plan-usage %. Setup A until then.</p>
+    <p style="margin:0 0 6px"><b>What E3 found:</b></p>
+    <ul style="margin:0 0 6px">
+      <li><code>-p</code> gets the 1-hour cache (every cache write was the 1-hour kind).</li>
+      <li>A check shares the guide's cache only as an exact fork: Claude Code turns <code>--json-schema</code> into a tool, and tools come first in the cache, so a check with its own reply format misses it completely.</li>
+      <li>What's reused is each step's instructions, not the conversation (each turn sends the conversation as one new message).</li>
+      <li>Plan % can't separate the mixes (whole percents, 2–3% per app in each).</li>
+    </ul>
+    <p style="margin:0"><b>Decision:</b> mix B, chosen for speed. Results in <code>devpost/usage-experiment.html</code>.</p>
   </div>
 
   <h4>Your learning goal, local versus hosted, as it shows up here (for the build wrap-up)</h4>
@@ -760,7 +782,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
       <tr><td>Exact isolation flags, CLAUDE.md excluded, <code>--json-schema</code> with stream-json, <code>/usage</code> parsing</td><td>E1</td></tr>
       <tr><td>Does your plan include Opus in Claude Code? If not, the builder and reporter fall back to Sonnet, and the report notes it</td><td>E1</td></tr>
       <tr><td>iPad and Android certificate steps, mic, Whisper latency and accuracy</td><td>E2</td></tr>
-      <tr><td>Final model mix</td><td>E3</td></tr>
+      <tr><td>Final model mix</td><td>Settled in E3: mix B</td></tr>
       <tr><td>Mac testing (otherwise the README says "should work, untested")</td><td>If a Mac is available</td></tr>
       <tr><td>Course skills' license: confirm MIT and copy the notice</td><td>Kid journey port</td></tr>
       <tr><td>Your minor UI tweaks</td><td>After it's running</td></tr>
@@ -777,7 +799,7 @@ const steps=[
  {t:'Opening',hops:[['parent','Double-clicks Build With Me on the desktop.'],['plugin','The start file runs launch.mjs (starts the server if needed) and opens the browser.'],['parent','Note, PIN, Enter.'],['server','Checks the PIN against the stored hash; sets a parent cookie valid only on this laptop.']]},
  {t:'Give a pass',hops:[['parent','Picks Maya, 1 hour.'],['server','Writes a pass with a random one-use code.'],['files','passes.json'],['parent','The screen shows a QR code for https://<laptop address>:4748/p/<code>, plus "open on this laptop."']]},
  {t:'Kid scans',hops:[['kid','The tablet opens the link.'],['server','Code unused and unexpired? Mark used, record the device, set the pass cookie. That browser is Maya\'s for an hour.'],['kid','A second scan gets "already used."']]},
- {t:'A guide turn',hops:[['kid','Talks. The browser records and streams 16 kHz audio to the server.'],['server','Whisper turns it into text on the laptop; obvious personal details are masked.'],['claude','At the same time: the guide (Sonnet) gets the turn, and the checker (Haiku) judges the kid\'s words.'],['server','If the checker objects: discard the reply, gentle redirect, save a flag. Then the checker reads the guide\'s reply.'],['kid','The reply appears and the browser speaks it with a device voice.'],['files','Every turn, plan and flag saved in project.json, so nothing is lost if the pass ends.']]},
+ {t:'A guide turn',hops:[['kid','Talks. The browser records and streams 16 kHz audio to the server.'],['server','Whisper turns it into text on the laptop; obvious personal details are masked.'],['claude','At the same time: the guide (Sonnet) gets the turn, and the checker (a Sonnet fork of the guide\'s call) judges the kid\'s words.'],['server','If the checker objects: discard the reply, gentle redirect, save a flag. Then the checker reads the guide\'s reply.'],['kid','The reply appears and the browser speaks it with a device voice.'],['files','Every turn, plan and flag saved in project.json, so nothing is lost if the pass ends.']]},
  {t:'Build',hops:[['claude','The builder (Opus) gets its instructions plus the Idea and Design plans and returns one self-contained HTML file.'],['files','Saved as versions/vN.html.'],['kid','The ⅔ pane shows it in a sandboxed frame. Change rounds repeat this.']]},
  {t:'Ship',hops:[['kid','Names the app.'],['files','Copied to kids/maya/apps/space-cat-feeder/index.html + apps.json.'],['kid','Served at /apps/maya/space-cat-feeder, with its QR code.']]},
  {t:'Report',hops:[['claude','The reporter (Opus) gets the transcript, flags, timeline and usage numbers, and returns the report content as JSON.'],['server','Fills the report template.'],['files','Reports\\2026-10-06 Maya - Space Cat Feeder.html + reports/<id>.json'],['parent','Parent home shows it; Needs your attention too if there are flags.']]},
