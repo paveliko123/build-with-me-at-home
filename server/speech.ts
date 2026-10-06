@@ -40,6 +40,7 @@ export function loadSpeech(): Promise<Transcriber> {
 
 interface Utterance { chunks: Buffer[]; bytes: number; started: number; lastChunk: number }
 const utterances = new Map<string, Utterance>();
+const MAX_UTTERANCES = 20; // at once (a family has a few devices; each holds at most 60 s)
 
 // Forget utterances that were abandoned (tab closed mid-sentence).
 setInterval(() => {
@@ -47,11 +48,14 @@ setInterval(() => {
   for (const [id, u] of utterances) if (now - u.lastChunk > 2 * 60_000) utterances.delete(id);
 }, 60_000).unref();
 
-/** Adds a chunk of 16 kHz mono Int16 little-endian PCM to an utterance. */
-export function addChunk(id: string, pcm: Buffer): { seconds: number } {
+/** Adds a chunk of 16 kHz mono Int16 little-endian PCM to an utterance (null: too many at once). */
+export function addChunk(id: string, pcm: Buffer): { seconds: number } | null {
   let u = utterances.get(id);
-  if (!u) { u = { chunks: [], bytes: 0, started: Date.now(), lastChunk: Date.now() }; utterances.set(id, u); }
-  if (u.bytes / 2 / SAMPLE_RATE < MAX_SECONDS) { u.chunks.push(pcm); u.bytes += pcm.length; }
+  if (!u) {
+    if (utterances.size >= MAX_UTTERANCES) return null;
+    u = { chunks: [], bytes: 0, started: Date.now(), lastChunk: Date.now() }; utterances.set(id, u);
+  }
+  if ((u.bytes + pcm.length) / 2 / SAMPLE_RATE <= MAX_SECONDS) { u.chunks.push(pcm); u.bytes += pcm.length; }
   u.lastChunk = Date.now();
   return { seconds: u.bytes / 2 / SAMPLE_RATE };
 }

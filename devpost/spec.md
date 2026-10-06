@@ -168,12 +168,13 @@ Implements `prd.md > Installing and Updating`, `prd.md > First-Run Setup`.
 ### Server Core
 Implements the plumbing for every PRD feature.
 - `server/index.ts`:
-  - **Two listeners:** HTTP on `127.0.0.1:4747` for the laptop, and HTTPS on `0.0.0.0:4748` for the home network.
+  - **Two listeners,** both on all addresses: HTTP on `4747` (the laptop gets everything; other devices only the tablet-setup page and certificate files) and HTTPS on `4748` for the home network.
   - **Static front end:** from `app/dist/web`.
   - **API routes:** under `/api`.
   - **SSE:** at `/api/events`.
   - **Apps:** at `/apps/:kid/:slug`.
 - **Who's asking** (`server/auth.ts`):
+  - **Only this computer's own names** (security audit H1): a request addressed to anything other than `localhost`, `127.0.0.1`, the laptop's home addresses or its machine name gets 421. A web page that points its own domain at the laptop ("DNS rebinding") therefore gets nothing. Requests that change something must also come from one of these names (the `Origin` header), or get 403.
   - **Parent routes** answer **only on the loopback address**, with a valid parent cookie.
   - **Kid routes** need a valid, unexpired **pass cookie**.
   - **Everything else** gets 401, with a friendly screen.
@@ -183,7 +184,7 @@ Implements the plumbing for every PRD feature.
 ### Parent Gate
 Implements `prd.md > Parent Gate and Responsibility`.
 - **The PIN:** 4–8 digits, stored as `scrypt(pin, salt)` in `family.json`. It's never logged.
-- **Wrong PIN:** after 5 wrong tries, a 60-second lockout, kept in memory (the PRD assumption).
+- **Wrong PIN:** after 5 wrong tries, a 60-second lockout, kept in memory (the PRD assumption). During the lockout even the right PIN waits, so the lockout really slows guessing (the audit suggested otherwise, M3; the learner kept it).
 - **The parent cookie:** `HttpOnly`, `SameSite=Strict`, loopback only. **🔒 Lock** clears it, and so does 12 hours without use.
 - **Forgot the PIN:** `/build-with-me:reset-pin` in Claude Code, a small command that clears the PIN hash so the next opening asks for a new PIN. Only someone at the parent's Claude Code can do it. This resolves the PRD open question.
 - **Never handles the Claude sign-in:** the server only runs `claude`. It never reads Claude's credential files or tokens.
@@ -191,15 +192,16 @@ Implements `prd.md > Parent Gate and Responsibility`.
 ### Kids and Family Data
 Implements `prd.md > Kids`.
 - `family.json` holds the kids: id, nickname, Kid or Teen, and emoji. The age group is read **only** from here when a session starts.
-- Removing a kid asks for confirmation. Their apps and reports stay in the folder unless the parent picks "also delete their apps."
+- **Removing a kid deletes all their data** (security audit M2, learner decision): projects and conversations, shipped apps, parent reports (data and the files in `Reports\`), passes and alerts (`server/kidData.ts`). First a red warning lists exactly what will go, says it can't be undone and how to keep a report, and the parent types the kid's name to confirm. A report Opus is still writing for that kid is not saved.
 
 ### Passes
 Implements `prd.md > Passes`.
 - **Each pass:** `{id, kidId, code, typedCode, createdAt, endsAt, usedAt, device, endedAt}`. The code is 128 random bits (base64url).
-- **Opening it:** `/p/:code` shows whose pass it is (`GET /api/pass/peek/:code`, which doesn't use it up, so a link preview can't spend a pass). The kid taps **Start**, which calls `POST /api/pass/open {code}`. If the code is unused and unexpired, the server stores `usedAt` and the device (a friendly label from the browser's user agent, e.g. "iPad," "Windows laptop") and sets the pass cookie: a different random token, stored only as a hash, `HttpOnly`, `SameSite=Lax`, lasting a day past the end so the kid sees Time's up. Otherwise it shows "already used" or "expired." The same device opening it again just goes back in.
+- **Opening it:** `/p/:code` shows whose pass it is (`GET /api/pass/peek/:code`, which doesn't use it up, so a link preview can't spend a pass). The kid taps **Start**, which calls `POST /api/pass/open {code}`. If the code is unused and unexpired, the server stores `usedAt` and the device (a friendly label from the browser's user agent, e.g. "iPad," "Windows laptop") and sets the pass cookie: a different random token, stored only as a hash, `HttpOnly`, `SameSite=Lax`, lasting a day past the end so the kid sees Time's up. On other devices (HTTPS) it's also `Secure`, so it's never sent over plain HTTP (security audit M4). Otherwise it shows "already used" or "expired." The same device opening it again just goes back in.
 - **Open on this laptop:** the same, on `http://localhost`. It also **locks the parent area** in that browser, so a kid is never one tab away from it.
 - **Only at home:** opening a pass and every kid request must come from the laptop or a private home address.
 - **Typed code (laptops, Chromebooks):** each pass also has `typedCode`, 8 characters from an alphabet without look-alikes (no 0/O, 1/I/L), shown as `K7QM-3XPA` (about 40 bits). The kid types it on the no-pass screen, which calls `POST /api/pass/redeem {code}`. It runs the same open logic as `/p/:code`, so either one uses up the pass. 5 wrong codes from one address → a 60-second wait. Only live, unused passes match.
+- **Spending limits per pass** (security audit H2, `server/journey/limits.ts`): every Claude call spends the parent's plan, so one pass (a kid, a sibling, or a guest handed a QR code) can't run it down. At most 10 Claude requests a minute and 150 an hour (a fast kid manages about 2 a minute), 5 new apps and 30 builds per pass. Over the pace limit the kid sees "Whoa, that's fast! Wait a little"; over a cap, "Ask your parent for a new pass. Your work is saved," and the parent gets a Needs your attention note. Kept in memory.
 - **Extend and end:** `POST /api/parent/passes/:id/extend {minutes}` and `/end`. Each sends an SSE `pass` event to that kid's screens.
 - **Rules:** one live pass per kid. Creating a new one for a kid with a live pass asks "end the old one?"
 - **The countdown:** the kid screen shows a countdown when there are ≤10 minutes left. At `endsAt`, the server stops taking new turns for that pass. A **build already running finishes and saves**. The kid screen shows Time's up.
@@ -260,12 +262,12 @@ Implements `prd.md > Safety`.
   - **Unsuitable output:** the reply is regenerated once, and then a safe fallback line is used.
   - Every non-ok verdict appends a **flag** `{time, step, kidSaid, guideDid, kind}` to the project.
 - **Layer 3, the report:** described under **Reporter and Reports**.
-- **Builder output:** the builder's HTML text also goes through one checker pass before it's shown.
+- **Builder output:** the builder's HTML text also goes through one checker pass before it's shown, including words drawn in pictures (SVG text). The hard rules also catch an app that reaches the internet from code (a script, picture, CSS `url()` or `import` from a web address), which the app's page rules block anyway (security audit B1, B2).
 
 ### Speech
 Implements `prd.md > Talking`.
 - **In the browser** (`web/src/kid/journey/lib/speech.ts`, rewritten over `public/lib/recorder.js`): `getUserMedia` microphone, an AudioWorklet resampling to **16 kHz mono PCM**, sent in ~1-second chunks over `POST /api/speech/:utteranceId`. A quiet-detection step ends the utterance (4 s for kids, 3 s for teens), and there's an "I'm done" button. Build With Me's browser speech recognition (which sends audio to an outside service) is gone.
-- **On the server** (`server/speech.ts`): a Transformers.js `automatic-speech-recognition` pipeline with **Moonshine base**, loaded once at startup from `${CLAUDE_PLUGIN_DATA}/models`. Moonshine replaced Whisper after E2 (see `checklist.md > Revisions`). Chunks are transcribed as they arrive, and the final text is returned when the utterance ends. No audio is saved.
+- **On the server** (`server/speech.ts`): a Transformers.js `automatic-speech-recognition` pipeline with **Moonshine base**, loaded once at startup from `${CLAUDE_PLUGIN_DATA}/models`. Moonshine replaced Whisper after E2 (see `checklist.md > Revisions`). Chunks are transcribed as they arrive, and the final text is returned when the utterance ends. No audio is saved. Talking needs a live pass or the parent; at most 20 recordings at once, 60 seconds each (security audit M1).
 - **Voice out:** Build With Me's `voice.ts`, using `speechSynthesis` with a voice chosen per theme from the device's voices and a slower rate for kids. The ⚙️ menu is kept. Neural2 is removed.
 - **No microphone, or the tablet isn't set up** (the page isn't secure): the talk button is replaced by the text box with a "tap 🎤 on your keyboard to talk" hint. The parent sees "Set up this tablet for talking" in **Kids & their apps**.
 
@@ -350,10 +352,10 @@ Everything lives in **`<home>\Build With Me`**, unless noted:
 | `passes.json` | Passes (see **Passes**) | Create, open, extend, end | Expired passes kept 30 days for the reports, then pruned |
 | `kids/<kidId>/projects/<projectId>/project.json` | Stage, theme, transcript (masked), plans, change list, flags, timeline, usage readings, token and cost totals | Every turn, step change, build or flag | **Resume point:** the next pass picks up here |
 | `kids/<kidId>/projects/<projectId>/versions/vN.html` | Each built version | Each build | Kept; the last working version is shown |
-| `kids/<kidId>/apps/<slug>/index.html` and `kids/<kidId>/apps.json` | Shipped apps and the shelf index | Ship; parent delete | Kept until deleted |
-| `report-data/<reportId>.json` and `report-data/index/` | Report data for All reports | Report written | Kept |
+| `kids/<kidId>/apps/<slug>/index.html` and `kids/<kidId>/apps.json` | Shipped apps and the shelf index | Ship; parent delete | Kept until deleted (everything under `kids/<kidId>/` goes when the kid is removed) |
+| `report-data/<reportId>.json` and `report-data/index/` | Report data for All reports | Report written | Kept until the kid is removed |
 | `usage-calibration.json` | The learned rate for "this app's own share" (up to 30 measurements) | E3; each cleanly measured report | Kept |
-| `Reports/<date> <Kid> - <App>.html` | The readable report file | Report written | Kept; opens without the app |
+| `Reports/<date> <Kid> - <App>.html` | The readable report file | Report written | Kept, opens without the app; deleted when the kid is removed |
 | `alerts.json` | Needs your attention items | Flag, limit, dismiss | Kept until dismissed |
 | `Start Build With Me.cmd` / `.command` and `.app-location` | Stable start file and pointer | Every launch | Kept |
 | `.home-certificate/` | The home authority (tablets trust it) | First launch | Kept, so set-up tablets keep working |

@@ -24,6 +24,7 @@
     "verify:5": "tsx scripts/verify-5.ts",
     "verify:6": "tsx scripts/verify-6.ts",
     "verify:7": "tsx scripts/verify-7.ts",
+    "verify:security": "tsx scripts/verify-security.ts",
     "e3": "tsx scripts/usage-experiment.ts"
   },
   "devDependencies": {

@@ -126,7 +126,18 @@ export async function callGuide(system: string, turns: Turn[]): Promise<{ reply:
     metas.push(meta);
     const reply = (r.structured ?? tryJson(r.text)) as GuideReply | null;
     if (r.ok && reply && typeof reply.say === 'string') {
-      if (LEAK.test(String(reply.say ?? ''))) { console.warn(JSON.stringify({ event: 'leak-blocked', fn: 'guideTurn' })); reply.say = LEAK_REPLY; }
+      // Every part the kid sees, not only "say" (security audit A2). A stage document that quotes
+      // the instructions is dropped; the doc writer makes a fresh one.
+      const leaks = (v: unknown) => typeof v === 'string' && LEAK.test(v);
+      if ([reply.say, reply.question, reply.techSummary, reply.visualHtml, reply.doc?.markdown, ...(reply.cards ?? []).map((c) => c.label)].some(leaks)) {
+        console.warn(JSON.stringify({ event: 'leak-blocked', fn: 'guideTurn' }));
+        reply.say = LEAK_REPLY;
+        if (leaks(reply.question)) delete reply.question;
+        if (leaks(reply.techSummary)) delete reply.techSummary;
+        if (leaks(reply.visualHtml)) delete reply.visualHtml;
+        if (leaks(reply.doc?.markdown)) delete reply.doc;
+        if (reply.cards) reply.cards = reply.cards.filter((c) => !leaks(c.label));
+      }
       return { reply, meta: metas };
     }
     console.warn(JSON.stringify({ event: 'guide-no-reply', attempt, error: (r.error ?? '').slice(0, 200) }));

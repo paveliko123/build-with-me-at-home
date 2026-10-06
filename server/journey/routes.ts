@@ -18,6 +18,7 @@ import { commitProject, createProject, currentProject, exclusive, exclusiveBuild
 import { firstStage, stageDocKind } from './stages.js';
 import { makeReport, noteUsageStart } from '../report/reporter.js';
 import { addAlert } from '../report/alerts.js';
+import { spend, SpendLimit, type Spend } from './limits.js';
 import type { GuideReply, Profile, Stage, ThemeId } from './types.js';
 
 const THEMES: ThemeId[] = ['unicorns', 'princesses', 'robots', 'cars', 'space', 'arcade', 'music', 'sports', 'nature', 'office'];
@@ -71,6 +72,7 @@ function fail(res: Response, err: unknown, s?: KidSession) {
     return;
   }
   if (err instanceof TurnError) { res.status(err.status).json({ error: err.message }); return; }
+  if (err instanceof SpendLimit) { res.status(429).json({ error: err.code, say: err.say }); return; }
   console.error('[journey]', err);
   res.status(500).json({ error: 'hiccup' });
 }
@@ -80,8 +82,9 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
   r.use(express.json({ limit: '64kb' }));
   r.use(requireKid);
 
-  /** Runs an operation on a copy of the kid's current project and merges what it changed. */
-  async function withProject(req: Request, res: Response, lock: 'chat' | 'build' | null, work: (p: Project, s: KidSession) => Promise<unknown>) {
+  /** Runs an operation on a copy of the kid's current project and merges what it changed.
+   *  `cost`: what it spends on the parent's plan, counted against the pass (limits.ts). */
+  async function withProject(req: Request, res: Response, lock: 'chat' | 'build' | null, work: (p: Project, s: KidSession) => Promise<unknown>, cost: Spend | null = lock) {
     const s = sessionOf(req);
     const before = currentProject(s.kid.id);
     if (!before) { res.status(409).json({ error: 'no-project' }); return; }
@@ -90,6 +93,7 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
     if (lock && !before.usageStart) noteUsageStart(before, true); // started before plan usage was measured
     const run = async () => {
       try {
+        if (cost) spend(s, cost);
         const out = await work(p, s);
         commitProject(before, p);
         setPassStep(s.pass.id, STEP_NAMES[p.stage]);
@@ -118,6 +122,7 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
     if (existing) { res.json(snapshot(existing)); return; }
     const theme = req.body?.theme;
     if (!THEMES.includes(theme)) { res.status(400).json({ error: 'Unknown theme.' }); return; }
+    try { spend(s, 'project'); } catch (err) { fail(res, err, s); return; }
     const profile: Profile = { ageGroup: s.kid.group, experience: LEVEL[s.kid.group], theme, inputMode: req.body?.inputMode === 'talk' ? 'talk' : 'type' };
     const p = createProject(s.kid.id, profile, firstStage(profile));
     noteUsageStart(p); // plan usage before the first Claude call, for the report
@@ -154,7 +159,7 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
     text: typeof req.body?.text === 'string' ? req.body.text : undefined,
     remove: Number.isInteger(req.body?.remove) ? req.body.remove : undefined,
     chatQuestion: typeof req.body?.chatQuestion === 'string' ? req.body.chatQuestion : undefined,
-  })));
+  }), typeof req.body?.text === 'string' ? 'chat' : null)); // the ✕ on an item calls no Claude
 
   // Ship: the kid names the app; it goes on their shelf (final).
   r.post('/ship', (req, res) => withProject(req, res, 'chat', async (p, s) => {

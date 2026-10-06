@@ -70,7 +70,8 @@ export const buildsWaiting = () => waiting.length;
 function appWords(html: string): string {
   return html
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<svg[\s\S]*?<\/svg>/gi, ' ')
+    // Drawings: only their words (text, titles), so nothing harmful hides in a picture (audit B2).
+    .replace(/<svg[\s\S]*?<\/svg>/gi, (svg) => ` ${(svg.match(/<(text|tspan|title|desc)\b[^>]*>[\s\S]*?<\/\1>/gi) ?? []).join(' ')} `)
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .slice(0, 6000);

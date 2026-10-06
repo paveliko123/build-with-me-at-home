@@ -23,14 +23,26 @@ export function pluginData() {
 /** The family's folder: <home>\Build With Me (kept on uninstall, never synced to a cloud). */
 export function familyData() {
   const dir = process.env.BWM_DATA || join(homedir(), 'Build With Me');
+  if (inCloudFolder(dir)) throw new Error(`The family folder can't be in a cloud-synced folder: ${dir}`);
   mkdirSync(dir, { recursive: true });
   return dir;
+}
+
+/** OneDrive, iCloud, Dropbox or Google Drive (kids' data must never sync, security audit C7a). */
+export function inCloudFolder(dir) {
+  const d = resolve(dir).toLowerCase();
+  const roots = [process.env.OneDrive, process.env.OneDriveConsumer, process.env.OneDriveCommercial].filter(Boolean).map((r) => resolve(r).toLowerCase());
+  return roots.some((r) => d === r || d.startsWith(r + (process.platform === 'win32' ? '\\' : '/')))
+    || /[\\/](onedrive[^\\/]*|icloud ?drive[^\\/]*|mobile documents|dropbox|google ?drive|googledrive|my drive)([\\/]|$)/i.test(d);
 }
 
 export const runtimeDir = (data) => join(data, 'runtime');
 export const version = () => JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).version;
 export const port = () => {
-  try { return JSON.parse(readFileSync(join(familyData(), 'family.json'), 'utf8')).settings?.port || 4747; } catch { return 4747; }
+  try {
+    const p = Number(JSON.parse(readFileSync(join(familyData(), 'family.json'), 'utf8')).settings?.port);
+    return Number.isInteger(p) && p >= 1024 && p <= 65534 ? p : 4747;
+  } catch { return 4747; }
 };
 
 /** Environment without any Claude/Anthropic variables (never ride on a live Claude session). */
@@ -43,10 +55,11 @@ export function cleanEnv(extra = {}) {
 export function findClaude() {
   if (process.env.BWM_CLAUDE_PATH && existsSync(process.env.BWM_CLAUDE_PATH)) return process.env.BWM_CLAUDE_PATH;
   const win = process.platform === 'win32';
-  const r = spawnSync(win ? 'where' : 'which', ['claude'], { encoding: 'utf8', env: cleanEnv(), windowsHide: true });
+  // Only the PATH, never the current folder; on Windows only the real .exe (as server/claude/runner.ts).
+  const r = spawnSync(win ? 'where' : 'which', [win ? '$PATH:claude' : 'claude'], { encoding: 'utf8', env: cleanEnv(), windowsHide: true });
   if (r.status === 0) {
     const lines = r.stdout.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
-    const pick = lines.find((l) => l.toLowerCase().endsWith('.exe')) ?? lines[0];
+    const pick = win ? lines.find((l) => l.toLowerCase().endsWith('.exe')) : lines[0];
     if (pick) return pick;
   }
   const local = join(homedir(), '.local', 'bin', win ? 'claude.exe' : 'claude');

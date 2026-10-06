@@ -12,7 +12,7 @@ import { join, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadOrCreateAuthority, issueServerCert, mobileConfig, authorityName, type Authority } from './certs.js';
 import { addChunk, finishUtterance, loadSpeech } from './speech.js';
-import { isLoopback, isParent, isThisComputer } from './auth.js';
+import { hostAllowed, isLoopback, isParent, isThisComputer, originAllowed } from './auth.js';
 import { parentRoutes } from './parentRoutes.js';
 import { kidRoutes } from './kidRoutes.js';
 import { journeyRoutes, shelfRoutes } from './journey/routes.js';
@@ -48,6 +48,14 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
 
   const app = express();
   app.disable('x-powered-by');
+
+  // Only this computer's own names, and changes only from this app's own pages (auth.ts,
+  // security audit H1: a web page that points its domain at this laptop gets nothing).
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (!hostAllowed(req)) { res.status(421).type('text').send('This address is not Build With Me.'); return; }
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !originAllowed(req)) { res.status(403).json({ error: 'wrong-origin' }); return; }
+    next();
+  });
 
   // Plain-HTTP gate for other devices.
   app.use((req: Request, res: Response, next: NextFunction) => {
@@ -99,14 +107,16 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
     res.type('html').send(found.html);
   });
 
-  // ---- speech: a kid with a live pass, or the laptop itself ----
+  // ---- speech: a kid with a live pass, or the parent (security audit M1) ----
   const mayTalk = (req: Request, res: Response, next: NextFunction) => {
-    if (isLoopback(req) || kidSession(req)?.live) return next();
+    if (kidSession(req)?.live || isParent(req)) return next();
     res.status(401).json({ error: 'no-pass' });
   };
   app.post('/api/speech/:id', mayTalk, express.raw({ type: 'application/octet-stream', limit: '1mb' }), (req, res) => {
     if (!/^[A-Za-z0-9_-]{6,64}$/.test(String(req.params.id)) || !Buffer.isBuffer(req.body)) { res.status(400).json({ error: 'bad request' }); return; }
-    res.json(addChunk(String(req.params.id), req.body));
+    const out = addChunk(String(req.params.id), req.body);
+    if (!out) { res.status(429).json({ error: 'busy' }); return; }
+    res.json(out);
   });
   app.post('/api/speech/:id/end', mayTalk, async (req, res) => {
     try { res.json(await finishUtterance(String(req.params.id))); }

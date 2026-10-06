@@ -16,7 +16,7 @@ export function Opening({ onUnlocked }: { onUnlocked: () => void }) {
       onUnlocked();
     } catch (e) {
       const b = e instanceof ApiError ? e.body : null;
-      if (b?.reason === 'locked') setErr(`Too many tries. Wait ${b.seconds} seconds.`);
+      if (b?.reason === 'locked') setErr(`Too many wrong tries, so the PIN pad is paused. Wait ${b.seconds} seconds, then try again.`);
       else if (b?.reason === 'wrong') setErr(`That's not the PIN. ${b.triesLeft} ${b.triesLeft === 1 ? 'try' : 'tries'} left.`);
       else setErr('Something went wrong. Try again.');
       setPin('');

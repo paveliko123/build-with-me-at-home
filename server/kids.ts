@@ -31,12 +31,4 @@ export function editKid(id: string, input: { nickname: string; group: AgeGroup; 
   return found;
 }
 
-export function removeKid(id: string): boolean {
-  let removed = false;
-  updateFamily((f) => {
-    const before = f.kids.length;
-    f.kids = f.kids.filter((k) => k.id !== id);
-    removed = f.kids.length < before;
-  });
-  return removed;
-}
+// Removing a kid (and all their data): kidData.ts.

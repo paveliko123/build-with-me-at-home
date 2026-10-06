@@ -303,7 +303,9 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
       writer: ai ? 'opus' : 'facts-only',
     };
 
-    // Save: the data for All reports, and a self-contained HTML file in Reports\.
+    // Save: the data for All reports, and a self-contained HTML file in Reports\. (Not when the
+    // parent removed the kid while Opus was writing: their data is gone, kidData.ts.)
+    if (!readFamily().kids.some((k) => k.id === kidId)) return null;
     writeJson(`${DATA}/${data.id}.json`, data);
     const stamp = new Date(data.createdAt);
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -323,7 +325,7 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
       addAlert({ kind: 'flag', kidId, kidName: kid.nickname, reportId: data.id, text: `${flags.length === 1 ? '1 flag' : `${flags.length} flags`}${badge === 'look' ? ', needs a look' : ', handled'}: ${flags[0].headline}${flags.length > 1 ? ' and more' : ''}.` });
     }
     passEvents.emit('changed'); // Latest reports refreshes
-    console.log(JSON.stringify({ event: 'report', id: data.id, kid: kid.nickname, finished: opts.finished, writer: data.writer, usage: usage.own !== null ? 'own' : usage.account ? 'account' : 'tokens' }));
+    console.log(JSON.stringify({ event: 'report', id: data.id, kid: kidId, finished: opts.finished, writer: data.writer, usage: usage.own !== null ? 'own' : usage.account ? 'account' : 'tokens' }));
     return summary;
   } finally {
     writing.delete(key);

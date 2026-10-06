@@ -2,8 +2,8 @@
 import { scrubText } from '../server/claude/guard.js';
 
 const cases: Array<[string, boolean]> = [
-  ['mail me at kid.parent@gmail.com please', false],
-  ['folder C:\\Users\\<user>\\AppData\\x and /Users/bob/app and /home/ann/x', false],
+  ['mail me at someone@example.com please', false],
+  ['folder C:\\Users\\Alex\\AppData\\x and /Users/bob/app and /home/ann/x', false],
   ['@media (max-width: 600px) { a { color: red } }', true],
   ['Your favorite animal is the narwhal!', true],
 ];

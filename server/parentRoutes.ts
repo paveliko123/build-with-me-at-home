@@ -5,7 +5,8 @@ import express, { Router } from 'express';
 import QRCode from 'qrcode';
 import { isLoopback, requireParent, checkPin, setPin, startParentSession, endParentSession, isParent, validPin } from './auth.js';
 import { readFamily } from './store.js';
-import { listKids, addKid, editKid, removeKid, cleanKidInput } from './kids.js';
+import { listKids, addKid, editKid, cleanKidInput } from './kids.js';
+import { eraseKid, kidDataSummary } from './kidData.js';
 import { findClaude } from './claude/runner.js';
 import { readUsage, type UsageReading } from './usage.js';
 import { homeAddresses } from './certs.js';
@@ -62,7 +63,10 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
     res.status(401).json(result);
   });
 
-  r.post('/lock', (req, res) => { endParentSession(req, res); res.json({ ok: true }); });
+  r.post('/lock', (req, res) => {
+    if (!isLoopback(req)) { res.status(403).json({ error: 'laptop-only' }); return; }
+    endParentSession(req, res); res.json({ ok: true });
+  });
 
   // ---- everything below needs the unlocked parent ----
   r.use(requireParent);
@@ -90,9 +94,17 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
     if (!kid) { res.status(404).json({ error: 'not found' }); return; }
     res.json(kid);
   });
+  // Removing a kid deletes all their data (kidData.ts). The screen shows what will go first and
+  // sends erase=1 once the parent confirms.
+  r.get('/kids/:id/data', (req, res) => {
+    const summary = kidDataSummary(req.params.id);
+    if (!summary) { res.status(404).json({ error: 'not found' }); return; }
+    res.json(summary);
+  });
   r.delete('/kids/:id', (req, res) => {
     if (listKids().length <= 1) { res.status(400).json({ error: 'Keep at least one kid.' }); return; }
-    res.json({ ok: removeKid(req.params.id) });
+    if (req.query.erase !== '1') { res.status(400).json({ error: 'Confirm deleting their data first.' }); return; }
+    res.json({ ok: eraseKid(req.params.id) });
   });
 
   // Status strip: Claude Code + plan usage (refreshed at most once a minute).

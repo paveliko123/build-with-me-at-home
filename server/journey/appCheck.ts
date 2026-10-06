@@ -15,6 +15,12 @@ const FORBIDDEN: { pattern: RegExp; reason: string }[] = [
   { pattern: /type\s*=\s*["']?password|\.type\s*=\s*["'`]password|setAttribute\(\s*["'`]type["'`]\s*,\s*["'`]password|text-security/i, reason: 'has a password box (apps never ask for passwords)' },
   { pattern: /RTCPeerConnection|RTCDataChannel/, reason: 'contacts the network (WebRTC)' },
   { pattern: /navigator\.credentials|PaymentRequest/, reason: 'asks for credentials or payment' },
+  // Security audit B1: made in code instead of in the page (the page's network rules block
+  // these too; this catches them before the kid ever sees a broken app).
+  { pattern: /createElement\(\s*["'`]script/i, reason: 'adds a script from code' },
+  { pattern: /\.src\s*=\s*["'`](https?:)?\/\//i, reason: 'loads something from the internet' },
+  { pattern: /url\(\s*["']?(https?:)?\/\//i, reason: 'loads a picture or font from the internet (CSS url())' },
+  { pattern: /\bimport\s*(\(\s*|[^;'"`]*\bfrom\s*)["'`](https?:)?\/\//i, reason: 'imports code from the internet' },
 ];
 
 /** Strip Markdown fences or stray text around the document. */

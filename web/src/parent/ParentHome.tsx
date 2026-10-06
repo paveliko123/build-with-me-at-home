@@ -83,7 +83,7 @@ export function ParentHome({ onLock }: { onLock: () => void }) {
         </div>
       </div>
 
-      {modal === 'kids' && <KidsManage kids={kids} apps={apps} reload={() => { loadKids(); loadApps(); }} onClose={() => setModal(null)} />}
+      {modal === 'kids' && <KidsManage kids={kids} apps={apps} reload={() => { loadKids(); loadApps(); loadReports(); loadPasses(); }} onClose={() => setModal(null)} />}
       {modal === 'tablet' && <TabletSetup onClose={() => setModal(null)} />}
       {modal === 'settings' && <Settings onClose={() => setModal(null)} />}
     </main>
@@ -129,8 +129,53 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 
 interface KidApp { slug: string; name: string; emoji: string; createdAt: number; path: string }
 
+interface KidData { apps: number; projects: number; reports: number; livePass: boolean }
+const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/** Removing a kid deletes everything kept about them, so say exactly what goes, and have the
+ *  parent type the kid's name to confirm (security audit M2). */
+function RemoveKid({ kid, onCancel, onRemoved }: { kid: Kid; onCancel: () => void; onRemoved: () => void }) {
+  const [info, setInfo] = useState<KidData | null>(null);
+  const [typed, setTyped] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  useEffect(() => { api<KidData>(`/api/parent/kids/${kid.id}/data`).then(setInfo).catch((e) => setErr((e as Error).message)); }, [kid.id]);
+  const confirmed = typed.trim().toLowerCase() === kid.nickname.trim().toLowerCase();
+  const titleId = `remove-${kid.id}`;
+  return (
+    <div className="danger-box" role="alertdialog" aria-labelledby={titleId}>
+      <b id={titleId}>⚠️ Remove {kid.nickname} and delete all of {kid.nickname}'s data?</b>
+      {!info ? <p className="muted">{err || 'Checking what there is…'}</p> : (
+        <>
+          <p style={{ margin: '6px 0 0' }}>This permanently deletes from this computer:</p>
+          <ul>
+            <li>{count(info.apps, 'shipped app', 'shipped apps')} (their links stop working)</li>
+            <li>{count(info.projects, 'project', 'projects')}, with the conversations</li>
+            <li>{count(info.reports, 'parent report', 'parent reports')}, including the files in your Reports folder</li>
+            {info.livePass && <li>{kid.nickname}'s live pass (it ends now)</li>}
+          </ul>
+          <p style={{ margin: '0 0 8px' }}><b>This can't be undone.</b> To keep a report, copy its file out of the Reports folder first.</p>
+          <label>Type <b>{kid.nickname}</b> to confirm:<br />
+            <input type="text" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" aria-label={`Type ${kid.nickname} to confirm`} />
+          </label>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+            <button className="ghost" onClick={onCancel}>Cancel</button>
+            <button className="btn danger-fill" disabled={!confirmed || busy} onClick={async () => {
+              setBusy(true);
+              try { await api(`/api/parent/kids/${kid.id}?erase=1`, { method: 'DELETE' }); onRemoved(); }
+              catch (e) { setErr((e as Error).message); setBusy(false); }
+            }}>{busy ? 'Deleting…' : `Delete ${kid.nickname} and all their data`}</button>
+          </div>
+          {err && <p className="err">{err}</p>}
+        </>
+      )}
+    </div>
+  );
+}
+
 function KidsManage({ kids, apps, reload, onClose }: { kids: Kid[]; apps: Record<string, KidApp[]>; reload: () => void; onClose: () => void }) {
   const [editing, setEditing] = useState<string | null>(null);
+  const [removing, setRemoving] = useState<string | null>(null);
   const [err, setErr] = useState('');
   return (
     <Modal title="🧒 Kids & their apps" onClose={onClose}>
@@ -144,12 +189,13 @@ function KidsManage({ kids, apps, reload, onClose }: { kids: Kid[]; apps: Record
           <div>{k.emoji} <b>{k.nickname}</b> <span className={`pill ${k.group === 'teen' ? 't' : 'k'}`}>{k.group === 'teen' ? 'Teen' : 'Kid'}</span></div>
           <div style={{ display: 'flex', gap: 6 }}>
             <button className="ghost" onClick={() => setEditing(k.id)}>Edit</button>
-            <button className="ghost danger" onClick={async () => {
-              if (!confirm(`Remove ${k.nickname}? Their apps and reports stay in the folder.`)) return;
-              try { await api(`/api/parent/kids/${k.id}`, { method: 'DELETE' }); setErr(''); reload(); } catch (e) { setErr((e as Error).message); }
+            <button className="ghost danger" onClick={() => {
+              if (kids.length <= 1) { setErr('Keep at least one kid.'); return; }
+              setErr(''); setRemoving(removing === k.id ? null : k.id);
             }}>Remove</button>
           </div>
         </div>
+        {removing === k.id && <RemoveKid kid={k} onCancel={() => setRemoving(null)} onRemoved={() => { setRemoving(null); reload(); }} />}
         {(apps[k.id] ?? []).map((a) => (
           <div className="row" key={a.slug} style={{ paddingLeft: 28 }}>
             <div>{a.emoji} {a.name} <span className="muted" style={{ fontSize: 13 }}>· {new Date(a.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span></div>

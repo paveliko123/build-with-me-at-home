@@ -118,5 +118,5 @@ if (!(await health(P))) {
 }
 const running = await health(P);
 if (running && !flag('no-open') && !process.env.BWM_NO_OPEN) openBrowser(url);
-console.log(JSON.stringify({ ok: running, started, url, startFile, shortcut, log: join(DATA, 'server.log') }, null, 2));
+console.log(JSON.stringify({ ok: running, started, url, family: familyData(), startFile, shortcut, log: join(DATA, 'server.log') }, null, 2));
 process.exitCode = running ? 0 : 1;

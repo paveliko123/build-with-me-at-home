@@ -66,7 +66,7 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
     }
     if (check.verdict === 'personal') {
       flag(p, 'input', check, check.masked ?? '');
-      text = check.masked?.trim() || '(a message with a personal detail, left out)';
+      text = check.masked?.trim() ? personText(check.masked) : '(a message with a personal detail, left out)';
       ask = askFor(text);
       called = await listChanges();
       if (called instanceof GuideError) return { changes: list, ready: false, ship: false, reply: { say: REDIRECT_REPLY } };

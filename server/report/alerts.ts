@@ -26,7 +26,7 @@ export function listAlerts(): Alert[] {
 export function addAlert(a: Omit<Alert, 'id' | 'at'>): void {
   updateJson<{ alerts: Alert[] }>(FILE, { alerts: [] }, (f) => {
     // One limit alert per kid at a time is enough.
-    if (a.kind === 'limit' && f.alerts.some((x) => x.kind === 'limit' && x.kidId === a.kidId && !x.dismissed && Date.now() - x.at < 30 * 60_000)) return;
+    if (a.kind === 'limit' && f.alerts.some((x) => x.kind === 'limit' && x.kidId === a.kidId && x.text === a.text && !x.dismissed && Date.now() - x.at < 30 * 60_000)) return;
     f.alerts.push({ ...a, id: randomBytes(6).toString('base64url'), at: Date.now() });
     f.alerts = f.alerts.slice(-200);
   });

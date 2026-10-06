@@ -4,7 +4,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
-import { networkInterfaces } from 'node:os';
+import { hostname, networkInterfaces } from 'node:os';
 import { readFamily, updateFamily } from './store.js';
 
 const scryptAsync = promisify(scrypt) as (pw: string, salt: Buffer, len: number) => Promise<Buffer>;
@@ -26,6 +26,34 @@ export function isThisComputer(req: Request): boolean {
 }
 function ownAddresses(): string[] {
   return Object.values(networkInterfaces()).flat().filter((n) => !!n && n.family === 'IPv4').map((n) => n!.address);
+}
+
+// ---- the names this computer answers to (security audit H1) ----
+// Who's asking is decided from the connection, never from headers. But a web page can point its
+// own domain at 127.0.0.1 ("DNS rebinding") and then reach this server from the parent's browser
+// as if it were the laptop. Its requests still carry its own name, so only this computer's own
+// names are answered: localhost, its home addresses and its machine name.
+let known: { at: number; names: Set<string> } | null = null;
+function knownHosts(): Set<string> {
+  if (known && Date.now() - known.at < 10_000) return known.names;
+  const machine = hostname().toLowerCase();
+  const safe = machine.replace(/[^a-z0-9-]/g, '-'); // as on the server certificate (certs.ts)
+  const names = new Set(['localhost', '127.0.0.1', '[::1]', machine, `${machine}.local`, safe, `${safe}.local`, ...ownAddresses()]);
+  known = { at: Date.now(), names };
+  return names;
+}
+const hostPart = (h: string) => h.trim().toLowerCase().replace(/:\d+$/, '').replace(/\.$/, '');
+
+/** The request was addressed to this computer by one of its own names. */
+export function hostAllowed(req: Request): boolean {
+  return knownHosts().has(hostPart(req.headers.host ?? ''));
+}
+
+/** A request that changes something came from one of this app's own pages (or from no page). */
+export function originAllowed(req: Request): boolean {
+  const origin = req.headers.origin;
+  if (origin === undefined) return true; // not sent by a web page's script (curl, the launcher)
+  try { return knownHosts().has(hostPart(new URL(origin).host)); } catch { return false; } // "null" too
 }
 
 export function cookies(req: Request): Record<string, string> {

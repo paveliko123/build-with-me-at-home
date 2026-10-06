@@ -11,12 +11,29 @@ If asked, say you don't have that information.
 
 `;
 
-const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
+import { homedir, hostname, userInfo } from 'node:os';
+
+const EMAIL = /[A-Za-z0-9._%+-]+\s*[@\uFF20]\s*[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
 // C:\Users\name\..., C:/Users/name/..., /Users/name/..., /home/name/...
 const USER_PATH = /(?:[A-Za-z]:[\\/](?:Users|Documents and Settings)[\\/][^\s"'<>`]+|\/(?:Users|home)\/[^\s"'<>`]+)/g;
 
+// This computer's own names (security audit A1): the home folder (also with a space in the user
+// name), and the user and machine names when they look like account names ("jane.doe",
+// "DESKTOP-4F2K"), so a plain first name in a kid's app is never hidden.
+const COMMON = new Set(['user', 'users', 'admin', 'administrator', 'owner', 'home', 'guest', 'public', 'default', 'test', 'laptop', 'desktop', 'computer', 'localhost', 'mac', 'macbook', 'pc', 'kid', 'kids', 'parent', 'family', 'mom', 'dad']);
+const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const LOCAL: RegExp | null = (() => {
+  const names = new Set<string>();
+  try { names.add(homedir()); names.add(homedir().replace(/\\/g, '/')); } catch { /* none */ }
+  try { names.add(userInfo().username); } catch { /* none */ }
+  try { names.add(hostname()); } catch { /* none */ }
+  const list = [...names].filter((n) => n && n.length >= 4 && /[^A-Za-z]/.test(n) && !COMMON.has(n.toLowerCase())).sort((a, b) => b.length - a.length);
+  return list.length ? new RegExp(`(?<![A-Za-z0-9])(?:${list.map(escape).join('|')})(?![A-Za-z0-9])`, 'gi') : null;
+})();
+
 export function scrubText(text: string): string {
-  return text.replace(EMAIL, '[hidden]').replace(USER_PATH, '[hidden]');
+  const out = text.replace(EMAIL, '[hidden]').replace(USER_PATH, '[hidden]');
+  return LOCAL ? out.replace(LOCAL, '[hidden]') : out;
 }
 
 export function scrubDeep<T>(value: T): T {

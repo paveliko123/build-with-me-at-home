@@ -1,5 +1,5 @@
 import { homedir, tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 import { mkdirSync } from 'node:fs';
 
 // Plugin private folder (packages, model, certs, sandbox). In development it's a temp
@@ -25,6 +25,15 @@ export function sandboxDir(): string {
 // never sync anywhere. BWM_DATA overrides it for development and tests.
 export function familyDataDir(): string {
   const dir = process.env.BWM_DATA || join(homedir(), 'Build With Me');
+  if (inCloudFolder(dir)) throw new Error(`The family folder can't be in a cloud-synced folder: ${dir}`);
   mkdirSync(dir, { recursive: true });
   return dir;
+}
+
+/** OneDrive, iCloud, Dropbox or Google Drive (security audit C7a; as app/common.mjs). */
+export function inCloudFolder(dir: string): boolean {
+  const d = resolve(dir).toLowerCase();
+  const roots = [process.env.OneDrive, process.env.OneDriveConsumer, process.env.OneDriveCommercial].filter((r): r is string => !!r).map((r) => resolve(r).toLowerCase());
+  return roots.some((r) => d === r || d.startsWith(r + sep))
+    || /[\\/](onedrive[^\\/]*|icloud ?drive[^\\/]*|mobile documents|dropbox|google ?drive|googledrive|my drive)([\\/]|$)/i.test(d);
 }

@@ -52,8 +52,11 @@ export const isLive = (p: Pass, now = Date.now()) => !p.endedAt && p.endsAt > no
 const kidOf = (p: Pass): Kid | undefined => readFamily().kids.find((k) => k.id === p.kidId);
 
 function typedCode(): string {
-  const bytes = randomBytes(8);
-  return Array.from(bytes, (b) => TYPED_ALPHABET[b % TYPED_ALPHABET.length]).join('');
+  // Every character equally likely: bytes above the last whole multiple of 31 are skipped.
+  const out: string[] = [];
+  const limit = 256 - (256 % TYPED_ALPHABET.length);
+  while (out.length < 8) for (const b of randomBytes(16)) if (b < limit && out.length < 8) out.push(TYPED_ALPHABET[b % TYPED_ALPHABET.length]);
+  return out.join('');
 }
 /** "k7qm 3xpa", "K7QM-3XPA" → "K7QM3XPA" */
 export const normalizeTyped = (s: string) => s.toUpperCase().replace(/[^0-9A-Z]/g, '');
@@ -103,6 +106,14 @@ export function endPass(id: string): boolean {
   update((ps) => { const p = ps.find((x) => x.id === id); if (p && isLive(p)) { p.endedAt = Date.now(); ok = true; } });
   if (ok) { passEvents.emit('pass', id); passEvents.emit('changed'); }
   return ok;
+}
+
+/** A removed kid's passes: a live one ends first (their device shows "Time's up"), then all of
+ *  them are forgotten (kidData.ts). */
+export function forgetKidPasses(kidId: string): void {
+  for (const p of readPasses()) if (p.kidId === kidId && isLive(p)) endPass(p.id);
+  update((ps) => { for (let i = ps.length - 1; i >= 0; i--) if (ps[i].kidId === kidId) ps.splice(i, 1); });
+  passEvents.emit('changed');
 }
 
 /** Live passes for the parent's Active passes card (unopened ones keep their codes so the
@@ -177,10 +188,10 @@ export function openPass(req: Request, res: Response, raw: string): OpenResult {
     wrong.set(who, { n, until: 0 });
     return { ok: false, error: 'unknown' };
   }
-  wrong.delete(who);
+  // (The wrong-code count clears only when a pass really opens, not on any matching code.)
   if (!isLive(p, now)) return { ok: false, error: 'over' };
   const mine = p.tokenHash && p.tokenHash === sha(cookies(req)[PASS_COOKIE] ?? '');
-  if (p.usedAt && mine) return { ok: true }; // the same device scanning again just goes back in
+  if (p.usedAt && mine) { wrong.delete(who); return { ok: true }; } // the same device scanning again just goes back in
   if (p.usedAt) return { ok: false, error: 'used' };
 
   const token = randomBytes(32).toString('base64url');
@@ -191,9 +202,11 @@ export function openPass(req: Request, res: Response, raw: string): OpenResult {
     x.usedAt = now; x.device = deviceLabel(req); x.tokenHash = sha(token); won = true;
   });
   if (!won) return { ok: false, error: 'used' };
-  // Not "Secure": a device that isn't set up for HTTPS yet may use plain HTTP at home, and the
-  // same cookie must reach both. Lasts a day past the end so the kid sees "Time's up".
-  res.cookie(PASS_COOKIE, token, { httpOnly: true, sameSite: 'lax', path: '/', maxAge: p.endsAt - now + 24 * 60 * 60 * 1000 });
+  wrong.delete(who);
+  // Other devices only reach the kid pages over HTTPS, so their cookie is "Secure" (never sent
+  // over plain HTTP, security audit M4). This laptop uses http://localhost, which never leaves
+  // the computer. Lasts a day past the end so the kid sees "Time's up".
+  res.cookie(PASS_COOKIE, token, { httpOnly: true, secure: (req.socket as any).encrypted === true, sameSite: 'lax', path: '/', maxAge: p.endsAt - now + 24 * 60 * 60 * 1000 });
   passEvents.emit('changed');
   return { ok: true };
 }

@@ -277,7 +277,7 @@ export async function guideTurn(project: Project, rawText?: string): Promise<Gui
       // A detail the instant mask missed: keep only the masked words, and ask again with them.
       flag(session, 'input', inputCheck, inputCheck.masked ?? '');
       const mine = newMessages.find(m => m.role === 'user' && m.text === text);
-      text = inputCheck.masked && inputCheck.masked.trim() ? inputCheck.masked : '(A message with a personal detail, left out.)';
+      text = inputCheck.masked && inputCheck.masked.trim() ? personText(inputCheck.masked) : '(A message with a personal detail, left out.)';
       if (mine) mine.text = text;
       contents = buildContents([...recent, ...newMessages, ...nudge, ...note(true)]);
       const again = await askGuide();
@@ -354,7 +354,7 @@ export async function guideTurn(project: Project, rawText?: string): Promise<Gui
     }
     // A reply that doesn't finish the stage always leaves the person something to answer.
     if (!waiting && !reply.stageComplete && !reply.question) {
-      console.log(JSON.stringify({ event: 'no-question', stage, raw: JSON.stringify(raw).slice(0, 1500) }));
+      console.log(JSON.stringify({ event: 'no-question', stage, fields: Object.keys(raw ?? {}), sayChars: String((raw as any)?.say ?? '').length }));
       reply.question = reply.cards?.length ? 'Which one do you like best?'
         : kind && !reply.doc && stored?.status !== 'draft' && answers >= 3 ? 'Shall I write up the draft now?'
         : kind && !reply.doc && stored?.status !== 'draft' ? 'What would you like it to be like?'

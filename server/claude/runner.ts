@@ -4,7 +4,7 @@
 // Docs: https://code.claude.com/docs/en/headless, https://code.claude.com/docs/en/cli-reference
 
 import { spawn, spawnSync, type ChildProcessWithoutNullStreams } from 'node:child_process';
-import { existsSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, writeFileSync, mkdirSync, readdirSync, statSync, rmSync, utimesSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -48,11 +48,12 @@ export function findClaude(): string | null {
   const override = process.env.BWM_CLAUDE_PATH;
   if (override && existsSync(override)) return (cachedPath = override);
   const isWin = process.platform === 'win32';
-  const which = spawnSync(isWin ? 'where' : 'which', ['claude'], { encoding: 'utf8', env: cleanEnv(), windowsHide: true });
+  // Only the PATH, never the current folder (Windows' "where" looks there first). On Windows
+  // only the real .exe: npm's .cmd shims can't be started without a shell.
+  const which = spawnSync(isWin ? 'where' : 'which', [isWin ? '$PATH:claude' : 'claude'], { encoding: 'utf8', env: cleanEnv(), windowsHide: true });
   if (which.status === 0) {
     const lines = which.stdout.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
-    // On Windows prefer the real .exe over npm .cmd shims (no shell needed to spawn it).
-    const pick = lines.find((l) => l.toLowerCase().endsWith('.exe')) ?? lines[0];
+    const pick = isWin ? lines.find((l) => l.toLowerCase().endsWith('.exe')) : lines[0];
     if (pick) return (cachedPath = pick);
   }
   const candidates = isWin
@@ -83,12 +84,25 @@ export function cleanEnv(): NodeJS.ProcessEnv {
 
 const EMPTY_MCP = JSON.stringify({ mcpServers: {} });
 
-// Named by content, so the same stage prompt (every turn of a stage) reuses one file.
+// Named by content, so the same stage prompt (every turn of a stage) reuses one file. They hold
+// kids' approved plans, so files unused for a week are deleted (security audit A5).
+const PROMPT_KEEP_MS = 7 * 24 * 60 * 60 * 1000;
+let promptsPruned = false;
+/** Deletes prompt files unused for a week (once per server start, on the first Claude call). */
+export function prunePrompts(dir = join(pluginDataDir(), 'prompts')): void {
+  let files: string[] = [];
+  try { files = readdirSync(dir); } catch { return; }
+  for (const f of files) {
+    try { if (Date.now() - statSync(join(dir, f)).mtimeMs > PROMPT_KEEP_MS) rmSync(join(dir, f), { force: true }); } catch { /* in use */ }
+  }
+}
 function promptFile(systemPrompt: string): string {
   const dir = join(pluginDataDir(), 'prompts');
   mkdirSync(dir, { recursive: true });
+  if (!promptsPruned) { promptsPruned = true; prunePrompts(dir); }
   const file = join(dir, `${createHash('sha256').update(systemPrompt).digest('hex').slice(0, 32)}.txt`);
   if (!existsSync(file)) writeFileSync(file, systemPrompt, 'utf8');
+  else try { const now = new Date(); utimesSync(file, now, now); } catch { /* fine */ }
   return file;
 }
 
@@ -102,7 +116,7 @@ export interface IsolationOptions {
 export function isolationArgs(o: IsolationOptions): string[] {
   const args = [
     '-p',
-    '--safe-mode', // no CLAUDE.md, plugins (incl. built-in), skills, hooks, MCP, auto memory; sign-in still works
+    '--safe-mode', // no CLAUDE.md, hooks, user plugins or MCP, no auto memory; sign-in still works (built-in plugins and bundled skills still load: security audit I1, so no tools below)
     '--model', o.model,
     '--system-prompt-file', promptFile(SEAL_RULE + o.systemPrompt),
     '--tools', '',
@@ -155,13 +169,18 @@ export class Conversation {
       '--verbose',
     ];
     this.proc = spawnClaude(args);
-    this.proc.stderr.on('data', (d) => (this.stderr += d.toString()));
+    this.proc.stderr.on('data', (d) => (this.stderr = (this.stderr + d.toString()).slice(-4000)));
+    // A claude that can't start fails the turn, never the whole server (security audit A7).
+    this.proc.on('error', (e) => {
+      this.closed = true;
+      if (this.pending) { this.pending.resolve({ ok: false, text: '', costUsd: 0, usage: {}, durationMs: Date.now() - this.pending.started, error: `claude could not start: ${e.message}` }); this.pending = null; }
+    });
     const rl = createInterface({ input: this.proc.stdout });
     rl.on('line', (line) => this.onLine(line));
     this.proc.on('close', (code) => {
       this.closed = true;
       if (this.pending) {
-        this.pending.resolve({ ok: false, text: '', costUsd: 0, usage: {}, durationMs: Date.now() - this.pending.started, error: `claude exited (${code}): ${this.stderr.slice(-500)}` });
+        this.pending.resolve({ ok: false, text: '', costUsd: 0, usage: {}, durationMs: Date.now() - this.pending.started, error: `claude exited (${code}): ${scrubText(this.stderr.slice(-500))}` });
         this.pending = null;
       }
     });
@@ -223,8 +242,11 @@ export function oneShot(o: OneShotOptions): Promise<TurnResult> {
     let result: TurnResult | null = null;
     let lastRateLimit: RateLimitInfo | undefined;
     let stderr = '';
+    let done = false;
+    const finish = (r: TurnResult) => { if (!done) { done = true; clearTimeout(timer); resolve(r); } };
     const timer = setTimeout(() => proc.kill('SIGINT'), o.timeoutMs ?? 10 * 60_000);
-    proc.stderr.on('data', (d) => (stderr += d.toString()));
+    proc.stderr.on('data', (d) => (stderr = (stderr + d.toString()).slice(-4000)));
+    proc.on('error', (e) => finish({ ok: false, text: '', costUsd: 0, usage: {}, durationMs: Date.now() - started, error: `claude could not start: ${e.message}` }));
     createInterface({ input: proc.stdout }).on('line', (line) => {
       let msg: any;
       try { msg = JSON.parse(line); } catch { return; }
@@ -234,8 +256,7 @@ export function oneShot(o: OneShotOptions): Promise<TurnResult> {
       else if (msg.type === 'result') result = toTurnResult(msg, started, lastRateLimit);
     });
     proc.on('close', (code) => {
-      clearTimeout(timer);
-      resolve(result ?? { ok: false, text: '', costUsd: 0, usage: {}, durationMs: Date.now() - started, error: `claude exited (${code}): ${stderr.slice(-500)}` });
+      finish(result ?? { ok: false, text: '', costUsd: 0, usage: {}, durationMs: Date.now() - started, error: `claude exited (${code}): ${scrubText(stderr.slice(-500))}` });
     });
     proc.stdin.end(o.prompt);
   });

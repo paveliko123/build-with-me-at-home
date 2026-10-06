@@ -3,7 +3,7 @@
 // Ported from Build With Me's ShipScreen (whose public share links are gone: apps stay at home).
 import { useEffect, useRef, useState } from 'react';
 import VisualPane from '../components/VisualPane';
-import { myApps, newApp, passEnded, shipApp, type ShelfApp } from '../lib/api';
+import { limitMessage, myApps, newApp, passEnded, shipApp, type ShelfApp } from '../lib/api';
 import { themeById } from '../themes/themes';
 import { speak, stopSpeaking } from '../lib/voice';
 import { pauseFor, useSpeech } from '../lib/speech';
@@ -70,7 +70,7 @@ export default function ShipScreen({ profile, html, alreadyShipped = false, onBa
       if (passEnded(err)) { onPassEnded?.(); return; }
       // The rule checks explain themselves; anything else is a hiccup.
       const e = err as { status?: number; message?: string };
-      setError(e?.status === 409 && e.message && e.message !== 'busy' ? e.message : "My brain hiccupped while shipping. Let's try that again!");
+      setError(limitMessage(err) ?? (e?.status === 409 && e.message && e.message !== 'busy' ? e.message : "My brain hiccupped while shipping. Let's try that again!"));
     } finally {
       setBusy(false);
     }
