@@ -14,6 +14,7 @@ interface Props {
   html: string;
   alreadyShipped?: boolean; // resumed after shipping
   onBack: () => void;
+  onShipped?: () => void;
   voiceOn?: boolean;
   onPassEnded?: () => void;
 }
@@ -45,7 +46,7 @@ export function spokenName(said: string): string {
     .slice(0, 60);
 }
 
-export default function ShipScreen({ profile, html, alreadyShipped = false, onBack, voiceOn = false, onPassEnded }: Props) {
+export default function ShipScreen({ profile, html, alreadyShipped = false, onBack, onShipped, voiceOn = false, onPassEnded }: Props) {
   const young = profile.ageGroup === 'kid' || (profile.ageGroup === 'teen' && profile.experience <= 1);
   const theme = themeById(profile.theme);
   const suggested = suggestedName(html);
@@ -62,6 +63,7 @@ export default function ShipScreen({ profile, html, alreadyShipped = false, onBa
     try {
       const result = await shipApp(withName ?? '');
       setShipped({ ...result, url: new URL(result.path, location.origin).href });
+      onShipped?.();
       // Talk mode: a spoken "it's shipped" moment (QA round 3).
       if (voiceOn && withName) speak(young ? `Hooray! ${result.name} is on your shelf! Show it to your family.` : `${result.name} is shipped and on your shelf.`, profile.theme, profile.ageGroup ?? 'adult');
       setShelfApps(await myApps().catch(() => []));
@@ -165,7 +167,7 @@ export default function ShipScreen({ profile, html, alreadyShipped = false, onBa
             {shipped.qr && (
               <figure className="flex flex-col items-center gap-1 self-center">
                 <img src={shipped.qr} alt={`QR code for ${shipped.name} on the home Wi-Fi`} width={200} height={200} className="rounded-2xl border-2 border-line bg-white p-2" />
-                <figcaption className="text-center text-sm font-semibold text-muted">On a tablet or phone at home: scan to open it<br />(it needs that device set up and your pass)</figcaption>
+                <figcaption className="text-center text-sm font-semibold text-muted">Scan with a tablet or phone at home to play it there!</figcaption>
               </figure>
             )}
             {others.length > 0 && (

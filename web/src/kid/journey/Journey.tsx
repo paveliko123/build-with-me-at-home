@@ -4,6 +4,7 @@
 // the next pass), so there's no project ID in the browser.
 import { useEffect, useRef, useState } from 'react';
 import ProgressBar from './components/ProgressBar';
+import KidDialog from './components/KidDialog';
 import Thinking from './components/Thinking';
 import GuideStage, { type Line, type Pane } from './screens/GuideStage';
 import ThemePick, { type ProfileChoice } from './screens/ThemePick';
@@ -81,6 +82,9 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
   const [resumeApp, setResumeApp] = useState<Resume | undefined>(undefined);
   const [techSummary, setTechSummary] = useState<string | undefined>(undefined);
   const [shipHtml, setShipHtml] = useState<string | null>(null);
+  // Shipped apps are on the shelf: "New app" then needs no question (family trial).
+  const [shipped, setShipped] = useState(false);
+  const [askNew, setAskNew] = useState(false);
   const [shelfOpen, setShelfOpen] = useState(false);
   // prd.md > Limit Reached: a friendly screen when the parent's plan limit is hit; the work is saved.
   const [limited, setLimited] = useState(false);
@@ -94,6 +98,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
   const started = useRef(false);
 
   function resume(s: SessionSnapshot) {
+    setShipped(!!s.shipped);
     setProfile(s.profile);
     setVoiceOn(s.profile.inputMode === 'talk');
     voiceRef.current = s.profile.inputMode === 'talk';
@@ -171,7 +176,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
     } catch (err) {
       if (passEnded(err)) { onPassEnded(); return; }
       console.error(err);
-      setError(limitMessage(err) ?? String(err));
+      setError(limitMessage(err) ?? "My brain hiccupped, let's try that again!");
       setBusy(false);
     }
   }
@@ -184,8 +189,14 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
     saveInputMode(mode).catch(() => {});
   }
 
-  async function startOver() {
-    if (!window.confirm('Start a new app? This one is saved for your parent, but you won\'t come back to it.')) return;
+  /** "＋ New app": straight away after shipping (the app is on the shelf); otherwise ask first,
+   *  in the app's own style and with honest words (family trial). */
+  function startOver() {
+    if (shipped) void goNew();
+    else setAskNew(true);
+  }
+  async function goNew() {
+    setAskNew(false);
     stopSpeaking();
     await newApp().catch(() => {});
     window.location.reload();
@@ -242,8 +253,8 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-bg px-4">
           <div className="max-w-md text-center">
             <div className="text-7xl" aria-hidden>🔋</div>
-            <h1 className="mt-3 text-3xl font-extrabold text-ink">Limit reached — ask your parent about it.</h1>
-            <p className="mt-3 text-lg text-muted">Your helper needs a rest. Everything is saved, and you'll carry on right where you stopped.</p>
+            <h1 className="mt-3 text-3xl font-extrabold text-ink">Your helper needs a rest</h1>
+            <p className="mt-3 text-lg text-muted">Ask your parent, and you'll carry on later right where you stopped. Everything is saved.</p>
             <button onClick={() => setLimited(false)} className="mt-6 rounded-full bg-accent px-6 py-3 text-lg font-extrabold text-white">Try again</button>
           </div>
         </div>
@@ -259,20 +270,25 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
         <>
           <div className="flex items-center gap-2 pr-3"><div className="min-w-0 flex-1"><ProgressBar stage="intro" /></div><span id="bwm-countdown-slot" /></div>
           <ThemePick inputMode={inputMode} theme={theme} onThemeChange={setTheme} onDone={begin} busy={busy} />
-          {error && <p className="pb-6 text-center font-bold text-ink">{error.replace(/^LIMIT:/, '')}</p>}
+          {error && <p role="alert" className="pb-6 text-center font-bold text-ink">{error.replace(/^LIMIT:/, '')}</p>}
         </>
       )}
       {/* The journey stays mounted under the shelf, so a build keeps going while it's open. */}
       {screen === 'guide' && profile && (
         <div className={shelfOpen ? 'hidden' : undefined}>
           <div ref={topBar} className="flex items-center gap-1 px-3">
-            <button onClick={() => void startOver()}
-              className="shrink-0 rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">＋ New app</button>
+            <button onClick={startOver}
+              className="min-h-11 shrink-0 rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">＋ New app</button>
             <div className="min-w-0 flex-1"><ProgressBar stage={stage} /></div>
             <span id="bwm-countdown-slot" className="shrink-0" />
             <button onClick={() => setShelfOpen(true)}
-              className="shrink-0 rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">📚 My apps</button>
+              className="min-h-11 shrink-0 rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">📚 My apps</button>
           </div>
+          {askNew && (
+            <KidDialog title="Start a new app?"
+              text={profile.ageGroup === 'kid' ? "This app isn't finished yet. It stays saved, but you won't come back to it here." : "This app isn't shipped yet. It stays saved, but you won't come back to it here."}
+              yes="✨ Start a new app" no="Keep going" onYes={() => void goNew()} onNo={() => setAskNew(false)} />
+          )}
           {GUIDE_STAGES.includes(stage) && (
             <GuideStage profile={profile} reply={reply} history={history} visual={visual} docs={docs} pane={pane} onPane={setPane}
               controls={controls} busy={busy} error={error} onSend={text => (error && /^\W*(try (it |that )?again|again|retry)\b/i.test(text) ? turn(lastText, profile, true) : turn(text))} onRetry={() => turn(lastText, profile, true)} voiceOn={voiceOn} />
@@ -285,7 +301,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
             </div>
           )}
           {stage === 'ship' && shipHtml && (
-            <ShipScreen profile={profile} html={shipHtml} onBack={() => setStage('build')} voiceOn={voiceOn} onPassEnded={onPassEnded} />
+            <ShipScreen profile={profile} html={shipHtml} onBack={() => setStage('build')} onShipped={() => setShipped(true)} voiceOn={voiceOn} onPassEnded={onPassEnded} />
           )}
         </div>
       )}

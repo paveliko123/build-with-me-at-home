@@ -116,8 +116,8 @@ function TimesUp({ name, onOpened }: { name: string; onOpened: () => void }) {
   return (
     <div className="kidwrap">
       <div className="bigemoji">🌙</div>
-      <h1>Time's up for today!</h1>
-      <p style={{ fontSize: 18 }}>Great work, {name}. Everything is saved, and next time you'll pick up right where you left off.</p>
+      <h1>Time's up!</h1>
+      <p style={{ fontSize: 18 }}>Great work, {name}. Everything is saved.</p>
       <div className="kidcard"><p className="muted" style={{ margin: 0 }}>Got a new pass code?</p><CodeEntry onOpened={onOpened} /></div>
     </div>
   );

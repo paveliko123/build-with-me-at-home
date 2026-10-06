@@ -37,6 +37,7 @@ export interface GuideReply {
   doc?: StageDoc;
   techSummary?: string;
   tooBig?: boolean;
+  laterIdea?: string;
   stageComplete: boolean;
 }
 

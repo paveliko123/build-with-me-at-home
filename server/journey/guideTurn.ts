@@ -159,6 +159,7 @@ function cleanReply(reply: GuideReply, profile: Profile, probeFirst: boolean, un
   if (clean.question) clean.question = scrubText(clean.question, plainLevel(profile));
   if (reply.techSummary) clean.techSummary = String(reply.techSummary).slice(0, 300);
   if (reply.tooBig) clean.tooBig = true;
+  if (typeof reply.laterIdea === 'string' && reply.laterIdea.trim()) clean.laterIdea = personText(reply.laterIdea).trim().slice(0, 140);
   return clean;
 }
 
@@ -366,7 +367,7 @@ export async function guideTurn(project: Project, rawText?: string): Promise<Gui
 
     // prd.md > Safety: the guide's own words are checked before they're shown.
     if (!blocked) {
-      const shown = [reply.say, reply.question, ...(reply.cards ?? []).map(c => `${c.label} ${c.detail ?? ''}`), reply.techSummary].filter(Boolean).join('\n');
+      const shown = [reply.say, reply.question, ...(reply.cards ?? []).map(c => `${c.label} ${c.detail ?? ''}`), reply.techSummary, reply.laterIdea].filter(Boolean).join('\n');
       const outputCheck = await callSafetyCheck(shown, 'output', age, { system: systemInstruction, turns: [...contents, { role: 'model', text: JSON.stringify(raw) }], schema: REPLY_SCHEMA });
       metas.push(outputCheck.meta);
       if (outputCheck.verdict === 'unsuitable') {
@@ -374,6 +375,13 @@ export async function guideTurn(project: Project, rawText?: string): Promise<Gui
         reply = { say: REDIRECT_REPLY, question: sameQuestion, stageComplete: false };
       }
     }
+
+    // Waiting chat: keep the kid's idea so the app can offer it when the build is ready
+    // (family trial: ideas asked "for later" were lost). Only from a real answer.
+    if (waiting && reply.laterIdea && text && reply.say !== REDIRECT_REPLY) {
+      const ideas = session.laterIdeas ?? [];
+      if (!ideas.some(i => i.toLowerCase() === reply.laterIdea!.toLowerCase())) session.laterIdeas = [...ideas, reply.laterIdea].slice(-8);
+    } else delete reply.laterIdea;
 
     // Save the turn: new user messages, then the guide's reply as the person saw it.
     const now = Date.now();

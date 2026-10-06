@@ -31,6 +31,7 @@ export interface ReportData {
   flags: { at: number; stage: string; verdict: string; category: string; text: string; headline: string; guideDid: string; kidReaction: string }[];
   checks: { personal: { ok: boolean; text: string }; output: { ok: boolean; text: string }; onTopic: { ok: boolean; text: string } };
   badge: Badge; title: string; summary: string; ideasShareKid: number | null; ideasNote: string; worthAChat: string; starters: string[];
+  laterIdeas?: string[]; // ideas the kid had in the waiting chat (a fact from the project)
   timeline: { at: number; label: string; text: string }[];
   transcript: ReportLine[];
   writer: 'opus' | 'facts-only';
@@ -291,7 +292,7 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
       device: p.device ?? pass?.device ?? 'Unknown device', answered: p.profile.inputMode === 'talk' ? 'talking' : 'typing',
       ...(opts.finished ? {} : { stoppedAt: STEP[p.stage] }),
       app: shelfApp ? { name: shelfApp.name, path: `/apps/${kidId}/${shelfApp.slug}/`, url: `http://localhost:${appPort}/apps/${kidId}/${shelfApp.slug}/`, emoji: shelfApp.emoji, description: ai?.appDescription ?? '' } : null,
-      usage, flags,
+      usage, flags, ...(p.laterIdeas?.length ? { laterIdeas: p.laterIdeas } : {}),
       checks: ai?.checks ?? {
         personal: { ok: !p.flags.some((f) => f.verdict === 'personal'), text: p.flags.some((f) => f.verdict === 'personal') ? 'A personal detail came up; it was hidden.' : 'No personal details shared.' },
         output: { ok: !p.flags.some((f) => f.direction !== 'input'), text: 'Based on the automatic checks of what the guide said and built.' },

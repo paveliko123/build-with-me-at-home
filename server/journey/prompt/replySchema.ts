@@ -31,8 +31,9 @@ export const REPLY_SCHEMA = {
     },
     techSummary: { type: 'string' },
     tooBig: { type: 'boolean' },
+    laterIdea: { type: 'string', description: 'Waiting chat only: the idea in the person\'s latest answer, as a short change in their own words (e.g. "add a night mode with stars"). Leave it out when their answer has no idea for the app.' },
     stageComplete: { type: 'boolean' },
   },
   required: ['say', 'stageComplete'],
-  propertyOrdering: ['say', 'question', 'cards', 'visualHtml', 'doc', 'techSummary', 'tooBig', 'stageComplete'],
+  propertyOrdering: ['say', 'question', 'cards', 'visualHtml', 'doc', 'techSummary', 'tooBig', 'laterIdea', 'stageComplete'],
 } as const;

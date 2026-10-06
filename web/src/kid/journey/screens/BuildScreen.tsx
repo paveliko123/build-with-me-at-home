@@ -12,7 +12,7 @@ import Md from '../components/Md';
 import Thinking from '../components/Thinking';
 import VisualPane from '../components/VisualPane';
 import WaitingAnimation from '../components/WaitingAnimation';
-import { changeTurn, generateApp, guideTurn, limitMessage, passEnded, type BuildMode } from '../lib/api';
+import { addIdeas, changeTurn, generateApp, guideTurn, limitMessage, passEnded, type BuildMode } from '../lib/api';
 import { speak, stopSpeaking, voiceReady, warmVoice } from '../lib/voice';
 import { pauseFor } from '../lib/speech';
 import type { Profile } from '../types';
@@ -66,6 +66,10 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
   const [blocked, setBlocked] = useState<string | null>(null);
   // The change list: collected one message at a time, built all at once when they're done.
   const [changes, setChanges] = useState<string[]>(resume?.pendingChanges ?? []);
+  // Ideas the kid had in the waiting chat (family trial: they were lost). Offered as cards
+  // when the app is ready; one tap puts them on the change list.
+  const waitIdeas = useRef<string[]>([]);
+  const [ideaOffer, setIdeaOffer] = useState<string[]>([]);
   const [chat, setChat] = useState<ChatLine[]>(() => resume
     ? [{ from: 'guide', text: `Welcome back! Here's your app (version ${resume.version}).${resume.pendingChanges?.length ? ' Your change list is still here.' : ' What would you like to change?'}` }]
     : [
@@ -136,8 +140,12 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
     setGuideBusy(true);
     try {
       const { reply } = await guideTurn(text);
+      const idea = reply.laterIdea;
+      if (idea && !waitIdeas.current.includes(idea)) waitIdeas.current = [...waitIdeas.current, idea];
       if (!buildingRef.current) {
         if (text && reply.say) say({ from: 'guide', text: reply.say });
+        // The build finished before this answer came back: offer its idea now.
+        if (idea) setIdeaOffer(o => (o.includes(idea) ? o : [...o, idea]));
         return;
       }
       const ask = !waitStopped.current && waitAsked.current < MAX_WAIT_QUESTIONS && !!reply.question;
@@ -195,7 +203,13 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
       const later = ''; // QA rounds 2–3: "(We can talk about that another time.)" confused people
       waitingOpen.current = false;
       const next = young ? 'Try it out! What would you like to change? Or share it when you love it.' : 'Try it out. Any changes, or ready to ship?';
-      if (mode !== 'step') say({ from: 'guide', text: mode === 'full' ? `Ta-da! Your app is ready.${later} ${next}`
+      // The ideas from the waiting chat come back as cards to add (family trial).
+      const ideas = mode === 'full' ? waitIdeas.current : [];
+      if (ideas.length) {
+        waitIdeas.current = [];
+        setIdeaOffer(ideas);
+        say({ from: 'guide', text: `Ta-da! Your app is ready. Try it out! While you waited, you had ${ideas.length === 1 ? 'an idea' : `${ideas.length} ideas`}. Tap ➕ to add ${ideas.length === 1 ? 'it' : 'them'} to your changes.` });
+      } else if (mode !== 'step') say({ from: 'guide', text: mode === 'full' ? `Ta-da! Your app is ready.${later} ${next}`
         : mode === 'edit' ? `Done! Version ${result.version}.${changed || ' Your changes are in.'} ${next}`
         : `Oops, I found a little bug and fixed it.${changed} Try it again!` });
       else if (result.changed || later) say({ from: 'guide', text: `${result.changed ? `What's new:${changed}` : ''}${later}`.trim() });
@@ -284,6 +298,20 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
       say({ from: 'guide', text: limitMessage(err) ?? 'Oops, I missed that. Can you say it again?' });
     } finally {
       setGuideBusy(false);
+    }
+  }
+
+  /** Waiting-chat ideas onto the change list (instant: no Claude call). */
+  async function takeIdeas(ideas: string[]) {
+    setIdeaOffer(o => o.filter(i => !ideas.includes(i)));
+    say({ from: 'kid', text: ideas.length === 1 ? `Add: ${ideas[0]}` : `Add my ${ideas.length} ideas` });
+    try {
+      setChanges((await addIdeas(ideas)).changes);
+      say({ from: 'guide', text: young ? 'Added! Tap "That\'s all, build it!" when your list is ready.' : 'Added to your list. Build it when you\'re ready.' });
+    } catch (err) {
+      console.error(err);
+      if (passEnded(err)) { onPassEnded?.(); return; }
+      say({ from: 'guide', text: limitMessage(err) ?? 'Oops, that didn\'t work. Tell me the idea and I\'ll add it.' });
     }
   }
 
@@ -386,6 +414,23 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
             </button>
           )}
           {failed && <button onClick={retry} className={button}>Try again</button>}
+          {ideaOffer.length > 0 && !building && (
+            <section className="rounded-2xl border-2 border-accent bg-surface-2 p-3" aria-label="Your ideas from the wait">
+              <h3 className="font-extrabold text-ink">💡 Your ideas</h3>
+              <ul className="mt-2 space-y-2">
+                {ideaOffer.map(idea => (
+                  <li key={idea} className="flex items-center gap-2">
+                    <span className="flex-1 text-ink">{idea}</span>
+                    <button onClick={() => void takeIdeas([idea])} disabled={guideBusy} className="min-h-11 rounded-full bg-accent px-4 font-bold text-white disabled:opacity-40">➕ Add</button>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {ideaOffer.length > 1 && <button onClick={() => void takeIdeas(ideaOffer)} disabled={guideBusy} className={button}>➕ Add {ideaOffer.length === 2 ? 'both' : 'all'}</button>}
+                <button onClick={() => setIdeaOffer([])} className="min-h-11 rounded-full border-2 border-line px-5 font-bold text-ink">Not now</button>
+              </div>
+            </section>
+          )}
           {blocked && !guideBusy && (
             <button onClick={() => { const text = blocked; setBlocked(null); say({ from: 'kid', text }); void addChange(text); }} className={button}>↩️ Send "{blocked.slice(0, 40)}{blocked.length > 40 ? '…' : ''}" again</button>
           )}
@@ -400,7 +445,7 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
                     <span className="font-bold text-muted">{i + 1}.</span>
                     <span className="flex-1">{c}</span>
                     <button onClick={() => void removeChange(i)} disabled={building} aria-label={`Remove change ${i + 1}`}
-                      className="rounded-full px-2 font-bold text-muted hover:text-ink disabled:opacity-40">✕</button>
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-bold text-muted hover:bg-accent-soft hover:text-ink disabled:opacity-40">✕</button>
                   </li>
                 ))}
               </ol>

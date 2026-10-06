@@ -139,8 +139,11 @@ export function wrapperPage(id: string, title: string, html: string): string {
     .replace('__HTML__', () => scriptLiteral(html));
   const name = escapeHtml(title || 'Made with Build With Me');
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${name}</title>
-<style>html,body{margin:0;height:100%;background:#fff}iframe{border:0;width:100%;height:100%;display:block}</style></head>
-<body><iframe id="app" title="${name}" sandbox="allow-scripts allow-forms"></iframe><script>${script}</script></body></html>`;
+<style>html,body{margin:0;height:100%;background:#fff}body{display:flex;flex-direction:column}iframe{border:0;width:100%;flex:1;min-height:0;display:block}
+.bar{display:flex;align-items:center;gap:12px;height:44px;padding:0 12px;background:#1f2430;color:#fff;font:600 16px system-ui,sans-serif}
+.bar a{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:6px 14px;font-size:15px}
+.bar span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}</style></head>
+<body><div class="bar"><a href="/kid" onclick="if(window.opener){window.close();return false}">← Back</a><span>${name}</span></div><iframe id="app" title="${name}" sandbox="allow-scripts allow-forms"></iframe><script>${script}</script></body></html>`;
 }
 
 export function servedApp(kidId: string, slug: string): { html: string; name: string } | null {

@@ -41,6 +41,7 @@ export interface GuideReply {
   doc?: StageDoc;
   techSummary?: string;
   tooBig?: boolean;
+  laterIdea?: string; // waiting chat: the kid's idea as a short change, offered when the app is ready
   stageComplete: boolean;
 }
 

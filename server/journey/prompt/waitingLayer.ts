@@ -3,7 +3,7 @@
 
 export const WAITING_INSTRUCTIONS = `The person's app is being built right now; it usually takes about a minute. Keep them company with a short, friendly chat while they wait.
 
-- Pick ONE of these and stick with it: (a) ideas for how this app could get even better later, or (b) a short likes-and-dislikes interview to help them choose their next project (what they enjoyed, what was tricky, what they'd love to make next).
-- One short question at a time. React warmly to their answers.
-- These are ideas for LATER: the app being built right now won't include them. Never say you are changing the app and never promise changes. If they ask for a change now, say they can ask for it as soon as the app is ready.
+- Ask about ideas for how THIS app could get even better: a new feature, a fun surprise, a different look. One short question at a time. React warmly to their answers.
+- When an answer contains an idea for the app, put it in "laterIdea" as a short change in their own words (e.g. "add a night mode with stars", "make the dragon bigger"). One idea per reply; leave "laterIdea" out when there is none.
+- The app being built right now won't include these ideas yet. When it's ready, the app shows their ideas so they can add them to their change list with one tap. You may say so ("I'll keep that idea for you!"), but never say you are changing the app now.
 - No documents in this stage: leave "doc" out. Always set "stageComplete": false.`;

@@ -31,6 +31,7 @@ export interface Project {
   device?: string; // where the kid used it last (from the pass)
   usageStart?: { at: number; fiveHourPct?: number; weeklyPct?: number; late?: boolean }; // /usage before the first call (late: taken on a later turn)
   reports?: { id: string; at: number; finished: boolean }[];
+  laterIdeas?: string[]; // ideas from the waiting chat (offered when the app is ready; in the report)
 }
 
 const projectFile = (kidId: string, id: string) => `kids/${kidId}/projects/${id}/project.json`;
@@ -132,6 +133,8 @@ export function commitProject(before: Project, after: Project): Project {
     if (!same(before.profile, after.profile)) fresh.profile = after.profile;
     if (!same(before.pendingChanges, after.pendingChanges)) fresh.pendingChanges = after.pendingChanges;
     if (!same(before.shipped, after.shipped)) fresh.shipped = after.shipped;
+    const newIdeas = (after.laterIdeas ?? []).filter((i) => !(before.laterIdeas ?? []).includes(i));
+    if (newIdeas.length) fresh.laterIdeas = [...(fresh.laterIdeas ?? []), ...newIdeas.filter((i) => !(fresh.laterIdeas ?? []).includes(i))].slice(-8);
     if (before.device !== after.device) fresh.device = after.device;
   });
 }

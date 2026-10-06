@@ -51,6 +51,11 @@ export async function generateApp(args: { mode: BuildMode; request?: string; err
   return api<GenerateAppResult>('/api/kid/journey/build', { body: { mode: args.mode, error: args.error } });
 }
 
+/** Ideas from the waiting chat onto the change list (instant, no Claude call). */
+export async function addIdeas(ideas: string[]) {
+  return api<{ changes: string[] }>('/api/kid/journey/changes/ideas', { body: { ideas } });
+}
+
 export async function changeTurn(args: { text?: string; remove?: number; chatQuestion?: string }) {
   return api<{ changes: string[]; ready: boolean; ship?: boolean; reply: { say: string; question?: string } | null }>('/api/kid/journey/changes', { body: args });
 }

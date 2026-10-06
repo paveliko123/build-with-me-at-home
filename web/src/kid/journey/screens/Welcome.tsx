@@ -18,7 +18,7 @@ export default function Welcome({ name, onChoose }: Props) {
       <p className="rounded-2xl bg-accent-soft px-5 py-3 text-xl font-extrabold text-ink">🤖 Your helper is an AI, not a person.</p>
       <p className="max-w-xl text-lg text-muted">
         We plan your app together first,
-        then build it. Projects are kept small, about <strong className="text-ink">6 hours of work</strong> or less.
+        then build it. Projects are kept small: a few short sessions.
       </p>
       <div className="w-full">
         <p className="mb-4 text-xl font-bold text-ink">How do you want to answer?</p>

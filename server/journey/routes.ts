@@ -161,6 +161,16 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
     chatQuestion: typeof req.body?.chatQuestion === 'string' ? req.body.chatQuestion : undefined,
   }), typeof req.body?.text === 'string' ? 'chat' : null)); // the ✕ on an item calls no Claude
 
+  // Ideas from the waiting chat, added to the change list with one tap (no Claude call: each was
+  // already checked as the kid's answer). Only ideas the project really has are accepted.
+  r.post('/changes/ideas', (req, res) => withProject(req, res, 'chat', async (p) => {
+    const want: string[] = Array.isArray(req.body?.ideas) ? req.body.ideas.filter((x: unknown) => typeof x === 'string') : [];
+    const known = p.laterIdeas ?? [];
+    const add = want.filter((i) => known.includes(i) && !(p.pendingChanges ?? []).includes(i));
+    p.pendingChanges = [...(p.pendingChanges ?? []), ...add].slice(0, 12);
+    return { changes: p.pendingChanges };
+  }, null));
+
   // Ship: the kid names the app; it goes on their shelf (final).
   r.post('/ship', (req, res) => withProject(req, res, 'chat', async (p, s) => {
     const out = shipApp(p, String(req.body?.name ?? ''));
