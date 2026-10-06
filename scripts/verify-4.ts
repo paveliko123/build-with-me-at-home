@@ -112,7 +112,12 @@ async function main() {
     // 4. parent sees it
     r = await parent.call('/api/parent/passes');
     const row = r.body.find((p: any) => p.id === p1.id);
-    add('Active passes shows the device, without the code', row?.device === 'iPad' && !row.code && !row.typedCode, `${row?.device} · code hidden: ${!row?.code}`);
+    // The test's "tablet" is this computer on its home address, so it is named "This laptop".
+    add('Active passes shows the device, without the code', row?.device === 'This laptop' && !row.code && !row.typedCode, `${row?.device} · code hidden: ${!row?.code}`);
+    if (ip) {
+      const viaHome = await new Promise<string>((res) => http.get(`http://${ip}:${PORT}/kid`, (x) => { x.resume(); res(`${x.statusCode} ${x.headers.location}`); }).on('error', (e) => res(e.message)));
+      add('this laptop on its home address is sent to localhost (no certificate needed)', viaHome === `302 http://localhost:${PORT}/kid`, viaHome);
+    }
 
     // 5. extend → SSE to the kid
     const kidStream = tablet.events('/api/events');

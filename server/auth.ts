@@ -4,6 +4,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
+import { networkInterfaces } from 'node:os';
 import { readFamily, updateFamily } from './store.js';
 
 const scryptAsync = promisify(scrypt) as (pw: string, salt: Buffer, len: number) => Promise<Buffer>;
@@ -15,6 +16,16 @@ const LOCK_MS = 60 * 1000;
 export function isLoopback(req: Request): boolean {
   const a = req.socket.remoteAddress ?? '';
   return a === '127.0.0.1' || a === '::1' || a === '::ffff:127.0.0.1';
+}
+
+/** This computer itself, also when its browser uses the home-network address (192.168…). */
+export function isThisComputer(req: Request): boolean {
+  if (isLoopback(req)) return true;
+  const a = (req.socket.remoteAddress ?? '').replace(/^::ffff:/, '');
+  return ownAddresses().includes(a);
+}
+function ownAddresses(): string[] {
+  return Object.values(networkInterfaces()).flat().filter((n) => !!n && n.family === 'IPv4').map((n) => n!.address);
 }
 
 export function cookies(req: Request): Record<string, string> {

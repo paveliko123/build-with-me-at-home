@@ -8,7 +8,7 @@ import { randomBytes, createHash } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 import type { Request, Response, NextFunction } from 'express';
 import { readJson, updateJson, readFamily, type Kid } from './store.js';
-import { cookies, isLoopback } from './auth.js';
+import { cookies, isLoopback, isThisComputer } from './auth.js';
 
 export const PASS_COOKIE = 'bwm_pass';
 const FILE = 'passes.json';
@@ -123,7 +123,7 @@ export function activePasses() {
 
 /** Friendly device name from the browser, e.g. "iPad", "Windows laptop". */
 export function deviceLabel(req: Request): string {
-  if (isLoopback(req)) return 'This laptop';
+  if (isThisComputer(req)) return 'This laptop';
   const ua = req.headers['user-agent'] ?? '';
   if (/iPad/.test(ua) || (/Macintosh/.test(ua) && /Mobile/.test(ua))) return 'iPad';
   if (/iPhone/.test(ua)) return 'iPhone';

@@ -12,7 +12,7 @@ import { join, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadOrCreateAuthority, issueServerCert, mobileConfig, authorityName, type Authority } from './certs.js';
 import { addChunk, finishUtterance, loadSpeech } from './speech.js';
-import { isLoopback } from './auth.js';
+import { isLoopback, isThisComputer } from './auth.js';
 import { parentRoutes } from './parentRoutes.js';
 import { kidRoutes } from './kidRoutes.js';
 import { journeyRoutes } from './journey/routes.js';
@@ -51,6 +51,8 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
   app.use((req: Request, res: Response, next: NextFunction) => {
     const secure = (req.socket as any).encrypted === true;
     if (secure || isLoopback(req) || OPEN_ON_HTTP.has(req.path)) return next();
+    // This computer using its own home address: localhost needs no certificate.
+    if (isThisComputer(req)) { res.redirect(302, `http://localhost:${httpPort}${req.originalUrl}`); return; }
     const host = (req.headers.host ?? '').replace(/:\d+$/, '');
     res.redirect(302, `https://${host}:${httpsPort}${req.originalUrl}`);
   });

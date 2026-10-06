@@ -90,7 +90,7 @@ function PassCode({ pass, onClose }: { pass: ActivePass; onClose: () => void }) 
         <p className="label" style={{ margin: '8px 0 6px' }}>Open it on one device</p>
         {pass.qr && <div className="way">📱 <span><b>Tablet or phone:</b> scan the code with the camera</span></div>}
         <div className="way">💻 <span><b>This laptop:</b> <a className="btn" style={{ display: 'inline-block', textDecoration: 'none', padding: '6px 12px', margin: '2px 4px' }} href={pass.laptopUrl} target="_blank" rel="noopener">Open on this laptop</a><span className="muted" style={{ fontSize: 13 }}>(locks the parent area here)</span></span></div>
-        {pass.typeAt && <div className="way">🧑‍💻 <span><b>Kid's laptop or Chromebook:</b> open <code>{pass.typeAt}</code> and type <span className="typed">{pass.typedCode}</span></span></div>}
+        {pass.typeAt && <div className="way">🧑‍💻 <span><b>Kid's own laptop or Chromebook</b> (not this one): open <code>{pass.typeAt}</code> and type <span className="typed">{pass.typedCode}</span></span></div>}
         <span className="muted" style={{ fontSize: 13, display: 'block', marginTop: 8 }}>One use only: the first device that opens it gets the pass. Works on home Wi-Fi until {timeOfDay(pass.endsAt)}. A device that isn't set up for talking may show a security warning first: set it up with 📱 below.</span>
       </div>
     </div>

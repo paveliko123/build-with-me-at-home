@@ -112,7 +112,10 @@ function say(clean: string, theme: ThemeId, mine: number, onDone?: () => void) {
   warmUp.volume = 0;
   if (voice) warmUp.voice = voice;
   window.speechSynthesis.speak(warmUp);
-  sentences.forEach((sentence, i) => {
+  // Learner test (2026-10-06): the first word was still cut in half on the laptop, so the
+  // sentences start half a second after the warm-up.
+  window.setTimeout(() => { if (mine === generation) queue(); }, LEAD_IN_MS);
+  const queue = () => sentences.forEach((sentence, i) => {
     const u = new SpeechSynthesisUtterance(sentence);
     if (voice) u.voice = voice;
     u.lang = voice?.lang ?? navigator.language ?? 'en-US';
@@ -123,8 +126,11 @@ function say(clean: string, theme: ThemeId, mine: number, onDone?: () => void) {
     window.speechSynthesis.speak(u);
   });
   // Safety net: some browsers never fire onend, so also finish once nothing is speaking.
-  const poll = window.setInterval(() => {
+  let poll = 0;
+  window.setTimeout(() => { poll = window.setInterval(check, 700); }, LEAD_IN_MS + 300);
+  const check = () => {
     if (mine !== generation || finished) { window.clearInterval(poll); return; }
     if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending) { window.clearInterval(poll); done(); }
-  }, 700);
+  };
 }
+const LEAD_IN_MS = 500;
