@@ -32,7 +32,7 @@ function toInt16(f32) {
 /**
  * Records one utterance.
  * opts: { pauseMs (silence that ends it, default 1500), maxMs (default 30000), onLevel(0..1), onState(state) }
- * Returns a controller: { done(): ends now, result: Promise<{text, seconds, transcribeMs, waitedMs}> }
+ * Returns a controller: { done(): ends now, result: Promise<{text, seconds, transcribeMs, waitedMs, heardSpeech, failed}> }
  */
 export async function recordUtterance(opts = {}) {
   const pauseMs = opts.pauseMs ?? 1500, maxMs = opts.maxMs ?? 30000;
@@ -78,9 +78,11 @@ export async function recordUtterance(opts = {}) {
     flush();
     tap.port.onmessage = null; src.disconnect(); stream.getTracks().forEach((t) => t.stop()); ctx.close();
     opts.onState?.('thinking');
-    await Promise.all(uploads);
-    const r = await fetch(`/api/speech/${id}/end`, { method: 'POST' }).then((x) => x.json());
-    return { ...r, waitedMs: Math.round(performance.now() - endedAt) };
+    const sent = await Promise.all(uploads.map((u) => u.then((x) => x.ok, () => false)));
+    const res = await fetch(`/api/speech/${id}/end`, { method: 'POST' });
+    const r = await res.json().catch(() => ({}));
+    // heardSpeech: the person really talked, so an empty result is a problem worth saying.
+    return { ...r, text: typeof r.text === 'string' ? r.text : '', heardSpeech, failed: !res.ok || sent.includes(false), waitedMs: Math.round(performance.now() - endedAt) };
   })();
 
   return { done: () => resolveDone(), result };

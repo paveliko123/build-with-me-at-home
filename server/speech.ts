@@ -64,6 +64,18 @@ export function pcm16ToFloat32(pcm: Buffer): Float32Array {
 
 export interface Transcript { text: string; seconds: number; transcribeMs: number }
 
+/** A quiet recording (a headset mic with echo cancellation, a kid far from the tablet) comes
+ *  back as nothing, so it's turned up first: the loudest moment to 0.9, at most 40 times. */
+export function normalize(audio: Float32Array): { audio: Float32Array; peak: number; gain: number } {
+  let peak = 0;
+  for (let i = 0; i < audio.length; i++) { const v = Math.abs(audio[i]); if (v > peak) peak = v; }
+  const gain = peak > 0 ? Math.min(40, 0.9 / peak) : 1;
+  if (gain <= 1.05) return { audio, peak, gain: 1 };
+  const out = new Float32Array(audio.length);
+  for (let i = 0; i < audio.length; i++) out[i] = audio[i] * gain;
+  return { audio: out, peak, gain };
+}
+
 export async function transcribeFloat32(audio: Float32Array): Promise<Transcript> {
   const asr = await loadSpeech();
   const t0 = Date.now();
@@ -76,8 +88,20 @@ export async function transcribeFloat32(audio: Float32Array): Promise<Transcript
 export async function finishUtterance(id: string): Promise<Transcript> {
   const u = utterances.get(id);
   utterances.delete(id);
-  if (!u || u.bytes < SAMPLE_RATE * 2 * 0.3) return { text: '', seconds: 0, transcribeMs: 0 }; // < 0.3 s: nothing said
-  return transcribeFloat32(pcm16ToFloat32(Buffer.concat(u.chunks)));
+  if (!u || u.bytes < SAMPLE_RATE * 2 * 0.3) { // < 0.3 s: nothing said
+    console.log(JSON.stringify({ event: 'speech', result: u ? 'too-short' : 'no-audio', seconds: u ? +(u.bytes / 2 / SAMPLE_RATE).toFixed(1) : 0 }));
+    return { text: '', seconds: 0, transcribeMs: 0 };
+  }
+  const { audio, peak, gain } = normalize(pcm16ToFloat32(Buffer.concat(u.chunks)));
+  try {
+    const t = await transcribeFloat32(audio);
+    // Never the words (they're the kid's): only enough to tell why a recording came back empty.
+    console.log(JSON.stringify({ event: 'speech', result: t.text ? 'ok' : 'empty', seconds: +t.seconds.toFixed(1), peak: +peak.toFixed(3), gain: +gain.toFixed(1), chars: t.text.length, ms: t.transcribeMs }));
+    return t;
+  } catch (e) {
+    console.error(JSON.stringify({ event: 'speech', result: 'error', error: String((e as Error)?.message ?? e).slice(0, 200) }));
+    throw e;
+  }
 }
 
 // Speech models sometimes emit bracketed sound notes or a lone "you" on silence.

@@ -5,7 +5,7 @@
 // AnswerBox works unchanged: it ends after a real pause, or when the kid taps "I'm done".
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-interface Controller { done(): void; result: Promise<{ text: string }> }
+interface Controller { done(): void; result: Promise<{ text: string; heardSpeech?: boolean; failed?: boolean }> }
 interface Recorder {
   micSupported(): boolean;
   recordUtterance(opts: { pauseMs?: number; maxMs?: number; onLevel?: (l: number) => void; onState?: (s: string) => void }): Promise<Controller>;
@@ -20,7 +20,7 @@ export function speechSupported(): boolean {
   return !!(window.isSecureContext && typeof navigator.mediaDevices?.getUserMedia === 'function' && (window as any).AudioWorkletNode);
 }
 
-export type SpeechProblem = 'unsupported' | 'blocked' | 'no-speech' | null;
+export type SpeechProblem = 'unsupported' | 'blocked' | 'no-speech' | 'unclear' | null;
 
 // How long a pause ends a spoken answer: longer for kids, who stop to think. (Build With Me's
 // values, minus about a second: the recorder hears silence at once, not after a result lag.)
@@ -67,13 +67,15 @@ export function useSpeech(onText: (text: string) => void, onFinal: (text: string
       });
       me.ctl = ctl;
       if (me.cancelled) { ctl.done(); return; }
-      const { text } = await ctl.result;
+      const { text, heardSpeech, failed } = await ctl.result;
       if (me.cancelled) return;
       current.current = null;
       setListening(false); setTranscribing(false); setLevel(0);
       handlers.current.onText('');
       const said = (text ?? '').trim();
       if (said) handlers.current.onFinal(said);
+      // They talked but no words came back: say so, even when the app opened the mic itself.
+      else if (heardSpeech || failed) setProblem('unclear');
       else if (!auto) setProblem('no-speech');
     } catch (err) {
       if (me.cancelled) return;

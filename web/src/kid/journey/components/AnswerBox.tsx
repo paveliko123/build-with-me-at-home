@@ -25,6 +25,7 @@ const PROBLEM_TEXT = {
   unsupported: "Talking isn't set up on this device yet (ask your parent). You can type, or use your keyboard's 🎤 button!",
   blocked: "I can't hear you (the microphone is blocked), so let's type for now! Your keyboard's 🎤 button works too.",
   'no-speech': "I didn't hear anything. Tap the mic and try again!",
+  unclear: "I couldn't make out the words. Tap the mic and say it again, or type it!",
 };
 
 const MAX_HEIGHT = 200;
