@@ -266,4 +266,11 @@ Activity mode:
   - What the build found: Claude Code always prefixes plugin commands with the plugin name. Typing `/build-with-me` autocompletes it. The files are `commands/start.md`, `commands/reset-pin.md` and `skills/setup/SKILL.md` (`/build-with-me:setup`).
 - **The app runs from a "runtime" copy inside the plugin's private folder** (`${CLAUDE_PLUGIN_DATA}/runtime`: the built app plus `npm ci --omit=dev`).
   - What the build found: the bundled server must find its packages, and the plugin folder itself moves on every update and shouldn't hold state.
-  - What changes: `setup-check --install-packages` refreshes the runtime when the version changes. The desktop start file reads `.app-location.json` in Documents\Build With Me, so it survives updates.
+  - What changes: `setup-check --install-packages` refreshes the runtime when the version changes. The desktop start file reads `.app-location.json` in the family folder, so it survives updates.
+- **Plugin data paths contain `.claude`, and the web server refused to serve files under dot-folders** (the learner's first browser view was "Not Found").
+  - What changes: files are now always sent relative to a root folder, raw error pages are replaced by a friendly page, and `verify-3` runs from a dot-folder path.
+- **Updates are automatic:** each build carries an id, and `launch.mjs` refreshes the runtime copy and restarts an outdated server.
+- **The desktop shortcut is created automatically** (learner request) on the *real* Desktop, found by asking Windows, since it may be redirected to OneDrive.
+- **The family data lives in `<home>\Build With Me`, not Documents** (learner decision).
+  - What the build found: on the learner's PC, Desktop and Documents are redirected to a work OneDrive. Kids' data must never sync to any cloud.
+  - What changes: the launcher moves an old Documents folder once, if one exists.

@@ -4,7 +4,7 @@
 // Run: npm run verify:3   (after npm run build)
 
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, existsSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, existsSync, rmSync, cpSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir, networkInterfaces } from 'node:os';
 import https from 'node:https';
@@ -13,9 +13,14 @@ const checks: { name: string; pass: boolean; detail: string }[] = [];
 const add = (name: string, pass: boolean, detail: string) => { checks.push({ name, pass, detail }); console.log(`${pass ? 'PASS' : 'FAIL'}  ${name} — ${detail}`); };
 
 const FAMILY = mkdtempSync(join(tmpdir(), 'bwm-verify3-'));
-const DATA = join(tmpdir(), 'build-with-me-dev'); // has the speech model from E2
+// A data folder whose path contains a dot-folder, like the real ~/.claude/plugins/data/...
+// (regression: the web server refused to serve files under dot-folders).
+const DEV_DATA = join(tmpdir(), 'build-with-me-dev'); // has the speech model from E2
+const DATA = join(tmpdir(), '.bwm-verify', 'plugin-data');
+mkdirSync(DATA, { recursive: true });
+if (!existsSync(join(DATA, 'models')) && existsSync(join(DEV_DATA, 'models'))) cpSync(join(DEV_DATA, 'models'), join(DATA, 'models'), { recursive: true });
 const PORT = 4767;
-const env = { ...process.env, BWM_DATA: FAMILY, BWM_PLUGIN_DATA: DATA };
+const env = { ...process.env, BWM_DATA: FAMILY, BWM_PLUGIN_DATA: DATA, BWM_NO_SHORTCUT: '1', BWM_NO_OPEN: '1' };
 const node = (args: string[]) => spawnSync(process.execPath, args, { encoding: 'utf8', env, timeout: 600_000 });
 const base = `http://127.0.0.1:${PORT}`;
 let cookie = '';
@@ -62,6 +67,15 @@ async function main() {
   add('launch starts the server', l1.ok && l1.started, `${l1.url} started=${l1.started}`);
   add('second launch reuses it (single instance)', l2.ok && !l2.started, `started=${l2.started}`);
   add('stable start file written', existsSync(l1.startFile) && existsSync(join(FAMILY, '.app-location.json')), l1.startFile);
+
+  // 4b. the front page and assets are served from a dot-folder path; errors are friendly
+  const page = await fetch(base + '/').then(async (x) => ({ s: x.status, t: await x.text() }));
+  add('front page served from a path with a dot-folder', page.s === 200 && page.t.includes('<div id="root">'), `GET / → ${page.s} (data: ${DATA})`);
+  const missing = await fetch(base + '/talk-test-nope.html').then(async (x) => await x.text());
+  const bad = await fetch(base + '/apps/../../etc').then(async (x) => ({ s: x.status, t: await x.text() }));
+  add('no stack traces shown', !/at \w+ \(|node_modules/.test(missing + bad.t), `status ${bad.s}`);
+  const h = await fetch(base + '/api/health').then((x) => x.json());
+  add('health reports the build id', !!h.build && h.build !== 'dev', `build ${h.build}`);
 
   // 5. first run
   let r = await call('/api/parent/state');

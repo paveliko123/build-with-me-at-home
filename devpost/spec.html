@@ -148,7 +148,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     <div class="piece" style="--c:var(--warn)"><h3>📦 1. The Claude Code plugin</h3><span class="nick">the delivery box</span>
       <ul><li>The parent adds it from the public GitHub repo</li><li>Carries the whole app</li><li>A <b>setup skill</b>: Claude checks what's missing (Node.js, the speech model…), fixes it with your normal approval prompts, or explains in the chat</li><li><code>/build-with-me:start</code> starts the app</li></ul></div>
     <div class="piece" style="--c:var(--accent)"><h3>🖥️ 2. The server</h3><span class="nick">the back office</span>
-      <ul><li>A small <b>Node.js</b> program, like Build With Me's Cloud Functions but on the laptop</li><li>Shows the screens to the laptop and to tablets on home Wi-Fi</li><li>Keeps the PIN, kids, passes, projects, apps and reports in <b>plain files</b> in <code>Documents\Build With Me</code></li><li>Turns speech into text <b>on this computer</b> (Whisper)</li><li>Asks Claude to guide, check, build and report</li></ul></div>
+      <ul><li>A small <b>Node.js</b> program, like Build With Me's Cloud Functions but on the laptop</li><li>Shows the screens to the laptop and to tablets on home Wi-Fi</li><li>Keeps the PIN, kids, passes, projects, apps and reports in <b>plain files</b> in <code>&lt;home&gt;\Build With Me</code></li><li>Turns speech into text <b>on this computer</b> (Whisper)</li><li>Asks Claude to guide, check, build and report</li></ul></div>
     <div class="piece" style="--c:var(--claude)"><h3>🧠 3. The parent's Claude Code</h3><span class="nick">the brains</span>
       <ul><li>The server runs your own <code>claude</code> in the background, one conversation per job:</li><li><b>Guide</b> (Sonnet), talks with the kid</li><li><b>Checker</b> (Haiku), reads every turn</li><li><b>Builder</b> (Opus), writes the app</li><li><b>Reporter</b> (Opus), writes the report</li><li>Each one <b>sealed off</b> from your setup: no tools, files, plugins or CLAUDE.md. The app never sees your sign-in</li></ul></div>
     <div class="piece" style="--c:var(--kid)"><h3>🎨 4. The screens</h3><span class="nick">the front end</span>
@@ -202,7 +202,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     </g>
     <!-- files -->
     <rect x="280" y="270" width="330" height="92" rx="12" fill="var(--file-soft)" stroke="var(--file)"/>
-    <text x="445" y="294" text-anchor="middle" font-weight="700" font-size="14" fill="var(--ink)">📁 Documents\Build With Me</text>
+    <text x="445" y="294" text-anchor="middle" font-weight="700" font-size="14" fill="var(--ink)">📁 &lt;home&gt;\Build With Me</text>
     <text x="445" y="316" text-anchor="middle" font-size="12" fill="var(--ink)">family · passes · projects · apps</text>
     <text x="445" y="334" text-anchor="middle" font-size="12" fill="var(--ink)">reports (HTML) · alerts · start file</text>
     <text x="445" y="352" text-anchor="middle" font-size="11" fill="var(--muted)">kept on uninstall</text>
@@ -345,7 +345,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
           <li>opens the browser</li>
         </ul></li>
       <li><b>Updating:</b> a normal plugin update. The next launch notices the new version, re-runs <code>npm ci</code> if <code>package.json</code> changed, and restarts the server. Data in Documents is untouched.</li>
-      <li><b>Uninstalling:</b> removes the plugin and its private folder. <code>Documents\Build With Me</code> stays (the PRD assumption). The README explains how to delete it.</li>
+      <li><b>Uninstalling:</b> removes the plugin and its private folder. <code>&lt;home&gt;\Build With Me</code> stays (the PRD assumption). The README explains how to delete it.</li>
     </ul>
     <div class="files">.claude-plugin/ · commands/build-with-me.md · skills/setup/SKILL.md · app/setup-check.mjs · app/launch.mjs</div>
   </div></details>
@@ -505,7 +505,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
   <details id="c-store"><summary><h3>📁 Store (files)</h3><span class="prd">persistence for every feature</span></summary><div class="body">
     <ul>
       <li><code>server/store.ts</code> reads and writes JSON files atomically (write a temporary file, then rename), with one write queue per file.</li>
-      <li>The data folder is <code>Documents\Build With Me</code> (Windows) or <code>~/Documents/Build With Me</code> (Mac), using the OS's Documents location.</li>
+      <li>The data folder is <code>&lt;home&gt;\Build With Me</code> (Windows <code>C:\Users\&lt;name&gt;\Build With Me</code>, Mac <code>~/Build With Me</code>). Not Documents or Desktop, which are often redirected to OneDrive or iCloud (even a work account); kids' data must never sync. <span class="pill verify">build revision</span>.</li>
       <li>Full layout in <a href="#data">Data Model</a>.</li>
     </ul>
     <div class="files">server/store.ts</div>
@@ -569,7 +569,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
 
   <!-- DATA -->
   <h2 id="data">Data Model</h2>
-  <p class="src">Everything lives in <b>Documents\Build With Me</b> unless noted.</p>
+  <p class="src">Everything lives in <b>&lt;home&gt;\Build With Me</b> unless noted.</p>
   <div class="card tablewrap">
     <table>
       <thead><tr><th>File</th><th>Holds</th><th>Updated when</th><th>After closing and reopening</th></tr></thead>
@@ -610,7 +610,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
 ├── server/                          <span class="c"># TypeScript source → app/dist/server</span>
 │   ├── index.ts                     <span class="c"># Express, the two listeners, routes, SSE</span>
 │   ├── auth.ts                      <span class="c"># parent cookie (loopback), pass cookie</span>
-│   ├── store.ts                     <span class="c"># atomic JSON files in Documents\Build With Me</span>
+│   ├── store.ts                     <span class="c"># atomic JSON files in &lt;home&gt;\Build With Me</span>
 │   ├── passes.ts                    <span class="c"># create / open / extend / end / expire</span>
 │   ├── kids.ts                      <span class="c"># family.json kids</span>
 │   ├── certs.ts                     <span class="c"># home certificate authority + server cert</span>

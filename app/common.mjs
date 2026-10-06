@@ -20,9 +20,9 @@ export function pluginData() {
   return dir;
 }
 
-/** The family's folder: Documents\Build With Me (kept on uninstall). */
+/** The family's folder: <home>\Build With Me (kept on uninstall, never synced to a cloud). */
 export function familyData() {
-  const dir = process.env.BWM_DATA || join(homedir(), 'Documents', 'Build With Me');
+  const dir = process.env.BWM_DATA || join(homedir(), 'Build With Me');
   mkdirSync(dir, { recursive: true });
   return dir;
 }
@@ -54,8 +54,18 @@ export function findClaude() {
 }
 
 export async function health(p = port()) {
-  try { const r = await fetch(`http://127.0.0.1:${p}/api/health`, { signal: AbortSignal.timeout(1500) }); return r.ok; }
-  catch { return false; }
+  return (await healthInfo(p)) !== null;
+}
+
+/** The running server's health answer ({ ok, build }) or null if nothing answers. */
+export async function healthInfo(p = port()) {
+  try { const r = await fetch(`http://127.0.0.1:${p}/api/health`, { signal: AbortSignal.timeout(1500) }); return r.ok ? await r.json() : null; }
+  catch { return null; }
+}
+
+/** Build id of a built app folder (app/dist/build.json), or null. */
+export function buildId(distDir) {
+  try { return JSON.parse(readFileSync(join(distDir, 'build.json'), 'utf8')).id; } catch { return null; }
 }
 
 export function openBrowser(url) {

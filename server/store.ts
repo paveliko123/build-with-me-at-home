@@ -1,4 +1,4 @@
-// Plain JSON files in Documents\Build With Me (or BWM_DATA). Writes are atomic: write a
+// Plain JSON files in <home>\Build With Me (or BWM_DATA). Writes are atomic: write a
 // temporary file, then rename over the old one, so a crash never leaves half a file.
 
 import { existsSync, readFileSync, writeFileSync, renameSync, mkdirSync, rmSync } from 'node:fs';

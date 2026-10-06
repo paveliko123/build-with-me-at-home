@@ -39,12 +39,12 @@ It prints JSON with `items`, each with `id`, `ok`, `detail` and, when not ok, a 
 
 ## 3. Start
 
-When everything is ok, ask the parent: "Would you like a **Build With Me** shortcut on your desktop?" Then run:
+When everything is ok, run:
 
-`node "${CLAUDE_PLUGIN_ROOT}/app/launch.mjs" --data "${CLAUDE_PLUGIN_DATA}"` (add `--shortcut` if they said yes)
+`node "${CLAUDE_PLUGIN_ROOT}/app/launch.mjs" --data "${CLAUDE_PLUGIN_DATA}"`
 
-Tell them:
+It creates a **Build With Me** shortcut on the desktop the first time (the `shortcut` field in its output). Don't ask about it. Tell them:
 - The browser opens Build With Me. The first time, they create a parent PIN and add their kids.
 - On Windows, a firewall popup may ask about Node.js. Choose **Private networks** so tablets can connect.
-- Next time: double-click the desktop shortcut, or run `/build-with-me:start`.
+- A **Build With Me** shortcut is now on the desktop: next time, just double-click it (or run `/build-with-me:start`).
 - Forgot the PIN? `/build-with-me:reset-pin`.

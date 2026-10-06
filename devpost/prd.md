@@ -232,7 +232,7 @@ Source: `scope.md > The Unique Kernel`. Laid out as in `report-mockup.html`.
     - **How it went:** a timeline of the steps
     - **Talk about it together:** 1–2 conversation starters
     - **The full conversation,** folded
-  - [ ] Each report is saved **both** in the app (**All reports**, behind the PIN) **and** as an HTML file in a dedicated folder (`Documents\Build With Me\Reports`) that opens even when the app isn't running.
+  - [ ] Each report is saved **both** in the app (**All reports**, behind the PIN) **and** as an HTML file in a dedicated folder (`C:\Users\<you>\Build With Me\Reports`, a folder that is never synced to a cloud) that opens even when the app isn't running.
   - [ ] **All reports** lists every report newest first: when, who, what was built, a safety badge (No flags / N flags handled / Needs a look), and the app link.
   - [ ] A report with flags also appears under **Needs your attention**.
 

@@ -20,10 +20,11 @@ export function sandboxDir(): string {
   return dir;
 }
 
-// The family's data: Documents\Build With Me (kept on uninstall). BWM_DATA overrides
-// it for development and tests.
+// The family's data: <home>\Build With Me (kept on uninstall). Not Documents or Desktop:
+// those are often redirected to OneDrive/iCloud (even a work account), and kids' data must
+// never sync anywhere. BWM_DATA overrides it for development and tests.
 export function familyDataDir(): string {
-  const dir = process.env.BWM_DATA || join(homedir(), 'Documents', 'Build With Me');
+  const dir = process.env.BWM_DATA || join(homedir(), 'Build With Me');
   mkdirSync(dir, { recursive: true });
   return dir;
 }

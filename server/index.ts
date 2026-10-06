@@ -7,7 +7,7 @@
 import express, { type Request, type Response, type NextFunction } from 'express';
 import http from 'node:http';
 import https from 'node:https';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadOrCreateAuthority, issueServerCert, mobileConfig, type Authority } from './certs.js';
@@ -22,6 +22,11 @@ const bundled = here.endsWith(`dist${sep}server`) || here.endsWith('dist/server'
 export const WEB_DIR = process.env.BWM_WEB_DIR || (bundled ? join(here, '..', 'web') : join(here, '..', 'app', 'dist', 'web'));
 // Development-only static pages (talk-test) when running from source.
 const PUBLIC_DIR = join(here, '..', 'web', 'public');
+// Build id (app/dist/build.json), so the launcher can tell when a running server is outdated.
+export const BUILD_ID: string = (() => { try { return JSON.parse(readFileSync(join(WEB_DIR, '..', 'build.json'), 'utf8')).id; } catch { return 'dev'; } })();
+// Files are always sent relative to a root folder: the plugin data path contains ".claude",
+// and send() refuses absolute paths with dot-folders (it returned 404 for the app's own page).
+const sendFrom = (res: Response, root: string, file: string) => res.sendFile(file, { root });
 
 export interface ServerOptions { httpPort?: number; httpsPort?: number; preloadSpeech?: boolean }
 export interface RunningServer { httpUrl: string; httpsUrls: string[]; httpPort: number; httpsPort: number; close: () => Promise<void>; authority: Authority }
@@ -48,7 +53,7 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
   });
 
   // The health check answers any origin, so the tablet wizard (on http) can test https.
-  app.get('/api/health', (_req, res) => { res.set('Access-Control-Allow-Origin', '*').json({ ok: true }); });
+  app.get('/api/health', (_req, res) => { res.set('Access-Control-Allow-Origin', '*').json({ ok: true, build: BUILD_ID }); });
 
   // ---- tablet setup (home certificate) ----
   app.get('/home-certificate.mobileconfig', (_req, res) => {
@@ -76,14 +81,22 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
   });
 
   // ---- front end ----
-  app.get('/talk-test', (_req, res) => { res.sendFile(join(existsSync(join(WEB_DIR, 'talk-test.html')) ? WEB_DIR : PUBLIC_DIR, 'talk-test.html')); });
+  app.get('/talk-test', (_req, res) => { sendFrom(res, existsSync(join(WEB_DIR, 'talk-test.html')) ? WEB_DIR : PUBLIC_DIR, 'talk-test.html'); });
   app.use(express.static(WEB_DIR, { index: false }));
   app.use(express.static(PUBLIC_DIR, { index: false }));
   app.use((req, res, next) => {
     if (req.method !== 'GET' || req.path.startsWith('/api/')) return next();
-    const index = join(WEB_DIR, 'index.html');
-    if (existsSync(index)) res.sendFile(index);
+    if (existsSync(join(WEB_DIR, 'index.html'))) sendFrom(res, WEB_DIR, 'index.html');
     else res.status(503).type('text').send('The screens are not built yet. Run: npm run build:web');
+  });
+
+  // Never show raw errors (stack traces) to anyone; log them for the parent instead.
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+    console.error(`[error] ${req.method} ${req.path}:`, err?.stack ?? err);
+    if (res.headersSent) return;
+    const status = err?.status ?? err?.statusCode ?? 500;
+    if (req.path.startsWith('/api/')) { res.status(status).json({ error: status === 404 ? 'not found' : 'something went wrong' }); return; }
+    res.status(status).type('html').send(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Oops</title><body style="font:18px system-ui;margin:0;display:grid;place-items:center;min-height:100vh;background:#f6f4ef;color:#1f2430;text-align:center"><div><div style="font-size:48px">🙈</div><h1 style="font-size:24px">${status === 404 ? 'That page isn’t here' : 'Oops, something went wrong'}</h1><p><a href="/">Back to Build With Me</a></p></div>`);
   });
 
   const httpServer = http.createServer(app);

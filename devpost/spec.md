@@ -17,7 +17,7 @@ The app has five pieces, all on the parent's computer:
    - a `/build-with-me:start` command that starts the app
 2. **The server** (the *back office*). A small **Node.js** program, the same kind of code as Build With Me's Cloud Functions, now running on the laptop. It:
    - shows the screens to the laptop's browser and to tablets on the home Wi-Fi
-   - keeps the PIN, kids, passes, projects, apps and reports in **plain files** in `Documents\Build With Me`
+   - keeps the PIN, kids, passes, projects, apps and reports in **plain files** in `<home>\Build With Me`
    - turns kids' speech into text **on this computer** (Whisper), so voices never leave the house
    - asks Claude to guide, check, build and report
 3. **The parent's Claude Code** (the *brains*). The server runs the parent's own `claude` program in the background ("non-interactive mode"), one conversation per job:
@@ -158,12 +158,12 @@ Implements `prd.md > Installing and Updating`, `prd.md > First-Run Setup`.
   - **Port taken:** the check suggests the next free port and saves it to `settings.json`.
 - **`launch.mjs`:**
   - starts the server detached (if not already running), using the `node_modules` in `${CLAUDE_PLUGIN_DATA}`
-  - writes `Documents\Build With Me\.app-location` with the current plugin root, which moves on every update
+  - writes `<home>\Build With Me\.app-location` with the current plugin root, which moves on every update
   - writes the stable start file `Start Build With Me.cmd` (Windows) or `Start Build With Me.command` (Mac), which reads `.app-location`
   - on request, creates the **desktop shortcut** to that start file (a Windows `.lnk` via PowerShell, a Mac alias)
   - opens the browser
-- **Updating:** a normal plugin update. The next launch notices a new version, re-runs `npm ci` if `package.json` changed, and restarts the server. Data in `Documents\Build With Me` is untouched.
-- **Uninstalling:** removes the plugin and its private folder. `Documents\Build With Me` stays, as the PRD assumed. The README says how to delete it.
+- **Updating:** a normal plugin update. The next launch notices a new version, re-runs `npm ci` if `package.json` changed, and restarts the server. Data in `<home>\Build With Me` is untouched.
+- **Uninstalling:** removes the plugin and its private folder. `<home>\Build With Me` stays, as the PRD assumed. The README says how to delete it.
 
 ### Server Core
 Implements the plumbing for every PRD feature.
@@ -289,7 +289,7 @@ Implements `prd.md > Talking` (tablet), `prd.md > Product Decisions` (tablet on 
 ### Store (files)
 Implements persistence for every PRD feature. See **Data Model**.
 - `server/store.ts` reads and writes JSON files atomically (write to a temporary file, then rename), with one write queue per file.
-- The data folder is `Documents\Build With Me` (Windows) or `~/Documents/Build With Me` (Mac), found with the OS's Documents location.
+- The data folder is `<home>\Build With Me`: `C:\Users\<name>\Build With Me` (Windows) or `~/Build With Me` (Mac). Not Documents or Desktop, which are often redirected to OneDrive or iCloud (even a work account); kids' data must never sync.
 
 ### Reporter and Reports
 Implements `prd.md > The Parent Report`, `prd.md > Limit Reached`.
@@ -330,7 +330,7 @@ Implements the learner's question about caching and models (see **Decisions and 
 
 ## Data Model
 
-Everything lives in **`Documents\Build With Me`**, unless noted:
+Everything lives in **`<home>\Build With Me`**, unless noted:
 
 | File | Holds | Updated when | After closing and reopening |
 |---|---|---|---|
@@ -373,7 +373,7 @@ build-with-me-home/                  # repo root = plugin root = marketplace
 ├── server/                          # TypeScript source → app/dist/server
 │   ├── index.ts                     # Express, the two listeners, routes, SSE
 │   ├── auth.ts                      # parent cookie (loopback), pass cookie
-│   ├── store.ts                     # atomic JSON files in Documents\Build With Me
+│   ├── store.ts                     # atomic JSON files in <home>\Build With Me
 │   ├── passes.ts                    # create / open / extend / end / expire
 │   ├── kids.ts                      # family.json kids
 │   ├── certs.ts                     # home certificate authority + server cert

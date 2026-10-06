@@ -433,7 +433,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
           <li><b>Talk about it together:</b> 1–2 conversation starters</li>
           <li><b>The full conversation,</b> folded</li>
         </ul></li>
-      <li>Each report is saved <b>both</b> in the app (<b>All reports</b>, behind the PIN) <b>and</b> as an HTML file in a dedicated folder (<code>Documents\Build With Me\Reports</code>) that opens even when the app isn't running.</li>
+      <li>Each report is saved <b>both</b> in the app (<b>All reports</b>, behind the PIN) <b>and</b> as an HTML file in a dedicated folder (<code>C:\Users\&lt;you&gt;\Build With Me\Reports</code>) that opens even when the app isn't running.</li>
       <li><b>All reports</b> lists every report newest first: when, who, what was built, a safety badge (No flags / N flags handled / Needs a look), and the app link. A report with flags also appears under <b>Needs your attention</b>.</li>
     </ul>
   </div></details>
@@ -542,7 +542,7 @@ const steps=[
  {k:'k',t:'Build',who:'Kid',see:['⅔ app · ⅓ chat','Themed animation while building','Rounds of changes by talking'],crit:['A true working app','Leftover changes are said honestly','Breakages are repaired automatically, with no raw errors']},
  {k:'k',t:'Ship & My apps',who:'Kid',see:['Name the app','The kid\'s own shelf','Link plus home-Wi-Fi QR code'],crit:['Only this kid\'s apps on their shelf','Apps stay until the parent deletes them','Open on any home device while the app runs']},
  {k:'k',t:'Countdown',who:'Kid',see:['A friendly timer at 10 min left','"Time\'s up for today!" at zero'],crit:['The timer stays visible','Unfinished work is saved; a running build finishes','The next pass resumes exactly there']},
- {k:'p',t:'Report',who:'Parent · laptop',see:['Header, facts, % of 5-hour and weekly limits','One-paragraph summary, the app, safety flags','Whose ideas, timeline, conversation starters, full chat'],crit:['Made automatically on Ship by a separate Opus 5.5 review','Unfinished sessions get a "(not finished)" report','Saved in All reports AND in Documents\\Build With Me\\Reports','Flagged reports appear under Needs your attention']},
+ {k:'p',t:'Report',who:'Parent · laptop',see:['Header, facts, % of 5-hour and weekly limits','One-paragraph summary, the app, safety flags','Whose ideas, timeline, conversation starters, full chat'],crit:['Made automatically on Ship by a separate Opus 5.5 review','Unfinished sessions get a "(not finished)" report','Saved in All reports AND in C:\\Users\\&lt;you&gt;\\Build With Me\\Reports','Flagged reports appear under Needs your attention']},
 ];
 const st=document.getElementById('stepper'),pn=document.getElementById('panel');let cur=0;
 steps.forEach((s,i)=>{const b=document.createElement('button');b.className=s.k;b.textContent=(i+1)+'. '+s.t;b.onclick=()=>show(i);st.appendChild(b)});
