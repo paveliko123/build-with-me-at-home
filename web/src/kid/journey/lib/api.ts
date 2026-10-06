@@ -16,6 +16,11 @@ export async function guideTurn(text?: string) {
   return api<GuideTurnResult>('/api/kid/journey/turn', { body: text === undefined ? {} : { text } });
 }
 
+/** "⌨️ Type instead" / "🎤 Talk instead": remembered for this project (and the guide's reply length). */
+export async function setInputMode(inputMode: Profile['inputMode']) {
+  return api('/api/kid/journey/mode', { body: { inputMode } });
+}
+
 export async function newApp() {
   return api('/api/kid/journey/new', { body: {} });
 }

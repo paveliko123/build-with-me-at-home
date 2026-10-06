@@ -95,6 +95,7 @@ export function thread(p: Project, name: string): Row[] {
 
 // One turn at a time per project (a double tap must not run two turns).
 const busy = new Set<string>();
+export const isBusy = (projectId: string) => busy.has(projectId);
 export async function exclusive<T>(projectId: string, work: () => Promise<T>): Promise<T | 'busy'> {
   if (busy.has(projectId)) return 'busy';
   busy.add(projectId);

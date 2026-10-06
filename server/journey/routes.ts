@@ -7,7 +7,7 @@ import express, { Router, type Request, type Response } from 'express';
 import { requireKid, setPassStep, type KidSession } from '../passes.js';
 import { guideTurn, TurnError } from './guideTurn.js';
 import { LimitError } from './claude.js';
-import { createProject, currentProject, exclusive, leaveCurrent, saveProject, thread, type Project } from './project.js';
+import { createProject, currentProject, exclusive, isBusy, leaveCurrent, saveProject, thread, type Project } from './project.js';
 import { firstStage, stageDocKind } from './stages.js';
 import type { GuideReply, Profile, Stage, ThemeId } from './types.js';
 
@@ -17,6 +17,13 @@ const LEVEL: Record<'kid' | 'teen', Profile['experience']> = { kid: 0, teen: 2 }
 const STEP_NAMES: Record<Stage, string> = { start: 'Start', idea: 'Idea', design: 'Design', tech: 'Tech plan', build: 'Build', ship: 'Ship' };
 
 const sessionOf = (req: Request) => (req as any).kidSession as KidSession;
+
+// Talk/type switches made while a turn was running (applied when that turn saves).
+const pendingMode = new Map<string, Profile['inputMode']>();
+function applyPendingMode(p: Project) {
+  const m = pendingMode.get(p.id);
+  if (m) { p.profile.inputMode = m; pendingMode.delete(p.id); }
+}
 
 /** What the screen needs to pick up where the kid left off (getSession). */
 export function snapshot(p: Project) {
@@ -83,15 +90,30 @@ export function journeyRoutes(): Router {
     const out = await exclusive(p.id, async () => {
       try {
         const result = await guideTurn(p, typeof req.body?.text === 'string' ? req.body.text : undefined);
+        applyPendingMode(p);
         saveProject(p);
         setPassStep(s.pass.id, STEP_NAMES[result.stage]);
         res.json(result);
       } catch (err) {
+        applyPendingMode(p);
         saveProject(p); // keeps flags and usage from a turn that failed part-way
         fail(res, err);
       }
     });
     if (out === 'busy') res.status(409).json({ error: 'busy' });
+  });
+
+  // "⌨️ Type instead" / "🎤 Talk instead" (learner request): saved on the project, so the
+  // guide keeps replies short only while the kid is listening.
+  r.post('/mode', (req, res) => {
+    const s = sessionOf(req);
+    const p = currentProject(s.kid.id);
+    if (!p) { res.status(409).json({ error: 'no-project' }); return; }
+    const mode = req.body?.inputMode === 'talk' ? 'talk' : 'type';
+    // A turn that's running saves its own copy of the project when done: it applies this then.
+    if (isBusy(p.id)) pendingMode.set(p.id, mode);
+    else { p.profile.inputMode = mode; saveProject(p); }
+    res.json({ ok: true });
   });
 
   // "New app": the unfinished project stays in the folder; the next start begins fresh.

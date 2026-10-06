@@ -43,6 +43,8 @@ export default function AnswerBox({ inputMode, placeholder, disabled = false, on
   }, [listenToken]);
   useEffect(() => { if (disabled) cancel(); }, [disabled, cancel]);
   useEffect(() => { if (!handsFree) cancel(); }, [handsFree, cancel]);
+  // Switched to typing ("⌨️ Type instead"): stop any listening at once.
+  useEffect(() => { if (!talk) cancel(); }, [talk, cancel]);
 
   function toggleMic() {
     if (speech.listening) { speech.stop(); return; }

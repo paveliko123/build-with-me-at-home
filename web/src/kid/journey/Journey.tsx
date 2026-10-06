@@ -8,7 +8,8 @@ import Thinking from './components/Thinking';
 import GuideStage, { type Line, type Pane } from './screens/GuideStage';
 import ThemePick, { type ProfileChoice } from './screens/ThemePick';
 import Welcome from './screens/Welcome';
-import { getJourney, guideTurn, limitMessage, newApp, passEnded, startJourney } from './lib/api';
+import { getJourney, guideTurn, limitMessage, newApp, passEnded, setInputMode as saveInputMode, startJourney } from './lib/api';
+import { speechSupported } from './lib/speech';
 import { defaultSpeed, deviceVoices, setVoiceName, setVoiceSpeed, SPEEDS, stopSpeaking, voiceSupported } from './lib/voice';
 import { DEFAULT_THEME, themeStyle } from './themes/themes';
 import type { DocKind, GuideReply, GuideTurnResult, Profile as ProfileT, SessionSnapshot, Stage, StageDoc, ThemeId } from './types';
@@ -148,6 +149,14 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
     }
   }
 
+  // Learner request (early checkpoint): turn the automatic microphone off and type instead,
+  // or back. The guide's voice is a separate switch.
+  function switchMode(mode: ProfileT['inputMode']) {
+    if (!profile) return;
+    setProfile({ ...profile, inputMode: mode });
+    saveInputMode(mode).catch(() => {});
+  }
+
   async function startOver() {
     if (!window.confirm('Start a new app? This one is saved for your parent, but you won\'t come back to it.')) return;
     stopSpeaking();
@@ -173,8 +182,14 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
             <button onClick={() => void startOver()}
               className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">＋ New app</button>
             <ProgressBar stage={stage} />
+            <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
+              {profile.inputMode === 'talk'
+                ? <button onClick={() => switchMode('type')} title="Stop the microphone and type your answers"
+                    className="rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">⌨️ Type instead</button>
+                : speechSupported() && <button onClick={() => switchMode('talk')} title="Answer by talking"
+                    className="rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">🎤 Talk instead</button>}
             {voiceSupported() && (
-              <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
+              <>
                 {voiceOn && (
                   <div className="relative">
                     <button onClick={() => setVoiceMenu(m => !m)} aria-expanded={voiceMenu} aria-label="Voice settings"
@@ -203,8 +218,9 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
                   className="rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">
                   {voiceOn ? '🔊 Voice on' : '🔇 Voice off'}
                 </button>
-              </div>
+              </>
             )}
+            </div>
           </div>
           {GUIDE_STAGES.includes(stage) && (
             <GuideStage profile={profile} reply={reply} history={history} visual={visual} docs={docs} pane={pane} onPane={setPane}
