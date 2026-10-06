@@ -126,3 +126,10 @@ Measured with JS in emulated viewports (scrollWidth, element rectangles, tap siz
   - C: at the Tech plan, the guide writes 4–6 build steps in the kid's own words ("the rocket", "the asteroids", "the scoreboard"), and the milestones tick those off, so the kid sees their plan turn into code.
   - Check first: that partial streaming works with the way the builder calls Claude Code. Talk mode reads one or two milestones aloud, not all.
 - **An idea library for kids who get stuck (learner request).** More than 100 ideas by age group and theme, each detailed enough for the guide and builder and open to customizing (`devpost/idea-library.json`). Decide how the guide offers them: today the guide is told never to suggest ideas from the theme, because the theme is only Build With Me's look.
+- **"Show me ideas" when a kid is stuck (learner decisions).** Very light: the goal is to show quickly what can be done, so the kid starts creating instead of losing interest.
+  - An always-visible **💡 Show me ideas** button at the Idea stage, big for kids and smaller for teens ("Need inspiration?"). Not the word "HELP". No Claude call: ideas come straight from the library, instantly.
+  - A light trigger with no second question: a first answer like "I don't know", "idk", "nothing", "help" or one or two words shows the ideas right away. In talk mode, after about 20 seconds of silence the button glows **and** the guide asks gently ("Want some ideas?").
+  - 3 picture cards matched to age group and theme mood (emoji, title, pitch), a 4th card **✨ Something else** (back to their own idea), and **🔀 More ideas** to shuffle. Talk mode reads the three titles aloud.
+  - Picking a card starts the customizing at once: the guide asks the idea's first "make it yours" question, so in two or three taps it's their app.
+  - The parent report says it honestly: started from a library idea and how the kid made it theirs.
+  - Later, not now: the same button at other stages (Design: "🎨 Show me looks").
