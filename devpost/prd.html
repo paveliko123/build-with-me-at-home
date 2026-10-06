@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build With Me at Home — PRD</title>
+<style>
+:root{
+  --bg:#fbf8f3; --card:#fff; --ink:#1f2430; --muted:#5d6475; --line:#e6e0d6;
+  --parent:#2f9e6e; --parent-soft:#dff3e9; --kid:#3a8ee2; --kid-soft:#e1eefc;
+  --accent:#e2733a; --accent-soft:#fde9dc; --warn:#b7791f; --warn-soft:#fdf2dc; --cut:#b34a4a; --cut-soft:#f9e2e2;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16181d; --card:#1f232b; --ink:#eceef3; --muted:#a3a9b8; --line:#333945;
+    --parent:#4cc08d; --parent-soft:#1b3329; --kid:#6aaef0; --kid-soft:#1d2c3e;
+    --accent:#f08a52; --accent-soft:#3a2a20; --warn:#e0a84a; --warn-soft:#3a3020; --cut:#e07a7a; --cut-soft:#3a2222;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16181d; --card:#1f232b; --ink:#eceef3; --muted:#a3a9b8; --line:#333945;
+  --parent:#4cc08d; --parent-soft:#1b3329; --kid:#6aaef0; --kid-soft:#1d2c3e;
+  --accent:#f08a52; --accent-soft:#3a2a20; --warn:#e0a84a; --warn-soft:#3a3020; --cut:#e07a7a; --cut-soft:#3a2222;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.layout{max-width:1180px;margin:0 auto;padding:32px 16px 64px;display:grid;grid-template-columns:220px 1fr;gap:32px}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.toc{display:none}}
+.toc{position:sticky;top:20px;align-self:start;font-size:14px}
+.toc b{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.toc a{display:block;color:var(--ink);text-decoration:none;padding:4px 10px;border-left:2px solid var(--line)}
+.toc a:hover{border-color:var(--parent);color:var(--parent)}
+.toc a.sub{padding-left:22px;font-size:13px;color:var(--muted)}
+main{min-width:0}
+.tag{display:inline-block;background:var(--warn-soft);color:var(--warn);font-weight:700;font-size:13px;padding:3px 10px;border-radius:999px}
+h1{font-size:clamp(28px,5vw,38px);margin:10px 0 6px;line-height:1.15}
+.lede{color:var(--muted);font-size:17px;margin:0 0 10px}
+h2{font-size:22px;margin:44px 0 12px;padding-top:8px;scroll-margin-top:16px}
+h3{font-size:17px;margin:0}
+.src{font-size:13px;color:var(--muted);margin:-4px 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.links{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 0}
+.links a{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 14px;text-decoration:none;color:var(--ink);font-weight:600}
+.links a:hover{border-color:var(--parent)}
+.expand{background:var(--accent-soft);border-left:5px solid var(--accent)}
+svg{width:100%;height:auto;display:block}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.stepper{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.stepper button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 13px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.stepper button.p{border-color:var(--parent)} .stepper button.k{border-color:var(--kid)}
+.stepper button[aria-selected="true"].p{background:var(--parent);color:#fff}
+.stepper button[aria-selected="true"].k{background:var(--kid);color:#fff}
+.panel h3{margin:0 0 4px;font-size:18px}
+.panel .who{font-size:13px;font-weight:700}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+@media (max-width:700px){.cols{grid-template-columns:1fr}}
+.cols h4{margin:0 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+ul,ol{margin:6px 0;padding-left:22px} li{margin:4px 0}
+.crit{padding-left:0}
+.crit li{list-style:none;padding-left:26px;position:relative}
+.crit li::before{content:"☐";position:absolute;left:2px;color:var(--parent);font-weight:700}
+.crit ul{padding-left:20px} .crit ul li{padding-left:0} .crit ul li::before{content:none}
+.navrow{display:flex;justify-content:space-between;margin-top:14px}
+.navrow button,.tool{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;padding:7px 14px;font:inherit;cursor:pointer}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:10px 0;overflow:hidden;scroll-margin-top:16px}
+summary{cursor:pointer;padding:14px 18px;list-style:none;display:flex;gap:10px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+details[open] summary::before{transform:rotate(90deg)}
+summary .count{margin-left:auto;font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+details .body{padding:0 20px 16px 40px}
+.story{font-style:italic;color:var(--muted);margin:0 0 6px}
+.pill{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px}
+.now{background:var(--parent-soft);color:var(--parent)} .later{background:var(--warn-soft);color:var(--warn)} .cut{background:var(--cut-soft);color:var(--cut)}
+.states{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.state{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px}
+.state b{display:block;margin-bottom:2px}
+.assume{color:var(--warn);font-size:12px;font-weight:700}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:700px){.two{grid-template-columns:1fr}}
+.side{border-top:4px solid var(--parent)} .side.k{border-top-color:var(--kid)}
+.side h3{margin-bottom:8px}
+.journey ol{counter-reset:none}
+.journey h3{margin:0 0 6px}
+.dec li{margin:8px 0}
+code{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:.92em}
+footer{margin-top:40px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="Contents">
+  <b>Contents</b>
+  <a href="#overview">Overview</a>
+  <a href="#journey">The Core Journey</a>
+  <a href="#walk">Screen-by-screen</a>
+  <a href="#screens">Screens and Layout</a>
+  <a href="#look">Look and Feel</a>
+  <a href="#features">Features and Behavior</a>
+  <a class="sub" href="#f-install">Installing and Updating</a>
+  <a class="sub" href="#f-gate">Parent Gate</a>
+  <a class="sub" href="#f-setup">First-Run Setup</a>
+  <a class="sub" href="#f-kids">Kids</a>
+  <a class="sub" href="#f-passes">Passes</a>
+  <a class="sub" href="#f-journey">The Kid's Journey</a>
+  <a class="sub" href="#f-talk">Talking</a>
+  <a class="sub" href="#f-safety">Safety</a>
+  <a class="sub" href="#f-limit">Limit Reached</a>
+  <a class="sub" href="#f-apps">My Apps</a>
+  <a class="sub" href="#f-report">The Parent Report</a>
+  <a href="#states">States and Boundaries</a>
+  <a href="#decisions">Product Decisions</a>
+  <a href="#boundary">Building / Deferred / Non-Goals</a>
+  <a href="#open">Open Questions</a>
+</nav>
+
+<main>
+  <span class="tag" style="background:var(--parent-soft);color:var(--parent)">PRD · approved 2026-10-06</span>
+  <h1 id="overview">Build With Me at Home</h1>
+  <p class="lede">A local app on the family's computer. A parent gives one of their kids a timed, one-use pass, and the kid <b>talks</b> their way through the plan-first journey (start → idea → design → tech plan → build → ship) to a real working app, on the laptop or a tablet on the home Wi-Fi. Everything runs on the parent's own signed-in Claude Code. Every finished app ends in two places: a link on the kid's <b>My apps</b> shelf, and a <b>parent report</b> in the Parent area.</p>
+  <p class="src">Source: scope › The Unique Kernel, Who It's For</p>
+  <div class="links"><a href="parent-mockup.html">👩‍💻 Parent mockup</a><a href="report-mockup.html">📄 Report mockup</a><a href="scope.html">🧭 Scope</a></div>
+
+  <h2>How the scope grew into a product</h2>
+  <div class="card expand">
+    <ul>
+      <li>Scope said <b>"a parent sign-in gate."</b> Now: a PIN screen under a plain "You're responsible" note, plus <b>timed, one-use passes</b> issued to a specific kid, for any length, extended from the laptop, with a 10-minute countdown.</li>
+      <li>Scope said <b>"a local link."</b> Now: a per-kid <b>My apps</b> shelf, with links and QR codes that work on any device on the home Wi-Fi.</li>
+      <li>Scope said <b>"the parent gets an Opus report."</b> Now: an exact layout, an <b>All reports</b> list, a reports folder, and <b>% of your 5-hour and weekly limits</b>.</li>
+      <li>New: <b>tablets on the home Wi-Fi</b>, with full talking after a one-time setup.</li>
+      <li>New: <b>delivered as a Claude Code plugin</b>. One install command, <code>/build-with-me</code> to start, a desktop shortcut afterwards. Windows and Mac.</li>
+    </ul>
+  </div>
+
+  <!-- CORE JOURNEY -->
+  <h2 id="journey">The Core Journey</h2>
+  <p class="src">Source: scope › The Core Loop, What "Working" Looks Like</p>
+  <div class="card">
+  <svg viewBox="0 0 900 330" role="img" aria-label="Journey: the parent on the laptop opens with a PIN, gives a pass, and the QR code goes to the kid. The kid scans it and goes through Welcome, Theme, six steps and Ship. My apps gets the link and the parent home gets the report. Live safety checks run across the kid's steps.">
+    <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="var(--muted)"/></marker></defs>
+    <text x="10" y="22" font-size="12" font-weight="700" fill="var(--parent)">PARENT · LAPTOP</text>
+    <text x="10" y="182" font-size="12" font-weight="700" fill="var(--kid)">KID · LAPTOP OR HOME TABLET</text>
+    <g font-size="13" fill="var(--ink)" text-anchor="middle">
+      <rect x="10" y="34" width="140" height="70" rx="12" fill="var(--parent-soft)" stroke="var(--parent)"/><text x="80" y="64" font-weight="700">Opening</text><text x="80" y="84">note · PIN · Enter</text>
+      <rect x="190" y="34" width="150" height="70" rx="12" fill="var(--parent-soft)" stroke="var(--parent)"/><text x="265" y="64" font-weight="700">Give a pass</text><text x="265" y="84">kid · any duration</text>
+      <rect x="380" y="34" width="150" height="70" rx="12" fill="var(--parent-soft)" stroke="var(--parent)"/><text x="455" y="64" font-weight="700">Active passes</text><text x="455" y="84">extend · end</text>
+      <rect x="720" y="34" width="170" height="70" rx="12" fill="var(--parent-soft)" stroke="var(--parent)"/><text x="805" y="64" font-weight="700">Parent report</text><text x="805" y="84">+ All reports · folder</text>
+      <rect x="190" y="196" width="150" height="70" rx="12" fill="var(--kid-soft)" stroke="var(--kid)"/><text x="265" y="226" font-weight="700">Scan the QR code</text><text x="265" y="246">one use only</text>
+      <rect x="380" y="196" width="170" height="70" rx="12" fill="var(--kid-soft)" stroke="var(--kid)"/><text x="465" y="226" font-weight="700">Welcome · Theme</text><text x="465" y="246">Start → Tech plan</text>
+      <rect x="580" y="196" width="120" height="70" rx="12" fill="var(--kid-soft)" stroke="var(--kid)"/><text x="640" y="226" font-weight="700">Build</text><text x="640" y="246">⅔ app · ⅓ chat</text>
+      <rect x="730" y="196" width="160" height="70" rx="12" fill="var(--kid-soft)" stroke="var(--kid)"/><text x="810" y="226" font-weight="700">Ship → My apps</text><text x="810" y="246">link · home QR</text>
+    </g>
+    <rect x="380" y="290" width="320" height="30" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+    <text x="540" y="310" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">🛡 live safety check · ⏱ 10-min countdown</text>
+    <g stroke="var(--muted)" stroke-width="2" fill="none">
+      <line x1="150" y1="69" x2="186" y2="69" marker-end="url(#a)"/>
+      <line x1="340" y1="69" x2="376" y2="69" marker-end="url(#a)"/>
+      <line x1="265" y1="104" x2="265" y2="192" marker-end="url(#a)" stroke="var(--parent)" stroke-dasharray="5 4"/>
+      <line x1="340" y1="231" x2="376" y2="231" marker-end="url(#a)"/>
+      <line x1="550" y1="231" x2="576" y2="231" marker-end="url(#a)"/>
+      <line x1="700" y1="231" x2="726" y2="231" marker-end="url(#a)"/>
+      <line x1="810" y1="196" x2="810" y2="108" marker-end="url(#a)" stroke="var(--accent)"/>
+      <line x1="455" y1="104" x2="455" y2="192" marker-end="url(#a)" stroke="var(--parent)" stroke-dasharray="2 4"/>
+    </g>
+    <text x="275" y="150" font-size="11" fill="var(--muted)">QR code</text>
+    <text x="462" y="150" font-size="11" fill="var(--muted)">extend → countdown updates</text>
+    <text x="818" y="150" font-size="11" fill="var(--muted)">Opus 5.5 review</text>
+  </svg>
+  </div>
+
+  <div class="two journey" style="margin-top:14px">
+    <div class="card side">
+      <h3>First run (once)</h3>
+      <ol>
+        <li>The parent installs it as a <b>Claude Code plugin</b> from the public GitHub repo, with one install command in Claude Code, and starts it with <code>/build-with-me</code>.</li>
+        <li>The app checks that Claude Code is installed and signed in. If it isn't, it explains how to fix that before going on.</li>
+        <li>The parent reads the responsibility note, creates a <b>PIN</b>, and adds each kid: a nickname, <b>Kid (under 13)</b> or <b>Teen (13–17)</b>, and an emoji.</li>
+        <li>Setup offers to add a <b>desktop shortcut</b>, so later starts are a double-click.</li>
+      </ol>
+    </div>
+    <div class="card side k">
+      <h3>Every time</h3>
+      <ol>
+        <li><b>Opening (laptop).</b> The parent double-clicks the shortcut (or types <code>/build-with-me</code>). The browser opens: the "You're responsible" note, the PIN, and <b>Enter</b>, which leads to the <b>parent home</b>.</li>
+        <li><b>Give a pass.</b> The parent picks the kid and a length of time (a preset or any custom length), then <b>Create pass</b>. A <b>QR code</b> appears, with "open on this laptop" as an alternative.</li>
+        <li><b>The kid opens the pass.</b> They scan it on a home-Wi-Fi tablet, or the parent opens it on the laptop. That device gets the pass, and the QR code stops working.</li>
+        <li><b>The kid's journey.</b> Welcome ("your helper is an AI, not a person," talk or type), then Theme, then the six steps, adjusted to the kid's age group.</li>
+        <li><b>Ship.</b> The kid names the app. It goes on their <b>My apps</b> shelf with a link and a home-Wi-Fi QR code.</li>
+        <li><b>The parent report.</b> A separate Opus 5.5 review is saved in the Parent area and the reports folder. Flags also show under <b>Needs your attention</b>.</li>
+        <li><b>Time.</b> A countdown at 10 minutes left. The parent can extend from the laptop. At zero, a friendly "Time's up," and the work waits for the next pass.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px"><b>Success:</b> a kid has a working app on their shelf, and the parent has a report for it.</div>
+
+  <!-- WALKTHROUGH -->
+  <h2 id="walk">Walk through it, screen by screen</h2>
+  <div class="card">
+    <div class="stepper" id="stepper"></div>
+    <div class="panel" id="panel"></div>
+    <div class="navrow"><button id="prev">← Back</button><button id="next">Next →</button></div>
+  </div>
+
+  <!-- SCREENS -->
+  <h2 id="screens">Screens and Layout</h2>
+  <div class="two">
+    <div class="card side">
+      <h3>👩‍💻 Parent side (laptop only)</h3>
+      <p class="src" style="margin:4px 0 8px">Laid out as in <a href="parent-mockup.html">parent-mockup.html</a></p>
+      <ol>
+        <li><b>First-run setup:</b> the Claude Code check, the responsibility note, create the PIN, add the kids.</li>
+        <li><b>Opening screen,</b> top to bottom: the app name, the "You're responsible" note, the PIN pad, <b>Enter</b>.</li>
+        <li><b>Parent home:</b>
+          <ul>
+            <li><b>Status strip:</b> Claude Code signed in and the plan; the <b>5-hour limit</b> (% used, reset time); the <b>weekly limit</b> (% used, reset day)</li>
+            <li><b>🎟️ Give a pass:</b> pick the kid, pick a duration (presets plus custom), Create pass, then the QR code</li>
+            <li><b>⏱️ Active passes:</b> one row per kid, with the live time left, device, current step, and <b>+30 min / +1 hr / End now</b></li>
+            <li><b>🔔 Needs your attention:</b> flags and limit-reached alerts</li>
+            <li><b>📄 Latest reports:</b> with "All reports →"</li>
+            <li><b>🧒 Kids &amp; their apps:</b> Manage, Add a kid, and <b>📱 Set up a tablet for talking</b></li>
+            <li><b>⚙️ Settings</b> (change the PIN) and <b>🔒 Lock</b></li>
+          </ul></li>
+        <li><b>All reports:</b> a table with when, who, what was built, safety, and the app link (<a href="report-mockup.html">report mockup</a>, first tab).</li>
+        <li><b>One report:</b> see <a href="#f-report">The Parent Report</a> (report mockup, second tab).</li>
+      </ol>
+    </div>
+    <div class="card side k">
+      <h3>🧒 Kid side (laptop or tablet)</h3>
+      <p class="src" style="margin:4px 0 8px">Build With Me's screens, kept as they are</p>
+      <ol>
+        <li><b>Welcome:</b> "your helper is an AI, not a person," talk or type.</li>
+        <li><b>Theme:</b> large picture buttons.</li>
+        <li><b>Guide conversation</b> (Intro to Tech plan): a large question card, answer cards, a picture or mock-up area, the talk button and answer box, and for teens the plan to approve.</li>
+        <li><b>Build:</b> about ⅔ app, ⅓ chat.</li>
+        <li><b>Ship:</b> name, link, home-Wi-Fi QR code, celebration.</li>
+        <li><b>My apps:</b> this kid's apps only.</li>
+      </ol>
+      <p style="margin:10px 0 0"><b>Overlays and messages:</b> the countdown, Time's up, Limit reached, Pass already used, and Can't reach the computer.</p>
+    </div>
+  </div>
+
+  <!-- LOOK -->
+  <h2 id="look">Look and Feel</h2>
+  <p class="src">Source: scope › Inspiration &amp; Identity</p>
+  <div class="two">
+    <div class="card side k">
+      <h3>Kid side: Build With Me's design, as is</h3>
+      <p class="story">"They work great."</p>
+      <ul>
+        <li>Very graphical but clean, with large clear fonts (largest for kids)</li>
+        <li>Themes set the helper's style only: unicorns, princesses, robots, cars, space, neon arcade, music, sports, nature, office</li>
+        <li>Ideas turn into pictures early</li>
+        <li>Finished apps look great: drawn characters, depth, animation, sound with a mute button</li>
+        <li><b>Avoid:</b> walls of text, anything that looks like a terminal, generic AI-app styling</li>
+      </ul>
+    </div>
+    <div class="card side">
+      <h3>Parent side: calm and clear</h3>
+      <p class="story">Like the parent mockup</p>
+      <ul>
+        <li>Rounded cards on a warm off-white background, with a green accent</li>
+        <li>Plain words and emoji section icons</li>
+        <li>Light and dark modes</li>
+        <li>Glanceable: the time left, % used and flags readable in a second</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px;font-size:14px;color:var(--muted)">Minor tweaks to either side come after you see it running.</div>
+
+  <!-- FEATURES -->
+  <h2 id="features">Features and Behavior</h2>
+  <p style="margin:0 0 8px"><button class="tool" id="expandAll">Expand all</button> <button class="tool" id="collapseAll">Collapse all</button></p>
+
+  <details id="f-install"><summary><h3>📦 Installing and Updating</h3><span class="count">7 checks</span></summary><div class="body">
+    <p class="src">Source: our discussion after the first draft. For a local app, delivery replaces a share link.</p>
+    <p class="story">As a parent who already uses Claude Code, I want to add Build With Me with one command, on Windows or a Mac.</p>
+    <ul class="crit">
+      <li><b>Install:</b> one Claude Code plugin install command, pointing at the public GitHub repo, adds Build With Me. No other downloads, accounts or keys, unless a required runtime is missing; the Spec checks for one.</li>
+      <li><b>Start:</b> <code>/build-with-me</code> in Claude Code starts the app and opens the browser to the opening screen (or first-run setup the first time).</li>
+      <li><b>Desktop shortcut:</b> setup offers one. Afterwards a double-click starts the app with no terminal and no Claude Code window to manage.</li>
+      <li><b>Windows and Mac:</b> the same steps and the same screens on both.</li>
+      <li><b>Updating:</b> Claude Code's normal plugin update brings the new version. Kids' apps, reports, kids and the PIN are kept.</li>
+      <li><b>Uninstalling:</b> removing the plugin removes the app. The kids' apps and reports stay in their folder until the parent deletes them. <span class="assume">ASSUMPTION</span></li>
+      <li><b>The repo's README</b> explains install, start, tablet setup and uninstall in plain words for a parent.</li>
+    </ul>
+  </div></details>
+
+  <details id="f-gate"><summary><h3>🔐 Parent Gate and Responsibility</h3><span class="count">4 checks</span></summary><div class="body">
+    <p class="src">Source: scope › The POC Boundary, Terms Check</p>
+    <p class="story">As a parent, I want the app to open only for me, so my kids can't use my Claude account without my say-so.</p>
+    <ul class="crit">
+      <li>The opening screen shows the "You're responsible" note in plain words, above the PIN and Enter. It says:
+        <ul><li>the app runs on your Claude account</li><li>kids get in only with your pass</li><li>you get a report for each app</li><li>stay nearby</li></ul></li>
+      <li>Nothing on the parent side works without the right PIN.</li>
+      <li><b>🔒 Lock</b> returns to the opening screen.</li>
+      <li>The app never asks for or shows a Claude password or sign-in. The Claude sign-in stays in Claude Code.</li>
+    </ul>
+  </div></details>
+
+  <details id="f-setup"><summary><h3>🧰 First-Run Setup</h3><span class="count">3 checks</span></summary><div class="body">
+    <p class="story">As a parent installing it, I want a short setup that tells me if anything is missing.</p>
+    <ul class="crit">
+      <li>If Claude Code is missing or signed out, a plain message says what to do. Setup can't continue until it's fixed.</li>
+      <li>The parent creates a PIN (entered twice) and adds at least one kid: nickname, Kid or Teen, and emoji.</li>
+      <li>After setup, the parent lands on the parent home.</li>
+    </ul>
+  </div></details>
+
+  <details id="f-kids"><summary><h3>🧒 Kids</h3><span class="count">2 checks</span></summary><div class="body">
+    <p class="story">As a parent, I want each kid set up once, so each pass, guide and report fits that kid.</p>
+    <ul class="crit">
+      <li>Kids can be added, edited or removed in <b>Kids &amp; their apps</b>.</li>
+      <li>A kid's age group (Kid or Teen) is set only here, by the parent. Nothing the kid says changes it.</li>
+    </ul>
+  </div></details>
+
+  <details id="f-passes"><summary><h3>🎟️ Passes</h3><span class="count">9 checks</span></summary><div class="body">
+    <p class="src">Source: scope › The Core Loop</p>
+    <p class="story">As a parent, I want to give one kid access for exactly as long as I choose.</p>
+    <ul class="crit">
+      <li>Create pass needs a kid and a duration. Duration has presets (30 min, 1 hour, 2 hours, Rest of today) or any custom length.</li>
+      <li>The QR code is <b>single-use</b>. The first device that opens it holds the pass. Opening it again on any device shows "This pass was already used — ask your parent for a new one."</li>
+      <li>"Open on this laptop" uses up the pass the same way.</li>
+      <li>The pass works only on the home Wi-Fi or the laptop itself, and only until it ends.</li>
+      <li><b>Active passes</b> shows each live pass: kid, device, current step, and a live countdown.</li>
+      <li><b>+30 min / +1 hr</b> extend the pass right away, and the kid's countdown updates on its own. <b>End now</b> ends it right away.</li>
+      <li>More than one kid can hold a pass at the same time, one pass per kid.</li>
+    </ul>
+    <p class="story" style="margin-top:12px">As a kid, I want to know when time is running out, so I'm not cut off by surprise.</p>
+    <ul class="crit">
+      <li>At 10 minutes left, a friendly countdown appears on the kid's screen and stays visible.</li>
+      <li>At zero, a "Time's up for today!" screen appears. An unfinished conversation is saved. A build that's already running finishes and is saved. The next pass for that kid resumes exactly there.</li>
+    </ul>
+  </div></details>
+
+  <details id="f-journey"><summary><h3>🗺️ The Kid's Journey</h3><span class="count">17 checks</span></summary><div class="body">
+    <p class="src">Source: scope › The POC Boundary ("the existing design and flow"). Build With Me's journey, kept as is. Only the parent's profile setting changes the guide.</p>
+    <div class="tablewrap" style="margin-bottom:12px">
+      <table>
+        <thead><tr><th></th><th>Kid (under 13)</th><th>Teen (13–17)</th></tr></thead>
+        <tbody>
+          <tr><td><b>Teaching</b></td><td>None spoken. The process is the lesson</td><td>The guide names the ideas: design first, test and fix</td></tr>
+          <tr><td><b>Questions</b></td><td>Open first; 1–2 picture idea cards if stuck</td><td>Open first; cards only when unsure</td></tr>
+          <tr><td><b>Who decides</b></td><td>The kid owns the idea and the look; the guide does the tech and writes the plans behind the scenes</td><td>The teen owns the idea and the look and approves the Idea and Design plans</td></tr>
+          <tr><td><b>Ideas</b></td><td>Lean toward useful and creative over games</td><td>Their own idea first, sharpened</td></tr>
+          <tr><td><b>Plans</b></td><td>Never shown</td><td>Shown in plain words for approval</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th style="width:120px">Step</th><th>How we'll know it works</th></tr></thead>
+        <tbody>
+          <tr><td><b>Welcome</b></td><td><ul class="crit"><li>Shows "Your helper is an AI, not a person." The guide's first words say it too.</li><li>The kid chooses talking or typing.</li></ul></td></tr>
+          <tr><td><b>Theme</b></td><td><ul class="crit"><li>The theme is the only choice. It sets the helper's look and voice.</li></ul></td></tr>
+          <tr><td><b>Intro and Start</b></td><td><ul class="crit"><li>Kids get at most two easy questions.</li><li>Teens hear in one or two sentences that we plan first, then build.</li></ul></td></tr>
+          <tr><td><b>Idea</b></td><td><ul class="crit"><li>"I don't know" gets 1–2 opposite-end idea cards with pictures (kids).</li><li>A too-big idea gets a friendly pushback and a smaller version.</li><li>Teens approve the idea plan.</li></ul></td></tr>
+          <tr><td><b>Design</b></td><td><ul class="crit"><li>"Pick a look" from two mock-ups.</li><li>Teens approve the design plan.</li><li>The build honors the chosen look.</li></ul></td></tr>
+          <tr><td><b>Tech plan</b></td><td><ul class="crit"><li>The guide makes every tech choice.</li><li>It gives a one-line "Here's how I'll build it!"</li></ul></td></tr>
+          <tr><td><b>Build</b></td><td><ul class="crit"><li>About ⅔ app, ⅓ chat.</li><li>A themed animation plays while building.</li><li>The result is a true working app.</li><li>Changes go on a list, and rebuilding applies them. Anything left out is said honestly.</li><li>A broken app is repaired automatically, and nobody sees raw errors.</li></ul></td></tr>
+          <tr><td><b>Ship</b></td><td><ul class="crit"><li>The kid names the app, and the name is its title.</li><li>It goes on the kid's My apps shelf with its link and home-Wi-Fi QR code.</li></ul></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div></details>
+
+  <details id="f-talk"><summary><h3>🎤 Talking</h3><span class="count">6 checks</span></summary><div class="body">
+    <p class="src">Source: scope › The POC Boundary ("talking without API keys"), Open Questions</p>
+    <p class="story">As a kid, I want to talk to my helper on the laptop or the tablet, and hear it talk back.</p>
+    <ul class="crit">
+      <li><b>On the laptop:</b> full talking. The guide reads its words aloud, and listening is hands-free after it speaks, with an "I'm done" button.</li>
+      <li><b>On a tablet:</b> full talking after a <b>one-time parent setup</b>. <b>📱 Set up a tablet for talking</b> shows a QR code and short steps for that tablet.</li>
+      <li><b>A tablet that isn't set up</b> falls back to the keyboard's own 🎤 dictation button, and the guide still talks. A friendly note tells the parent how to set it up.</li>
+      <li><b>Kids' voices stay in the house.</b> Speech is turned into text on the family's own devices, not by an outside service.</li>
+      <li>Each theme has its own voice. Kids get a gentler, slower pace. A ⚙️ menu holds the voice and speed.</li>
+      <li>No microphone means typing, with a friendly note.</li>
+    </ul>
+  </div></details>
+
+  <details id="f-safety"><summary><h3>🛡️ Safety</h3><span class="count">5 checks</span></summary><div class="body">
+    <p class="src">Source: scope › The POC Boundary (three safety layers). Everything runs on the parent's Claude.</p>
+    <p><b>1 · The guide knows who it's talking to</b></p>
+    <ul class="crit"><li>Each session's guide follows the kid's age group, with age-appropriate rules for content and wording.</li></ul>
+    <p><b>2 · A live check on every turn</b></p>
+    <ul class="crit">
+      <li>What the kid says and what the guide replies are both checked before anything is shown or built.</li>
+      <li>An unsuitable request (for example, "make the cat explode with blood") gets a gentle redirect to a kid-friendly alternative. It's never built and never scolded.</li>
+      <li>The guide never asks for personal details. If one is offered (a full name, school or address), the guide kindly says it doesn't need it, and it doesn't appear in the guide's replies, the plans or the app.</li>
+      <li>Every redirect and every personal detail becomes a <b>flag</b> for the report.</li>
+    </ul>
+    <p><b>3 · The parent report</b> is the backstop (<a href="#f-report">below</a>).</p>
+  </div></details>
+
+  <details id="f-limit"><summary><h3>⛔ Limit Reached</h3><span class="count">3 checks</span></summary><div class="body">
+    <p class="story">As a parent, I want to know when my kid hits my Claude plan's limit, and my kid shouldn't be confused by it.</p>
+    <ul class="crit">
+      <li>The kid sees a friendly "Limit reached — ask your parent about it." The work is saved.</li>
+      <li><b>Needs your attention</b> shows when it happened, during which kid's session, and when the limit resets.</li>
+      <li>When the limit resets and the pass is still active, the kid can continue where they stopped.</li>
+    </ul>
+  </div></details>
+
+  <details id="f-apps"><summary><h3>🗂️ My Apps</h3><span class="count">3 checks</span></summary><div class="body">
+    <p class="story">As a kid, I want my apps to stay on my shelf so I can play with them any time I have a pass.</p>
+    <ul class="crit">
+      <li>Each kid's shelf shows only their own apps, newest first, with name, picture and Open.</li>
+      <li>Apps stay for weeks or months, until a parent deletes them under <b>Kids &amp; their apps → Manage</b>.</li>
+      <li>An app's link opens on the laptop, or on any device on the home Wi-Fi, while the app is running.</li>
+    </ul>
+  </div></details>
+
+  <details id="f-report"><summary><h3>📄 The Parent Report</h3><span class="count">5 checks</span></summary><div class="body">
+    <p class="src">Source: scope › The Unique Kernel. Laid out as in <a href="report-mockup.html">report-mockup.html</a></p>
+    <p class="story">As a parent, I want a report on every app my kid makes, so I know what happened in my account.</p>
+    <ul class="crit">
+      <li>A report is made automatically when an app is shipped, by a <b>separate Opus 5.5 review</b> of the whole conversation, from the idea to the final app.</li>
+      <li>A session that ends without shipping (time's up and never resumed, or ended by the parent) gets a "(not finished)" report once the parent ends the pass or it expires.</li>
+      <li><b>Every report contains:</b>
+        <ul>
+          <li><b>Header:</b> the kid, their age group, the date, the safety badge</li>
+          <li><b>Facts:</b> time spent (and the pass length), rounds of changes, device, talking or typing</li>
+          <li><b>Plan usage:</b> % of the <b>5-hour limit</b> and % of the <b>weekly limit</b> this app used, matching Claude Code's Plan Usage. If that isn't available, tokens and Claude Code's cost estimate instead.</li>
+          <li><b>In one paragraph:</b> what they wanted, what got built, how it went</li>
+          <li><b>The app:</b> a picture, a description and an Open link</li>
+          <li><b>Safety:</b> each flag with what the kid said, what the guide did, and the time and step; OK lines for personal details, the guide's output and staying on topic; a one-line "worth a chat?"</li>
+          <li><b>Whose ideas?</b> The kid's share versus the guide's, with a sentence explaining it</li>
+          <li><b>How it went:</b> a timeline of the steps</li>
+          <li><b>Talk about it together:</b> 1–2 conversation starters</li>
+          <li><b>The full conversation,</b> folded</li>
+        </ul></li>
+      <li>Each report is saved <b>both</b> in the app (<b>All reports</b>, behind the PIN) <b>and</b> as an HTML file in a dedicated folder (<code>Documents\Build With Me\Reports</code>) that opens even when the app isn't running.</li>
+      <li><b>All reports</b> lists every report newest first: when, who, what was built, a safety badge (No flags / N flags handled / Needs a look), and the app link. A report with flags also appears under <b>Needs your attention</b>.</li>
+    </ul>
+  </div></details>
+
+  <!-- STATES -->
+  <h2 id="states">States and Boundaries</h2>
+  <div class="states">
+    <div class="state"><b>🔧 Claude Code missing or signed out</b>A plain fix-it message at first run. Nothing else works until it's fixed.</div>
+    <div class="state"><b>🔢 Wrong PIN</b>"That's not the PIN." After 5 wrong tries, wait 1 minute. <span class="assume">ASSUMPTION</span></div>
+    <div class="state"><b>🔑 Forgot the PIN</b>Reset from the laptop, with steps in the app's help. <span class="assume">ASSUMPTION · Spec decides how</span></div>
+    <div class="state"><b>👶 No kids added</b>Give a pass shows "Add a kid first."</div>
+    <div class="state"><b>🔁 QR code reused or screenshotted</b>"This pass was already used — ask your parent for a new one."</div>
+    <div class="state"><b>⏱ Pass expired or ended</b>Time's up. Work saved.</div>
+    <div class="state"><b>💤 App closed or laptop asleep</b>Tablet: "Can't reach the computer — ask your parent to start Build With Me." The laptop must stay on and awake during a pass.</div>
+    <div class="state"><b>⛔ Plan limit reached</b>See <a href="#f-limit">Limit Reached</a>.</div>
+    <div class="state"><b>📊 Usage % unavailable</b>The report shows tokens and a cost estimate instead.</div>
+    <div class="state"><b>🧯 Unsuitable request</b>A gentle redirect. Never built. Flagged.</div>
+    <div class="state"><b>🙊 Personal detail offered</b>A kind reminder. Not used. Flagged.</div>
+    <div class="state"><b>🎤 Tablet not set up for talking</b>Keyboard dictation, plus a note for the parent.</div>
+    <div class="state"><b>💥 Build fails or app breaks</b>Friendly words and an automatic retry. The last working version stays.</div>
+    <div class="state"><b>↩️ Coming back</b>The kid's next pass resumes their unfinished project. Shipped apps stay on the shelf.</div>
+    <div class="state"><b>🫙 Empty states</b>My apps: "Your apps will live here!" · All reports: "Reports appear after your kids finish an app."</div>
+  </div>
+
+  <!-- DECISIONS -->
+  <h2 id="decisions">Product Decisions</h2>
+  <div class="card"><ul class="dec">
+    <li><b>The parent is the Claude user and brings their kid along.</b> No adults as users. The consumer terms bar sharing an account, and the age groups already keep adults out.</li>
+    <li><b>A PIN opens the parent side.</b> The "You're responsible" note sits above it, in plain words, not legal language.</li>
+    <li><b>Access is through timed, one-use passes issued to a specific kid.</b> "One might want to be there at every sign-in and another might want to give more freedom."</li>
+    <li><b>The QR code dies once used.</b> The pass belongs to the first device that opens it.</li>
+    <li><b>A pass on every device, the laptop included.</b> One rule everywhere.</li>
+    <li><b>Extending happens on the laptop,</b> where the pass was made. The kid gets a 10-minute countdown.</li>
+    <li><b>Tablet on the home Wi-Fi: in.</b> Full talking on the tablet, set up once through a QR code, with keyboard dictation as the fallback.</li>
+    <li><b>Kids' voices stay in the house.</b></li>
+    <li><b>Reports live locally,</b> in the app and in a folder. Pushing them into the parent's Claude account isn't possible without handling the Claude sign-in, which the terms forbid.</li>
+    <li><b>Plan usage is shown as % of the 5-hour and weekly limits,</b> the same scale as Claude Code's Plan Usage.</li>
+    <li><b>At a limit, the kid sees "ask your parent," and the parent is always told.</b></li>
+    <li><b>The kid side keeps Build With Me's design and flow.</b> Tweaks come after seeing it run.</li>
+    <li><b>Delivered as a Claude Code plugin,</b> because "the target parent is one who already uses Claude Code." It installs from the public GitHub repo, with a desktop shortcut for later starts.</li>
+    <li><b>Windows and Mac,</b> "if possible."</li>
+  </ul></div>
+
+  <!-- BOUNDARY -->
+  <h2 id="boundary">What we're building, what waits, what we won't do</h2>
+  <details open><summary><span class="pill now">BUILDING</span> <b>What We're Building</b></summary><div class="body"><ul>
+    <li>Install as a Claude Code plugin from the GitHub repo, <code>/build-with-me</code>, a desktop shortcut, on Windows and Mac</li>
+    <li>First-run setup: the Claude Code check, PIN, kids</li>
+    <li>The opening screen (note, PIN, Enter) and the parent home, as in the mockup</li>
+    <li>Passes: kid plus any duration, a one-use QR code, active passes with extend and end, the kid's 10-minute countdown, Time's up with resume</li>
+    <li>The kid's journey across all six steps, both age groups, Build With Me's design</li>
+    <li>Talking: full on the laptop; full on a set-up tablet; dictation fallback; voices stay home</li>
+    <li>Safety: an age-aware guide, a live check both ways, flags</li>
+    <li>Limit reached for the kid and an alert for the parent</li>
+    <li>My apps per kid, local links, and home-Wi-Fi QR codes</li>
+    <li>The parent report (Opus 5.5), All reports, and the reports folder, with plan usage %</li>
+  </ul></div></details>
+  <details><summary><span class="pill later">DEFERRED</span> <b>Deferred From the POC</b></summary><div class="body"><ul>
+    <li><b>Sharing outside the home (hosting):</b> to evaluate in step 5. For now, links work only at home while the app is running.</li>
+    <li><b>A more natural voice:</b> beyond the voices available on the device.</li>
+    <li><b>The "behind the scenes" learning session:</b> after an app is finished.</li>
+    <li><b>Reports inside the parent's Claude account:</b> not possible within the terms. Local reports cover the need.</li>
+  </ul></div></details>
+  <details><summary><span class="pill later">LATER</span> <b>Possible Later Enhancements</b></summary><div class="body"><ul>
+    <li>Emailing or texting the parent when a report with flags arrives.</li>
+    <li>A "pause" button on active passes.</li>
+    <li>Per-kid daily time budgets.</li>
+  </ul></div></details>
+  <details><summary><span class="pill cut">NON-GOALS</span> <b>Won't do</b></summary><div class="body"><ul>
+    <li><b>Not for adults as users.</b> The consumer terms forbid sharing the account.</li>
+    <li><b>Never handles Claude sign-in or tokens.</b> It uses the parent's unmodified, signed-in Claude Code.</li>
+    <li><b>No cloud services, accounts, databases or API keys.</b> Simplicity was the whole point of going local.</li>
+    <li><b>No public-service compliance work.</b> Each install is a parent's own project.</li>
+    <li><b>Not a game generator,</b> and not a mock-up tool. The end product is a true working app.</li>
+  </ul></div></details>
+
+  <!-- OPEN -->
+  <h2 id="open">Open Questions</h2>
+  <div class="card tablewrap">
+    <table>
+      <thead><tr><th>Question</th><th>When</th><th>If not</th></tr></thead>
+      <tbody>
+        <tr><td>Does the plugin need a runtime (such as Node), and can a plugin create a desktop shortcut?</td><td>Spec</td><td>Setup detects a missing runtime and gives one plain fix step</td></tr>
+        <tr><td>Is Mac testing possible? ("if possible")</td><td>Spec / Build</td><td>Windows is the main test machine</td></tr>
+        <tr><td>Can a tablet get full talking with a reasonable one-time setup?</td><td>Spec, proven early in the build</td><td>Keyboard dictation</td></tr>
+        <tr><td>Can the app read the plan usage % when it runs Claude Code in the background?</td><td>Spec</td><td>Tokens and a cost estimate</td></tr>
+        <tr><td>How to reset a forgotten PIN</td><td>Spec</td><td>—</td></tr>
+        <tr><td>Do report sessions show up in Claude Code's own history?</td><td>Build (nice to know)</td><td>—</td></tr>
+        <tr><td>Your minor tweaks</td><td>After it's running</td><td>Doesn't block the Spec</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>A full translation of <code>devpost/prd.md</code>, kept in sync with it.</footer>
+</main>
+</div>
+<script>
+const steps=[
+ {k:'p',t:'Install',who:'Parent · once · Windows or Mac',see:['One plugin install command in Claude Code, from the public GitHub repo','/build-with-me starts it and opens the browser','Offer of a desktop shortcut for later starts'],crit:['No other downloads, accounts or keys (unless a runtime is missing; the Spec checks)','Same steps and screens on Windows and Mac','A plugin update keeps apps, reports, kids and the PIN','Uninstall keeps the kids\' apps and reports in their folder (assumption)']},
+ {k:'p',t:'Setup',who:'Parent · once',see:['Claude Code check, with a fix-it message if needed','The responsibility note','Create a PIN (twice)','Add kids: nickname, Kid/Teen, emoji'],crit:['Claude Code missing or signed out blocks setup with plain steps','At least one kid is needed to finish','Lands on the parent home']},
+ {k:'p',t:'Opening',who:'Parent · laptop',see:['App name','"You\'re responsible" note in plain words','PIN pad','Enter button'],crit:['Nothing on the parent side works without the PIN','🔒 Lock returns here','No Claude password or sign-in ever shown']},
+ {k:'p',t:'Give a pass',who:'Parent · laptop',see:['Pick a kid','30 min · 1 hr · 2 hr · Rest of today · custom','Create pass → QR code plus "open on this laptop"'],crit:['QR code is single-use; the first device keeps the pass','Works only on home Wi-Fi or the laptop, until it ends','One pass per kid; several kids at once is OK']},
+ {k:'p',t:'Active passes',who:'Parent · laptop',see:['Each kid: device, step, live countdown','+30 min · +1 hr · End now','Needs your attention: flags, limits'],crit:['Extending updates the kid\'s countdown right away','End now ends it right away','Limit alerts show the time, the kid and the reset time']},
+ {k:'k',t:'Welcome',who:'Kid · laptop or tablet',see:['"Your helper is an AI, not a person"','Talk or type','Theme picker'],crit:['The AI disclosure is on screen and in the first words','The theme is the only choice']},
+ {k:'k',t:'Six steps',who:'Kid',see:['Question card, answer cards, mock-ups','Guide adjusted by Kid/Teen','Teens approve the Idea and Design plans'],crit:['Too-big ideas shrink with a friendly pushback','"Pick a look" from two mock-ups','The guide makes every tech choice']},
+ {k:'k',t:'Build',who:'Kid',see:['⅔ app · ⅓ chat','Themed animation while building','Rounds of changes by talking'],crit:['A true working app','Leftover changes are said honestly','Breakages are repaired automatically, with no raw errors']},
+ {k:'k',t:'Ship & My apps',who:'Kid',see:['Name the app','The kid\'s own shelf','Link plus home-Wi-Fi QR code'],crit:['Only this kid\'s apps on their shelf','Apps stay until the parent deletes them','Open on any home device while the app runs']},
+ {k:'k',t:'Countdown',who:'Kid',see:['A friendly timer at 10 min left','"Time\'s up for today!" at zero'],crit:['The timer stays visible','Unfinished work is saved; a running build finishes','The next pass resumes exactly there']},
+ {k:'p',t:'Report',who:'Parent · laptop',see:['Header, facts, % of 5-hour and weekly limits','One-paragraph summary, the app, safety flags','Whose ideas, timeline, conversation starters, full chat'],crit:['Made automatically on Ship by a separate Opus 5.5 review','Unfinished sessions get a "(not finished)" report','Saved in All reports AND in Documents\\Build With Me\\Reports','Flagged reports appear under Needs your attention']},
+];
+const st=document.getElementById('stepper'),pn=document.getElementById('panel');let cur=0;
+steps.forEach((s,i)=>{const b=document.createElement('button');b.className=s.k;b.textContent=(i+1)+'. '+s.t;b.onclick=()=>show(i);st.appendChild(b)});
+function show(i){cur=i;[...st.children].forEach((b,j)=>b.setAttribute('aria-selected',j===i));const s=steps[i];
+ pn.innerHTML=`<span class="who" style="color:var(--${s.k==='p'?'parent':'kid'})">${s.who}</span><h3>${s.t}</h3><div class="cols"><div><h4>What they see</h4><ul>${s.see.map(x=>`<li>${x}</li>`).join('')}</ul></div><div><h4>How we'll know it works</h4><ul class="crit">${s.crit.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`;}
+document.getElementById('prev').onclick=()=>show((cur-1+steps.length)%steps.length);
+document.getElementById('next').onclick=()=>show((cur+1)%steps.length);
+show(0);
+const feats=()=>document.querySelectorAll('#features ~ details[id^="f-"]');
+document.getElementById('expandAll').onclick=()=>feats().forEach(d=>d.open=true);
+document.getElementById('collapseAll').onclick=()=>feats().forEach(d=>d.open=false);
+document.querySelectorAll('.toc a[href^="#f-"]').forEach(a=>a.addEventListener('click',()=>{const d=document.querySelector(a.getAttribute('href'));if(d)d.open=true}));
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+/devpost/learner-profile.md
+.env
+.env.*
+!.env.example
+
+# build output and local data
+node_modules/
+.local-data/
+*.log

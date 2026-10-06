@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parent Report Mockup</title>
+<style>
+:root{
+  --bg:#f6f4ef; --card:#fff; --ink:#1f2430; --muted:#5d6475; --line:#e4ded3;
+  --brand:#2f9e6e; --brand-soft:#dff3e9; --kid:#3a8ee2; --kid-soft:#e1eefc;
+  --warn:#b7791f; --warn-soft:#fdf2dc; --bad:#b34a4a; --bad-soft:#f9e2e2; --ok:#2f9e6e; --ok-soft:#dff3e9;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15171c; --card:#1f232b; --ink:#eceef3; --muted:#a3a9b8; --line:#333945;
+    --brand:#4cc08d; --brand-soft:#1b3329; --kid:#6aaef0; --kid-soft:#1d2c3e;
+    --warn:#e0a84a; --warn-soft:#3a3020; --bad:#e07a7a; --bad-soft:#3a2222; --ok:#4cc08d; --ok-soft:#1b3329;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15171c; --card:#1f232b; --ink:#eceef3; --muted:#a3a9b8; --line:#333945;
+  --brand:#4cc08d; --brand-soft:#1b3329; --kid:#6aaef0; --kid-soft:#1d2c3e;
+  --warn:#e0a84a; --warn-soft:#3a3020; --bad:#e07a7a; --bad-soft:#3a2222; --ok:#4cc08d; --ok-soft:#1b3329;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.banner{background:var(--warn-soft);color:var(--warn);text-align:center;font-size:13px;font-weight:600;padding:6px 16px}
+main{max-width:980px;margin:0 auto;padding:24px 16px 60px}
+.tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 16px;border-radius:999px;font:inherit;font-weight:600;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+h1{font-size:26px;margin:0 0 4px} h2{font-size:17px;margin:0 0 10px} h3{font-size:15px;margin:0 0 6px}
+.muted{color:var(--muted)}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px}
+.ok{background:var(--ok-soft);color:var(--ok)} .warn{background:var(--warn-soft);color:var(--warn)} .bad{background:var(--bad-soft);color:var(--bad)} .kid{background:var(--kid-soft);color:var(--kid)}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+tr.row{cursor:pointer} tr.row:hover td{background:var(--brand-soft)}
+.tablewrap{overflow-x:auto}
+.head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.fact{background:var(--bg);border-radius:10px;padding:10px 12px}
+.fact b{display:block;font-size:18px}
+.fact span{font-size:12px;color:var(--muted)}
+.app{display:grid;grid-template-columns:200px 1fr;gap:18px;align-items:start}
+@media (max-width:640px){.app{grid-template-columns:1fr}}
+.shot{aspect-ratio:4/3;border-radius:12px;background:linear-gradient(135deg,#7b5cff,#3a8ee2);display:grid;place-items:center;color:#fff;font-weight:700;font-size:40px}
+a{color:var(--kid)}
+.flag{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:8px;margin:8px 0}
+.flag q{font-style:italic}
+.timeline{list-style:none;padding:0;margin:0}
+.timeline li{display:grid;grid-template-columns:110px 1fr;gap:12px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.timeline li:last-child{border-bottom:none}
+.timeline .when{font-weight:700;color:var(--muted);font-size:13px}
+.bar{height:12px;border-radius:999px;background:var(--line);overflow:hidden;display:flex;margin:6px 0}
+.bar i{display:block;height:100%}
+.legend{font-size:13px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle;background:var(--c)}
+details{margin-top:6px} summary{cursor:pointer;font-weight:600}
+.quote{background:var(--bg);border-radius:8px;padding:8px 12px;margin:6px 0}
+.quote b{font-size:12px;color:var(--muted);display:block}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="banner">MOCKUP: sample data for review. Not a real report.</div>
+<main>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-view="list">📋 All reports (Parent area)</button>
+    <button role="tab" aria-selected="false" data-view="report">📄 One report</button>
+  </div>
+
+  <!-- LIST VIEW -->
+  <section id="list">
+    <div class="card">
+      <h1>Parent reports</h1>
+      <p class="muted" style="margin:0 0 12px">Every finished app, newest first. Also saved as files in <code>Documents\Build With Me\Reports</code>.</p>
+      <div class="tablewrap">
+      <table>
+        <thead><tr><th>When</th><th>Who</th><th>What was built</th><th>Safety</th><th>App</th></tr></thead>
+        <tbody>
+          <tr class="row" data-open>
+            <td>Tue 6 Oct<br><span class="muted">4:10–5:05 pm</span></td>
+            <td>Maya <span class="pill kid">Kid</span></td>
+            <td><b>Space Cat Feeder</b><br><span class="muted">Feed a hungry cat floating in space before the timer runs out</span></td>
+            <td><span class="pill warn">1 flag · handled</span></td>
+            <td><a href="#" onclick="return false">Open ↗</a></td>
+          </tr>
+          <tr class="row">
+            <td>Mon 5 Oct<br><span class="muted">6:30–7:40 pm</span></td>
+            <td>Leo <span class="pill kid">Teen</span></td>
+            <td><b>Homework Timer</b><br><span class="muted">A focus timer with breaks and a streak counter</span></td>
+            <td><span class="pill ok">No flags</span></td>
+            <td><a href="#" onclick="return false">Open ↗</a></td>
+          </tr>
+          <tr class="row">
+            <td>Sun 4 Oct<br><span class="muted">10:00–10:45 am</span></td>
+            <td>Maya <span class="pill kid">Kid</span></td>
+            <td><b>My Pet Quiz</b><br><span class="muted">A quiz about Maya's favorite animals</span></td>
+            <td><span class="pill ok">No flags</span></td>
+            <td><a href="#" onclick="return false">Open ↗</a></td>
+          </tr>
+          <tr class="row">
+            <td>Sat 3 Oct<br><span class="muted">2:15 pm</span></td>
+            <td>Leo <span class="pill kid">Teen</span></td>
+            <td><b>(not finished)</b><br><span class="muted">Stopped at Design: a soccer stats tracker</span></td>
+            <td><span class="pill bad">Needs a look</span></td>
+            <td class="muted">—</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- REPORT VIEW -->
+  <section id="report" hidden>
+    <div class="card">
+      <div class="head">
+        <div>
+          <span class="muted">Parent report · Tue 6 Oct 2026</span>
+          <h1>Maya built "Space Cat Feeder" 🐱🚀</h1>
+          <span class="pill kid">Kid (under 13)</span> <span class="pill warn">1 flag · handled by the guide</span>
+        </div>
+      </div>
+      <div class="facts">
+        <div class="fact"><b>55 min</b><span>time spent (pass: 2 hr)</span></div>
+        <div class="fact"><b>3</b><span>rounds of changes</span></div>
+        <div class="fact"><b>Living room tablet</b><span>device</span></div>
+        <div class="fact"><b>Talking</b><span>how Maya answered</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>In one paragraph</h2>
+      <p style="margin:0">Maya wanted "a game with my cat but in space." The guide steered her toward a small timing game, and she chose the look herself: purple space, a cartoon cat, and stars as food. She asked for three changes after testing it: a faster cat, a sound when the cat eats, and a "you win" screen. One request about the cat "exploding" was redirected to a silly "poof into stars" effect. Overall: creative, engaged, and she tested her own app carefully.</p>
+    </div>
+
+    <div class="card">
+      <h2>The app</h2>
+      <div class="app">
+        <div class="shot">🐱✨</div>
+        <div>
+          <h3>Space Cat Feeder</h3>
+          <p class="muted" style="margin:0 0 8px">Tap the floating stars to feed the cat before the 30-second timer ends. Three levels, a win screen, a mute button.</p>
+          <p style="margin:0"><a href="#" onclick="return false">Open the app ↗</a> &nbsp;·&nbsp; <span class="muted">works on this computer and on home Wi-Fi while Build With Me is running</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Safety</h2>
+      <div class="flag">
+        <b>⚠ Violent wording, redirected</b> <span class="muted">· 4:41 pm · Build step</span>
+        <p style="margin:6px 0 0">Maya said: <q>make the cat explode with blood when time runs out</q>. The guide said it couldn't add that and suggested the cat "poofs into sparkly stars" instead. Maya agreed and liked it.</p>
+      </div>
+      <ul style="margin:10px 0 0">
+        <li><span class="pill ok">OK</span> No personal details shared (name, school, address).</li>
+        <li><span class="pill ok">OK</span> Nothing unsuitable in what the guide said or built.</li>
+        <li><span class="pill ok">OK</span> Stayed on the project the whole time.</li>
+      </ul>
+      <p class="muted" style="margin:10px 0 0;font-size:13px">Worth a chat? Probably not. This is typical cartoon-game thinking, and she took the alternative happily.</p>
+    </div>
+
+    <div class="card">
+      <h2>Whose ideas?</h2>
+      <div class="bar"><i style="width:70%;background:var(--kid)"></i><i style="width:30%;background:var(--brand)"></i></div>
+      <div class="legend"><span style="--c:var(--kid)">Maya's ideas: 70%</span><span style="--c:var(--brand)">Guide's suggestions: 30%</span></div>
+      <p class="muted" style="margin:8px 0 0">Maya came up with the cat, space, the timer and all three changes. The guide suggested making it a game you can finish in 30 seconds and the "poof" effect.</p>
+    </div>
+
+    <div class="card">
+      <h2>How it went</h2>
+      <ul class="timeline">
+        <li><span class="when">4:10 Start</span><span>Picked the <b>Space</b> theme and chose talking.</span></li>
+        <li><span class="when">4:14 Idea</span><span>"A game with my cat but in space." The guide shrank it to one simple game.</span></li>
+        <li><span class="when">4:22 Design</span><span>Picked look B (purple, cartoon) out of two mock-ups.</span></li>
+        <li><span class="when">4:28 Build</span><span>First version ready after about 4 minutes.</span></li>
+        <li><span class="when">4:33 Changes</span><span>Faster cat · eating sound · "you win" screen (and the redirected request).</span></li>
+        <li><span class="when">5:05 Ship</span><span>Named it "Space Cat Feeder" and added it to My apps.</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Talk about it together</h2>
+      <ul style="margin:0">
+        <li>Ask Maya to show you how the levels get harder. She asked for that herself.</li>
+        <li>"What would you add next?" She mentioned a dog level.</li>
+      </ul>
+      <details>
+        <summary>Full conversation (42 turns)</summary>
+        <div class="quote"><b>Guide</b>Hi! I'm your space helper. I'm an AI, not a person. What do you love?</div>
+        <div class="quote"><b>Maya</b>my cat and space</div>
+        <div class="quote"><b>Guide</b>A cat AND space? Awesome! What could your cat do in space?</div>
+        <p class="muted">…the full transcript continues here…</p>
+      </details>
+    </div>
+  </section>
+</main>
+<script>
+const tabs=[...document.querySelectorAll('[role=tab]')];
+function show(v){
+  tabs.forEach(t=>t.setAttribute('aria-selected',t.dataset.view===v));
+  document.getElementById('list').hidden=v!=='list';
+  document.getElementById('report').hidden=v!=='report';
+  window.scrollTo(0,0);
+}
+tabs.forEach(t=>t.addEventListener('click',()=>show(t.dataset.view)));
+document.querySelector('[data-open]').addEventListener('click',e=>{if(e.target.tagName!=='A')show('report')});
+</script>
+</body>
+</html>

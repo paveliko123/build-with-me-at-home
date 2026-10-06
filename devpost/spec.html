@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build With Me at Home — Spec</title>
+<style>
+:root{
+  --bg:#fbf8f3; --card:#fff; --ink:#1f2430; --muted:#5d6475; --line:#e6e0d6;
+  --parent:#2f9e6e; --parent-soft:#dff3e9; --kid:#3a8ee2; --kid-soft:#e1eefc;
+  --claude:#c96442; --claude-soft:#f8e6dd; --file:#7a5cc9; --file-soft:#ece6f9;
+  --accent:#e2733a; --accent-soft:#fde9dc; --warn:#b7791f; --warn-soft:#fdf2dc; --cut:#b34a4a; --cut-soft:#f9e2e2;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16181d; --card:#1f232b; --ink:#eceef3; --muted:#a3a9b8; --line:#333945;
+    --parent:#4cc08d; --parent-soft:#1b3329; --kid:#6aaef0; --kid-soft:#1d2c3e;
+    --claude:#e38a66; --claude-soft:#3a271f; --file:#a88cf0; --file-soft:#2a2340;
+    --accent:#f08a52; --accent-soft:#3a2a20; --warn:#e0a84a; --warn-soft:#3a3020; --cut:#e07a7a; --cut-soft:#3a2222;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16181d; --card:#1f232b; --ink:#eceef3; --muted:#a3a9b8; --line:#333945;
+  --parent:#4cc08d; --parent-soft:#1b3329; --kid:#6aaef0; --kid-soft:#1d2c3e;
+  --claude:#e38a66; --claude-soft:#3a271f; --file:#a88cf0; --file-soft:#2a2340;
+  --accent:#f08a52; --accent-soft:#3a2a20; --warn:#e0a84a; --warn-soft:#3a3020; --cut:#e07a7a; --cut-soft:#3a2222;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.layout{max-width:1200px;margin:0 auto;padding:32px 16px 64px;display:grid;grid-template-columns:220px 1fr;gap:32px}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.toc{display:none}}
+.toc{position:sticky;top:20px;align-self:start;font-size:14px;max-height:calc(100vh - 40px);overflow:auto}
+.toc b{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.toc a{display:block;color:var(--ink);text-decoration:none;padding:3px 10px;border-left:2px solid var(--line)}
+.toc a:hover{border-color:var(--parent);color:var(--parent)}
+.toc a.sub{padding-left:22px;font-size:13px;color:var(--muted)}
+main{min-width:0}
+.tag{display:inline-block;background:var(--warn-soft);color:var(--warn);font-weight:700;font-size:13px;padding:3px 10px;border-radius:999px}
+h1{font-size:clamp(28px,5vw,38px);margin:10px 0 6px;line-height:1.15}
+.lede{color:var(--muted);font-size:17px;margin:0 0 10px}
+h2{font-size:22px;margin:44px 0 12px;padding-top:8px;scroll-margin-top:16px}
+h3{font-size:17px;margin:0}
+h4{margin:14px 0 6px;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.src{font-size:13px;color:var(--muted);margin:-4px 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.links{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 0}
+.links a{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 14px;text-decoration:none;color:var(--ink);font-weight:600}
+.links a:hover{border-color:var(--parent)}
+svg{width:100%;height:auto;display:block}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.pieces{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.piece{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;border-top:4px solid var(--c)}
+.piece h3{font-size:16px;margin-bottom:4px}
+.piece .nick{font-size:13px;color:var(--muted);font-style:italic}
+.piece ul{margin:6px 0 0;padding-left:20px;font-size:15px}
+.why{background:var(--accent-soft);border-left:5px solid var(--accent)}
+.stepper{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.stepper button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 13px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.stepper button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.flow{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.hop{display:grid;grid-template-columns:130px 1fr;gap:12px;align-items:start;padding:10px 12px;border-radius:10px;background:var(--bg)}
+.hop .who{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:3px 8px;border-radius:8px;text-align:center}
+.w-parent{background:var(--parent-soft);color:var(--parent)} .w-kid{background:var(--kid-soft);color:var(--kid)}
+.w-server{background:var(--accent-soft);color:var(--accent)} .w-claude{background:var(--claude-soft);color:var(--claude)}
+.w-files{background:var(--file-soft);color:var(--file)} .w-plugin{background:var(--warn-soft);color:var(--warn)}
+.navrow{display:flex;justify-content:space-between;margin-top:14px}
+.navrow button,.tool{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;padding:7px 14px;font:inherit;cursor:pointer}
+ul,ol{margin:6px 0;padding-left:22px} li{margin:4px 0}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:10px 0;overflow:hidden;scroll-margin-top:16px}
+summary{cursor:pointer;padding:14px 18px;list-style:none;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+details[open] summary::before{transform:rotate(90deg)}
+summary .prd{margin-left:auto;font-size:12px;color:var(--muted);font-weight:600}
+details .body{padding:0 20px 16px 40px}
+.pill{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.verify{background:var(--warn-soft);color:var(--warn)}
+.ok{background:var(--parent-soft);color:var(--parent)}
+.files{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:var(--muted);margin-top:8px}
+code{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:.9em;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.45;margin:8px 0}
+pre code{background:none;border:none;padding:0}
+.tree{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;line-height:1.5;white-space:pre;overflow-x:auto}
+.tree .c{color:var(--muted)}
+.order{counter-reset:o;list-style:none;padding:0}
+.order li{counter-increment:o;display:grid;grid-template-columns:38px 1fr;gap:10px;margin:8px 0;align-items:start}
+.order li::before{content:counter(o);width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-weight:800;font-size:14px}
+.order li.exp::before{background:var(--accent)}
+.fm{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.fm div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px}
+.fm b{display:block;margin-bottom:3px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:700px){.two{grid-template-columns:1fr}}
+.pc{border-top:4px solid var(--parent)} .cc{border-top:4px solid var(--cut)}
+footer{margin-top:40px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="Contents">
+  <b>Contents</b>
+  <a href="#plain">How This Works</a>
+  <a href="#arch">Architecture picture</a>
+  <a href="#journey">Core Journey Through the System</a>
+  <a href="#stack">Stack</a>
+  <a href="#runs">Where It Runs</a>
+  <a href="#look">Look and Feel</a>
+  <a href="#components">Components</a>
+  <a class="sub" href="#c-plugin">Plugin and Setup</a>
+  <a class="sub" href="#c-core">Server Core</a>
+  <a class="sub" href="#c-gate">Parent Gate</a>
+  <a class="sub" href="#c-kids">Kids and Family Data</a>
+  <a class="sub" href="#c-passes">Passes</a>
+  <a class="sub" href="#c-journey">Kid Journey (ported)</a>
+  <a class="sub" href="#c-runner">Claude Runner</a>
+  <a class="sub" href="#c-safety">Safety</a>
+  <a class="sub" href="#c-speech">Speech</a>
+  <a class="sub" href="#c-cert">Home Certificate</a>
+  <a class="sub" href="#c-store">Store (files)</a>
+  <a class="sub" href="#c-report">Reporter and Reports</a>
+  <a class="sub" href="#c-parent">Parent Screens</a>
+  <a class="sub" href="#c-apps">My Apps</a>
+  <a class="sub" href="#c-exp">Usage Experiment</a>
+  <a href="#data">Data Model</a>
+  <a href="#tree">File Structure</a>
+  <a href="#ext">External Services</a>
+  <a href="#fail">Failure Modes</a>
+  <a href="#simple">Simplified and Why</a>
+  <a href="#order">Build Order</a>
+  <a href="#decisions">Decisions and Open Issues</a>
+</nav>
+
+<main>
+  <span class="tag" style="background:var(--parent-soft);color:var(--parent)">Spec · approved 2026-10-06</span>
+  <h1>Build With Me at Home: Technical Spec</h1>
+  <p class="lede">Implements the approved PRD. It reuses Build With Me's kid screens and prompt layers. The cloud back office (Firebase, Firestore, API key) becomes one small program on the family's computer that talks to the parent's own Claude Code.</p>
+  <div class="links"><a href="prd.html">📋 PRD</a><a href="scope.html">🧭 Scope</a><a href="parent-mockup.html">👩‍💻 Parent mockup</a><a href="report-mockup.html">📄 Report mockup</a></div>
+
+  <!-- PLAIN -->
+  <h2 id="plain">How This Works, In Plain Language</h2>
+  <p style="margin:0 0 12px">Five pieces, all on the parent's computer:</p>
+  <div class="pieces">
+    <div class="piece" style="--c:var(--warn)"><h3>📦 1. The Claude Code plugin</h3><span class="nick">the delivery box</span>
+      <ul><li>The parent adds it from the public GitHub repo</li><li>Carries the whole app</li><li>A <b>setup skill</b>: Claude checks what's missing (Node.js, the speech model…), fixes it with your normal approval prompts, or explains in the chat</li><li><code>/build-with-me</code> starts the app</li></ul></div>
+    <div class="piece" style="--c:var(--accent)"><h3>🖥️ 2. The server</h3><span class="nick">the back office</span>
+      <ul><li>A small <b>Node.js</b> program, like Build With Me's Cloud Functions but on the laptop</li><li>Shows the screens to the laptop and to tablets on home Wi-Fi</li><li>Keeps the PIN, kids, passes, projects, apps and reports in <b>plain files</b> in <code>Documents\Build With Me</code></li><li>Turns speech into text <b>on this computer</b> (Whisper)</li><li>Asks Claude to guide, check, build and report</li></ul></div>
+    <div class="piece" style="--c:var(--claude)"><h3>🧠 3. The parent's Claude Code</h3><span class="nick">the brains</span>
+      <ul><li>The server runs your own <code>claude</code> in the background, one conversation per job:</li><li><b>Guide</b> (Sonnet), talks with the kid</li><li><b>Checker</b> (Haiku), reads every turn</li><li><b>Builder</b> (Opus), writes the app</li><li><b>Reporter</b> (Opus), writes the report</li><li>Each one <b>sealed off</b> from your setup: no tools, files, plugins or CLAUDE.md. The app never sees your sign-in</li></ul></div>
+    <div class="piece" style="--c:var(--kid)"><h3>🎨 4. The screens</h3><span class="nick">the front end</span>
+      <ul><li>Build With Me's React kid screens</li><li>New parent screens from the approved mockups: PIN, parent home, reports</li></ul></div>
+    <div class="piece" style="--c:var(--file)"><h3>🔐 5. The home certificate</h3><span class="nick">the tablet key</span>
+      <ul><li>A small security certificate made once on your computer</li><li>Installed once on a tablet, so the tablet trusts the computer and the microphone is allowed</li></ul></div>
+  </div>
+  <div class="card why" style="margin-top:14px"><b>Why this shape:</b>
+    <ul>
+      <li>The kid journey already works, so we keep its screens and prompts and change only what the cloud did.</li>
+      <li>Everything stays in files on one computer, with no accounts, databases or keys.</li>
+      <li>Every Claude call goes through your own unmodified Claude Code, which the terms allow.</li>
+    </ul>
+  </div>
+
+  <!-- ARCH -->
+  <h2 id="arch">Architecture picture</h2>
+  <div class="card">
+  <svg viewBox="0 0 940 520" role="img" aria-label="Architecture: the parent's computer holds the plugin, the Node server, files in Documents, and the parent's Claude Code running four sealed conversations. The laptop browser connects over HTTP on port 4747; tablets connect over HTTPS on port 4748 after installing the home certificate.">
+    <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="var(--muted)"/></marker></defs>
+    <rect x="8" y="8" width="924" height="370" rx="18" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="8 6"/>
+    <text x="24" y="32" font-size="12" font-weight="700" fill="var(--muted)">THE PARENT'S COMPUTER (Windows or Mac · Node.js 22+ · Claude Code signed in)</text>
+    <!-- plugin -->
+    <rect x="28" y="50" width="200" height="110" rx="12" fill="var(--warn-soft)" stroke="var(--warn)"/>
+    <text x="128" y="76" text-anchor="middle" font-weight="700" font-size="14" fill="var(--ink)">📦 Plugin</text>
+    <text x="128" y="98" text-anchor="middle" font-size="12" fill="var(--ink)">/build-with-me</text>
+    <text x="128" y="116" text-anchor="middle" font-size="12" fill="var(--ink)">setup skill · setup-check</text>
+    <text x="128" y="134" text-anchor="middle" font-size="12" fill="var(--ink)">launch.mjs · shortcut</text>
+    <!-- server -->
+    <rect x="280" y="50" width="330" height="190" rx="12" fill="var(--accent-soft)" stroke="var(--accent)"/>
+    <text x="445" y="76" text-anchor="middle" font-weight="700" font-size="14" fill="var(--ink)">🖥️ Server (Node · Express)</text>
+    <g font-size="12" fill="var(--ink)">
+      <text x="298" y="102">• screens (React build) + API + live updates (SSE)</text>
+      <text x="298" y="122">• parent gate (PIN) · passes (QR, cookies)</text>
+      <text x="298" y="142">• journey (ported) · safety · reports</text>
+      <text x="298" y="162">• 🎤 Whisper speech-to-text (on this PC)</text>
+      <text x="298" y="182">• 🔐 home certificate for tablets</text>
+      <text x="298" y="202">• Claude Runner (isolated claude -p)</text>
+      <text x="298" y="222">• /usage + rate-limit tracking</text>
+    </g>
+    <!-- claude -->
+    <rect x="660" y="50" width="250" height="190" rx="12" fill="var(--claude-soft)" stroke="var(--claude)"/>
+    <text x="785" y="76" text-anchor="middle" font-weight="700" font-size="14" fill="var(--ink)">🧠 Your Claude Code</text>
+    <g font-size="12" fill="var(--ink)" text-anchor="middle">
+      <rect x="678" y="90" width="104" height="40" rx="8" fill="var(--card)" stroke="var(--claude)"/><text x="730" y="108" font-weight="700">Guide</text><text x="730" y="123">Sonnet · live</text>
+      <rect x="790" y="90" width="104" height="40" rx="8" fill="var(--card)" stroke="var(--claude)"/><text x="842" y="108" font-weight="700">Checker</text><text x="842" y="123">Haiku · live</text>
+      <rect x="678" y="140" width="104" height="40" rx="8" fill="var(--card)" stroke="var(--claude)"/><text x="730" y="158" font-weight="700">Builder</text><text x="730" y="173">Opus · per job</text>
+      <rect x="790" y="140" width="104" height="40" rx="8" fill="var(--card)" stroke="var(--claude)"/><text x="842" y="158" font-weight="700">Reporter</text><text x="842" y="173">Opus · per job</text>
+      <text x="785" y="205">sealed: no tools · no files</text>
+      <text x="785" y="222">no plugins · no CLAUDE.md</text>
+    </g>
+    <!-- files -->
+    <rect x="280" y="270" width="330" height="92" rx="12" fill="var(--file-soft)" stroke="var(--file)"/>
+    <text x="445" y="294" text-anchor="middle" font-weight="700" font-size="14" fill="var(--ink)">📁 Documents\Build With Me</text>
+    <text x="445" y="316" text-anchor="middle" font-size="12" fill="var(--ink)">family · passes · projects · apps</text>
+    <text x="445" y="334" text-anchor="middle" font-size="12" fill="var(--ink)">reports (HTML) · alerts · start file</text>
+    <text x="445" y="352" text-anchor="middle" font-size="11" fill="var(--muted)">kept on uninstall</text>
+    <rect x="28" y="270" width="200" height="92" rx="12" fill="var(--file-soft)" stroke="var(--file)" stroke-dasharray="4 4"/>
+    <text x="128" y="294" text-anchor="middle" font-weight="700" font-size="13" fill="var(--ink)">🔒 Plugin private folder</text>
+    <text x="128" y="316" text-anchor="middle" font-size="12" fill="var(--ink)">packages · Whisper model</text>
+    <text x="128" y="334" text-anchor="middle" font-size="12" fill="var(--ink)">certificates · sandbox</text>
+    <text x="128" y="352" text-anchor="middle" font-size="11" fill="var(--muted)">deleted on uninstall</text>
+    <!-- arrows inside -->
+    <g stroke="var(--muted)" stroke-width="2" fill="none">
+      <line x1="228" y1="105" x2="276" y2="105" marker-end="url(#ar)"/>
+      <line x1="610" y1="145" x2="656" y2="145" marker-end="url(#ar)"/>
+      <line x1="445" y1="240" x2="445" y2="266" marker-end="url(#ar)"/>
+      <line x1="280" y1="230" x2="232" y2="290" marker-end="url(#ar)"/>
+    </g>
+    <text x="232" y="96" font-size="11" fill="var(--muted)">starts</text>
+    <text x="614" y="136" font-size="11" fill="var(--muted)">runs</text>
+    <!-- devices -->
+    <rect x="160" y="420" width="250" height="80" rx="12" fill="var(--parent-soft)" stroke="var(--parent)"/>
+    <text x="285" y="448" text-anchor="middle" font-weight="700" font-size="14" fill="var(--ink)">💻 Laptop browser</text>
+    <text x="285" y="470" text-anchor="middle" font-size="12" fill="var(--ink)">parent screens + kid (with pass)</text>
+    <text x="285" y="488" text-anchor="middle" font-size="12" fill="var(--muted)">http://localhost:4747</text>
+    <rect x="500" y="420" width="270" height="80" rx="12" fill="var(--kid-soft)" stroke="var(--kid)"/>
+    <text x="635" y="448" text-anchor="middle" font-weight="700" font-size="14" fill="var(--ink)">📱 Tablet on home Wi-Fi</text>
+    <text x="635" y="470" text-anchor="middle" font-size="12" fill="var(--ink)">kid only (pass) · mic needs certificate</text>
+    <text x="635" y="488" text-anchor="middle" font-size="12" fill="var(--muted)">https://&lt;laptop address&gt;:4748</text>
+    <g stroke="var(--muted)" stroke-width="2" fill="none">
+      <line x1="320" y1="416" x2="380" y2="244" marker-end="url(#ar)"/>
+      <line x1="600" y1="416" x2="520" y2="244" marker-end="url(#ar)"/>
+    </g>
+  </svg>
+  </div>
+
+  <!-- JOURNEY -->
+  <h2 id="journey">The Core Journey Through the System</h2>
+  <p class="src">PRD ref: prd › The Core Journey. Step through it.</p>
+  <div class="card">
+    <div class="stepper" id="stepper"></div>
+    <div id="panel"></div>
+    <div class="navrow"><button id="prev">← Back</button><button id="next">Next →</button></div>
+  </div>
+
+  <!-- STACK -->
+  <h2 id="stack">Stack</h2>
+  <div class="card tablewrap">
+    <table>
+      <thead><tr><th>Piece</th><th>Choice</th><th>Why</th><th>Docs</th></tr></thead>
+      <tbody>
+        <tr><td>Runtime</td><td><b>Node.js 22+</b></td><td>Your decision: required, checked and installed or explained by setup</td><td><a href="https://nodejs.org/en/download">nodejs.org</a></td></tr>
+        <tr><td>Language</td><td>TypeScript, compiled before release</td><td>Same as Build With Me</td><td><a href="https://www.typescriptlang.org/docs/">typescriptlang.org</a></td></tr>
+        <tr><td>Server</td><td><b>Express 5</b> (HTTP on the laptop, HTTPS on the home network)</td><td>Small, well known; replaces Cloud Functions with plain routes</td><td><a href="https://expressjs.com/">expressjs.com</a></td></tr>
+        <tr><td>Live updates</td><td><b>Server-Sent Events</b></td><td>Pushes countdowns, pass changes, build progress; built into browsers</td><td><a href="https://developer.mozilla.org/en-US/docs/Web/API/EventSource">MDN</a></td></tr>
+        <tr><td>Front end</td><td><b>React 19 + Vite + Tailwind 4</b>, copied</td><td>Reuse the approved kid design</td><td><a href="https://react.dev/">react.dev</a>, <a href="https://vite.dev/">vite.dev</a></td></tr>
+        <tr><td>Claude</td><td>Your <b>Claude Code CLI</b>, <code>claude -p</code> with stream-json</td><td>The terms allow an unmodified Claude Code signed in with your own subscription</td><td><a href="https://code.claude.com/docs/en/headless">Headless</a>, <a href="https://code.claude.com/docs/en/cli-reference">CLI</a></td></tr>
+        <tr><td>Speech to text</td><td><b>Whisper</b> via <b>Transformers.js</b> in Node, <code>whisper-base.en</code> to start</td><td>Runs locally, pure npm install, no Python; kid accuracy to be measured</td><td><a href="https://huggingface.co/docs/transformers.js">Transformers.js</a></td></tr>
+        <tr><td>Voice out</td><td>Browser <b>speechSynthesis</b>, device voices</td><td>No keys; laptop and tablet; stays local</td><td><a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis">MDN</a></td></tr>
+        <tr><td>QR codes</td><td><code>qrcode</code></td><td>Already used in Build With Me</td><td><a href="https://www.npmjs.com/package/qrcode">npm</a></td></tr>
+        <tr><td>Certificates</td><td><code>@peculiar/x509</code> (or <code>node-forge</code>)</td><td>A certificate restricted to home addresses</td><td><a href="https://github.com/PeculiarVentures/x509">GitHub</a></td></tr>
+        <tr><td>PIN</td><td>Node <code>crypto.scrypt</code></td><td>A hashed PIN, no extra library</td><td><a href="https://nodejs.org/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback">Node docs</a></td></tr>
+        <tr><td>Packaging</td><td><b>Claude Code plugin</b> + marketplace in the same repo</td><td>Your decision: the target parent already uses Claude Code</td><td><a href="https://code.claude.com/docs/en/plugins-reference">Plugins ref</a></td></tr>
+      </tbody>
+    </table>
+    <h4>Models: starting setup, to be confirmed by the usage experiment</h4>
+    <p style="margin:0">Guide <code>sonnet</code> · checker <code>haiku</code> · builder <code>opus</code> · reporter <code>opus</code>. These come from Build With Me's model comparison. See <a href="#c-exp">Usage Experiment</a>.</p>
+    <h4>Unverified, so check these early</h4>
+    <p style="margin:0">The <code>--json-schema</code> + stream-json combination · isolation from the user-level CLAUDE.md · <code>/usage</code> output in <code>-p</code> mode · Whisper speed on the test laptop · iPad and Android certificate steps. Each is a step in <a href="#order">Build Order</a>.</p>
+  </div>
+
+  <!-- RUNS -->
+  <h2 id="runs">Where It Runs and How Someone Tries It</h2>
+  <div class="card">
+    <ul>
+      <li><b>Runs on:</b> your Windows or Mac computer with Node.js 22+ and the <b>standalone Claude Code CLI</b> (<code>claude</code>) installed and signed in (any plan that includes Claude Code).
+        <ul>
+          <li>The Claude desktop app's Code tab doesn't count: it doesn't put <code>claude</code> on PATH, and its sign-in isn't usable by other programs.</li>
+          <li>Setup offers the official installer and walks you through <code>/login</code> once. <span class="pill verify">build revision</span></li>
+        </ul></li>
+      <li><b>Kids use it from:</b> the laptop's browser at <code>http://localhost:4747</code>, or a tablet on the same Wi-Fi at <code>https://&lt;laptop's home address&gt;:4748</code>.</li>
+      <li><b>Install:</b> paste the README's install line into Claude Code, or run:
+<pre><code>/plugin marketplace add &lt;github-user&gt;/build-with-me-home
+/plugin install build-with-me@build-with-me-home</code></pre>
+        Then type <code>/build-with-me</code>.</li>
+      <li><b>Start later:</b> the desktop shortcut, or <code>/build-with-me</code>.</li>
+      <li><b>Development (your machine):</b> <code>npm install</code>, then <code>npm run dev</code>. This runs the server (:4747) plus Vite with hot reload. Test the plugin locally with <code>claude --plugin-dir .</code></li>
+      <li><b>Release:</b> <code>npm run release</code> builds the front end and server into <code>app/dist/</code>, which is committed so families never need a build step.</li>
+      <li><b>Demo recording:</b> the laptop screen (parent home, give a pass, the QR code) side by side with the tablet (scan, talk, build, ship), then back to the laptop for the report.</li>
+      <li><b>Submission:</b> a public GitHub repo (the plugin repo itself) plus the short demo video. <b>No deployment</b>; hosting is deferred.</li>
+    </ul>
+  </div>
+
+  <!-- LOOK -->
+  <h2 id="look">Look and Feel</h2>
+  <p class="src">PRD ref: prd › Look and Feel</p>
+  <div class="two">
+    <div class="card" style="border-top:4px solid var(--kid)"><h3>Kid side</h3><p style="margin:6px 0 0">Build With Me's existing Tailwind styles, themes and components, copied as is. Nothing new to design.</p></div>
+    <div class="card" style="border-top:4px solid var(--parent)"><h3>Parent side</h3><p style="margin:6px 0 4px">Follows the parent and report mockups.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">
+        <span title="#f6f4ef" style="width:28px;height:28px;border-radius:8px;background:#f6f4ef;border:1px solid #ccc"></span>
+        <span title="#ffffff" style="width:28px;height:28px;border-radius:8px;background:#fff;border:1px solid #ccc"></span>
+        <span title="#1f2430" style="width:28px;height:28px;border-radius:8px;background:#1f2430"></span>
+        <span title="#5d6475" style="width:28px;height:28px;border-radius:8px;background:#5d6475"></span>
+        <span title="#2f9e6e" style="width:28px;height:28px;border-radius:8px;background:#2f9e6e"></span>
+        <span title="#3a8ee2" style="width:28px;height:28px;border-radius:8px;background:#3a8ee2"></span>
+        <span title="#8a5cd6" style="width:28px;height:28px;border-radius:8px;background:#8a5cd6"></span>
+        <span title="amber" style="width:28px;height:28px;border-radius:8px;background:#b7791f"></span>
+        <span title="red" style="width:28px;height:28px;border-radius:8px;background:#b34a4a"></span>
+      </div>
+      <ul style="font-size:15px">
+        <li>Off-white #f6f4ef, cards #fff, ink #1f2430, muted #5d6475, green accent #2f9e6e, kid blue #3a8ee2, teen purple #8a5cd6, amber flags, red blocks, each with a dark-mode partner</li>
+        <li>Rounded 14–16px cards, pill badges, emoji section icons</li>
+        <li>The system font stack, plain friendly words, numbers in tabular figures</li>
+        <li>The report file is <b>self-contained</b> (inline CSS), so it opens without the app</li>
+      </ul></div>
+  </div>
+
+  <!-- COMPONENTS -->
+  <h2 id="components">Components</h2>
+  <p style="margin:0 0 8px"><button class="tool" id="expandAll">Expand all</button> <button class="tool" id="collapseAll">Collapse all</button></p>
+
+  <details id="c-plugin"><summary><h3>📦 Plugin and Setup</h3><span class="prd">prd › Installing and Updating · First-Run Setup</span></summary><div class="body">
+    <ul>
+      <li><code>.claude-plugin/plugin.json</code> (name <code>build-with-me</code>) and <code>.claude-plugin/marketplace.json</code> at the repo root. The repo is its own marketplace.</li>
+      <li><b><code>/build-with-me</code> command</b> (<code>commands/build-with-me.md</code>): runs the setup skill if <code>setup-check.mjs</code> reports problems, otherwise runs <code>launch.mjs</code> and reports the address. Short, to keep your usage low.</li>
+      <li><b>Setup skill</b> (<code>skills/setup/SKILL.md</code>): runs <code>node "${CLAUDE_PLUGIN_ROOT}/app/setup-check.mjs"</code>, then fixes each item:
+        <ul>
+          <li><b>Node 22+ missing or old:</b> offer <code>winget install OpenJS.NodeJS.LTS</code> (Windows) or <code>brew install node</code> (Mac) through your normal permission prompt; otherwise explain the official installer.</li>
+          <li><b>App packages:</b> <code>npm ci --omit=dev</code> into <code>${CLAUDE_PLUGIN_DATA}</code> (kept across updates), automatically.</li>
+          <li><b>Speech model:</b> <code>setup-check.mjs --download-model</code> into <code>${CLAUDE_PLUGIN_DATA}/models</code>.</li>
+          <li><b><code>claude</code> missing from PATH</b> (common for desktop-app-only parents): offer Anthropic's official installer (<code>irm https://claude.ai/install.ps1 | iex</code> on Windows, <code>curl -fsSL https://claude.ai/install.sh | bash</code> on Mac) through your normal permission prompt.</li>
+          <li><b><code>claude</code> not signed in:</b> explain that you run <code>claude</code> in your own terminal and type <code>/login</code> (Anthropic's own sign-in page). The app and the setup skill never touch credentials.</li>
+          <li><b>Firewall (Windows):</b> explain that Windows asks once to allow Node on <b>private</b> networks, which tablets need.</li>
+          <li><b>Port taken:</b> suggest the next free port and save it to settings.</li>
+        </ul></li>
+      <li><b><code>launch.mjs</code>:</b>
+        <ul>
+          <li>starts the server detached (if not running), using the <code>node_modules</code> in the plugin data folder</li>
+          <li>writes <code>.app-location</code> with the current plugin root (it moves on every update)</li>
+          <li>writes the stable start file <code>Start Build With Me.cmd</code> / <code>.command</code>, which reads <code>.app-location</code></li>
+          <li>on request, creates the <b>desktop shortcut</b> to it (Windows <code>.lnk</code> via PowerShell, Mac alias)</li>
+          <li>opens the browser</li>
+        </ul></li>
+      <li><b>Updating:</b> a normal plugin update. The next launch notices the new version, re-runs <code>npm ci</code> if <code>package.json</code> changed, and restarts the server. Data in Documents is untouched.</li>
+      <li><b>Uninstalling:</b> removes the plugin and its private folder. <code>Documents\Build With Me</code> stays (the PRD assumption). The README explains how to delete it.</li>
+    </ul>
+    <div class="files">.claude-plugin/ · commands/build-with-me.md · skills/setup/SKILL.md · app/setup-check.mjs · app/launch.mjs</div>
+  </div></details>
+
+  <details id="c-core"><summary><h3>🖥️ Server Core</h3><span class="prd">plumbing for every feature</span></summary><div class="body">
+    <ul>
+      <li><code>server/index.ts</code>:
+        <ul>
+          <li><b>Two listeners:</b> HTTP on <code>127.0.0.1:4747</code> (laptop), HTTPS on <code>0.0.0.0:4748</code> (home network).</li>
+          <li><b>Static front end</b> from <code>app/dist/web</code>; <b>API</b> under <code>/api</code>; <b>SSE</b> at <code>/api/events</code>; <b>apps</b> at <code>/apps/:kid/:slug</code>.</li>
+        </ul></li>
+      <li><b>Who's asking</b> (<code>server/auth.ts</code>):
+        <ul>
+          <li><b>Parent routes</b> answer <b>only on the loopback address</b>, with a valid parent cookie.</li>
+          <li><b>Kid routes</b> need a valid, unexpired <b>pass cookie</b>.</li>
+          <li><b>Everything else</b> gets 401, with a friendly screen.</li>
+        </ul></li>
+      <li><b>Single instance:</b> a lock file, so a second launch opens the browser instead of starting a second server.</li>
+      <li><b>Clean shutdown:</b> running Claude processes get SIGINT, and files are flushed.</li>
+    </ul>
+    <div class="files">server/index.ts · server/auth.ts</div>
+  </div></details>
+
+  <details id="c-gate"><summary><h3>🔐 Parent Gate</h3><span class="prd">prd › Parent Gate and Responsibility</span></summary><div class="body">
+    <ul>
+      <li><b>The PIN:</b> 4–8 digits, stored as <code>scrypt(pin, salt)</code> in <code>family.json</code>. Never logged.</li>
+      <li><b>Wrong PIN:</b> after 5 wrong tries, a 60-second lockout, in memory (the PRD assumption).</li>
+      <li><b>The parent cookie:</b> <code>HttpOnly</code>, <code>SameSite=Strict</code>, loopback only. <b>🔒 Lock</b> clears it, and so does 12 hours idle.</li>
+      <li><b>Forgot the PIN:</b> <code>/build-with-me:reset-pin</code> in Claude Code clears the hash, and the next opening asks for a new PIN. Only someone at your Claude Code can do it. <span class="pill ok">resolves the PRD question</span></li>
+      <li><b>Never handles the Claude sign-in:</b> the server only runs <code>claude</code>. It never reads Claude's credential files or tokens.</li>
+    </ul>
+    <div class="files">server/auth.ts · commands/reset-pin.md · web/src/parent/Opening.tsx</div>
+  </div></details>
+
+  <details id="c-kids"><summary><h3>🧒 Kids and Family Data</h3><span class="prd">prd › Kids</span></summary><div class="body">
+    <ul>
+      <li><code>family.json</code> holds the kids: id, nickname, Kid or Teen, emoji. The age group is read <b>only</b> from here when a session starts.</li>
+      <li>Removing a kid asks for confirmation. Their apps and reports stay unless you pick "also delete their apps."</li>
+    </ul>
+    <div class="files">server/kids.ts · web/src/parent/KidsManage.tsx</div>
+  </div></details>
+
+  <details id="c-passes"><summary><h3>🎟️ Passes</h3><span class="prd">prd › Passes</span></summary><div class="body">
+    <ul>
+      <li><b>Each pass:</b> <code>{id, kidId, code, createdAt, endsAt, usedAt, device, endedAt}</code>. The code is 128 random bits (base64url).</li>
+      <li><b>Opening it:</b> <code>GET /p/:code</code>. If the code is unused and unexpired, the server stores <code>usedAt</code> and the device (a friendly label such as "iPad" or "Windows laptop") and sets the <b>pass cookie</b> (a different random token, <code>HttpOnly</code>, expiring at <code>endsAt</code>). Otherwise it shows "already used" or "expired."</li>
+      <li><b>Extend and end:</b> <code>POST /api/parent/passes/:id/extend {minutes}</code> and <code>/end</code>. Each sends an SSE <code>pass</code> event to that kid's screens.</li>
+      <li><b>Rules:</b> one live pass per kid. A new pass for a kid with a live one asks "end the old one?"</li>
+      <li><b>The countdown:</b> appears at ≤10 minutes left. At <code>endsAt</code> the server stops taking new turns. A <b>build already running finishes and saves</b>. The kid sees Time's up.</li>
+    </ul>
+    <div class="files">server/passes.ts · web/src/screens/Countdown.tsx · TimesUp.tsx · PassUsed.tsx</div>
+  </div></details>
+
+  <details id="c-journey"><summary><h3>🗺️ Kid Journey (ported)</h3><span class="prd">prd › The Kid's Journey</span></summary><div class="body">
+    <ul>
+      <li><b>Copied from Build With Me:</b> <code>web/src/screens/*</code> (Welcome, GuideStage, BuildScreen, ShipScreen), <code>components/*</code>, <code>themes/*</code>, <code>lib/speech.ts</code>, <code>lib/voice.ts</code>.</li>
+      <li><b>Removed:</b> ParentStep (replaced by passes), the Wallet and allowance strip, Firebase and App Check.</li>
+      <li><code>web/src/lib/api.ts</code> is rewritten from Firebase callables to <code>fetch('/api/…')</code> plus an <code>EventSource</code>.</li>
+      <li><b>Server side:</b> <code>guideTurn</code>, <code>startSession</code>, <code>getSession</code>, <code>changeTurn</code>, <code>generateApp</code>, <code>edits</code>, <code>checklist</code>, <code>stages</code>, <code>personal</code> and the whole <code>prompt/</code> folder are ported. Firestore calls become <b>Store</b> calls; Anthropic SDK calls become <b>Claude Runner</b> calls.</li>
+      <li><b>Removed server code:</b> access, billing, meter, pricing, appCheck, origins, publishApp, reportApp, speak (Cloud TTS), samples.</li>
+      <li><b>The course skills</b> are copied into <code>app/skills/</code> at release, with their LICENSE notice. <span class="pill verify">verify MIT</span></li>
+      <li><b>The kid's app</b> shows in an <code>&lt;iframe sandbox="allow-scripts"&gt;</code> served from <code>/apps/…</code>, never with same-origin access.</li>
+    </ul>
+    <div class="files">server/journey/** · web/src/screens/** · web/src/lib/api.ts</div>
+  </div></details>
+
+  <details id="c-runner"><summary><h3>🧠 Claude Runner</h3><span class="prd">prd › The Kid's Journey · Safety · The Parent Report</span></summary><div class="body">
+    <p style="margin:0 0 6px"><code>server/claude/runner.ts</code> starts your <code>claude</code> with <b>isolation flags</b> on every call:</p>
+<pre><code>claude -p --safe-mode --input-format stream-json --output-format stream-json --verbose
+       --model &lt;sonnet|haiku|opus&gt;
+       --system-prompt-file &lt;privacy rule + layer file&gt;
+       --tools "" --strict-mcp-config --mcp-config {"mcpServers":{}}
+       --setting-sources "" --disable-slash-commands
+       --no-session-persistence
+env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
+     CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS=1 IS_DEMO=1  (all other CLAUDE*/ANTHROPIC* removed)</code></pre>
+    <ul>
+      <li><span class="pill ok">Proven by E1 · 15/15</span>
+        <ul>
+          <li>no tools, MCP servers, installed plugins, skills or CLAUDE.md</li>
+          <li>multi-turn memory works</li>
+          <li><code>--json-schema</code> works in one-shot and long-lived conversations</li>
+          <li>Opus is available</li>
+          <li><code>/usage</code> is readable</li>
+          <li>Claude Code's 3 built-in plugins still load, but expose no tools or commands</li>
+        </ul></li>
+      <li><b>The account email:</b> Claude Code adds it to the background by itself, and no switch removes it. So <code>server/claude/guard.ts</code> adds a privacy rule to every prompt and <b>masks any email or user folder</b> in everything Claude returns. E1 checks that a "kid" asking for the parent's email gets nothing.</li>
+    </ul>
+    <ul>
+      <li>It runs with a <b>cleaned environment</b>: every <code>CLAUDE*</code> and <code>ANTHROPIC*</code> variable is removed. A server started from a Claude Code session would otherwise inherit that session's sign-in proxy. Kids' runs use only the CLI's own sign-in. <span class="pill verify">build revision</span></li>
+      <li>It finds <code>claude</code> on PATH, then in the official install locations (<code>~/.local/bin</code>), with an override setting.</li>
+      <li>It runs in an empty folder, <code>${CLAUDE_PLUGIN_DATA}/sandbox</code>. The <code>--setting-sources ""</code> form and isolation from <code>~/.claude/CLAUDE.md</code> are <span class="pill verify">to verify in E1</span>, with a fallback chosen there.</li>
+      <li><b>Long-lived conversations:</b> one <b>guide</b> and one <b>checker</b> process per active kid session.
+        <ul>
+          <li>Each turn is a new message on stdin, so the conversation (and its cache) carries forward.</li>
+          <li>The checker sees turns as they happen, so it can spot patterns.</li>
+          <li>They're stopped when the pass ends or after 15 minutes idle, and re-created on resume with the saved transcript replayed.</li>
+        </ul></li>
+      <li><b>One-shot jobs:</b> the <b>builder</b> and <b>reporter</b> start a fresh process per job with <code>--output-format json</code> and <code>--json-schema</code>. The builder returns <code>{html, notes, leftovers}</code>; the reporter returns the report fields.</li>
+      <li><b>Structured guide replies:</b> Build With Me's reply shape (say, cards, mock-up, plan). It uses <code>--json-schema</code> if that works with stream-json <span class="pill verify">E1</span>; otherwise the system prompt asks for JSON and <code>replySchema.ts</code> validates it, with one automatic retry.</li>
+      <li><b>Limits:</b> every <code>rate_limit_event</code> is watched. <code>allowed_warning</code> is recorded; <code>rejected</code> triggers <b>Limit Reached</b>, keeping <code>resetsAt</code>. <code>api_retry</code> with <code>rate_limit</code> is treated the same once retries run out.</li>
+      <li><b>Costs:</b> <code>total_cost_usd</code> and the usage figures are summed per project for the report fallback.</li>
+      <li><b>Concurrency:</b> at most 2 builds at once, the rest queued ("Your app is next in line!"). Guide and checker turns run immediately.</li>
+    </ul>
+    <div class="files">server/claude/runner.ts · server/usage.ts</div>
+  </div></details>
+
+  <details id="c-safety"><summary><h3>🛡️ Safety</h3><span class="prd">prd › Safety</span></summary><div class="body">
+    <ul>
+      <li><b>Layer 1, age-aware guide:</b> Build With Me's <code>prompt/safety.ts</code>, <code>dial.ts</code> and <code>wrapperLayer.ts</code>, with the age group from <code>family.json</code>.</li>
+      <li><b>Layer 2, live check</b> (<code>server/safety.ts</code>):
+        <ul>
+          <li><code>personal.ts</code> masks the obvious details first.</li>
+          <li>The checker gets "KID SAID: …" alongside the guide, then "GUIDE SAID: …" before display. It answers <code>{ok, kind: unsuitable|personal|offtopic, note}</code>.</li>
+          <li><b>Unsuitable input:</b> the guide's reply is discarded and the guide is asked again with "redirect kindly to a kid-friendly alternative."</li>
+          <li><b>Unsuitable output:</b> regenerated once, then a safe fallback line.</li>
+          <li>Every non-ok verdict appends a <b>flag</b> <code>{time, step, kidSaid, guideDid, kind}</code>.</li>
+        </ul></li>
+      <li><b>Layer 3, the report:</b> see <a href="#c-report">Reporter and Reports</a>.</li>
+      <li><b>Builder output:</b> the app's HTML text also goes through one checker pass before it's shown.</li>
+    </ul>
+    <div class="files">server/safety.ts · server/journey/personal.ts · server/journey/prompt/safety.ts</div>
+  </div></details>
+
+  <details id="c-speech"><summary><h3>🎤 Speech</h3><span class="prd">prd › Talking</span></summary><div class="body">
+    <ul>
+      <li><b>In the browser</b> (<code>web/src/lib/speech.ts</code>, rewritten): <code>getUserMedia</code> microphone, an AudioWorklet resampling to <b>16 kHz mono PCM</b>, sent in ~1-second chunks to <code>POST /api/speech/:utteranceId</code>. Quiet-detection ends the utterance (longer pause for kids), and there's an "I'm done" button.</li>
+      <li><b>On the server</b> (<code>server/speech.ts</code>): a Transformers.js <code>automatic-speech-recognition</code> pipeline, <code>whisper-base.en</code>, loaded once at startup from <code>${CLAUDE_PLUGIN_DATA}/models</code>. Chunks are transcribed as they arrive; the final text is returned when the utterance ends. <b>No audio is saved.</b></li>
+      <li><b>Voice out:</b> Build With Me's <code>voice.ts</code>, using <code>speechSynthesis</code> with a voice per theme from the device's voices and a slower rate for kids. The ⚙️ menu is kept; Neural2 is removed.</li>
+      <li><b>No microphone, or the tablet isn't set up:</b> the text box with a "tap 🎤 on your keyboard to talk" hint. The parent sees "Set up this tablet for talking."</li>
+    </ul>
+    <div class="files">web/src/lib/speech.ts · web/src/lib/voice.ts · server/speech.ts</div>
+  </div></details>
+
+  <details id="c-cert"><summary><h3>🔐 Home Certificate (tablets)</h3><span class="prd">prd › Talking (tablet)</span></summary><div class="body">
+    <ul>
+      <li><b>On first launch,</b> <code>server/certs.ts</code> creates a <b>home certificate authority</b>:
+        <ul>
+          <li>its key <b>never leaves the computer</b>, stored in <code>${CLAUDE_PLUGIN_DATA}/certs</code></li>
+          <li><b>name constraints</b> limit it to private addresses (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code>) and <code>*.local</code>, so it can't vouch for any real website</li>
+        </ul></li>
+      <li><b>On every start,</b> it issues a short-lived server certificate for the laptop's current home IP(s) and hostname. When the address changes it re-issues, and the tablet keeps trusting it because the authority is the same.</li>
+      <li><b>📱 Set up a tablet for talking</b> shows a QR code to <code>http://&lt;laptop's address&gt;:4747/setup-tablet</code>. That page:
+        <ul>
+          <li>detects iPad or Android</li>
+          <li>offers the iPad profile (<code>.mobileconfig</code>) or the Android certificate (<code>.crt</code>)</li>
+          <li>shows 3–4 steps ("Settings → General → About → Certificate Trust Settings → turn on Build With Me")</li>
+        </ul>
+        This page and the certificate files are the only things served on plain HTTP to the network.</li>
+      <li><b>Uninstalling</b> deletes the authority, and old tablet certificates become useless.</li>
+      <li><b>Proven first</b> (E2), with keyboard dictation as the fallback.</li>
+    </ul>
+    <div class="files">server/certs.ts · web/src/parent/TabletSetup.tsx</div>
+  </div></details>
+
+  <details id="c-store"><summary><h3>📁 Store (files)</h3><span class="prd">persistence for every feature</span></summary><div class="body">
+    <ul>
+      <li><code>server/store.ts</code> reads and writes JSON files atomically (write a temporary file, then rename), with one write queue per file.</li>
+      <li>The data folder is <code>Documents\Build With Me</code> (Windows) or <code>~/Documents/Build With Me</code> (Mac), using the OS's Documents location.</li>
+      <li>Full layout in <a href="#data">Data Model</a>.</li>
+    </ul>
+    <div class="files">server/store.ts</div>
+  </div></details>
+
+  <details id="c-report"><summary><h3>📄 Reporter and Reports</h3><span class="prd">prd › The Parent Report · Limit Reached</span></summary><div class="body">
+    <ul>
+      <li><b>Made automatically:</b> on Ship, and for an unfinished session when its pass ends or is ended and the project wasn't shipped.</li>
+      <li><b>Input to the reporter:</b> the transcript (masked), flags, step timeline, change rounds, device and how they answered, time spent, pass length.</li>
+      <li><b>Output (JSON schema):</b> <code>{title, summary, ideasShareKid, ideasNote, flagsAssessment:[…], worthAChat, conversationStarters:[…], okLines:{personal, output, onTopic}}</code>. "Whose ideas" is labeled an <b>estimate</b>.</li>
+      <li><b>Plan usage</b> (<code>server/usage.ts</code>):
+        <ul>
+          <li>Just before the session's first Claude call and just after the report, the server runs <code>claude -p "/usage"</code> (isolated) and reads the 5-hour and weekly %. The report shows the difference.</li>
+          <li>If two kids overlapped, it says "shared with Leo's session" and splits by token share.</li>
+          <li><b>If <code>/usage</code> can't be read</b> <span class="pill verify">E1</span>: tokens and cost estimate instead.</li>
+          <li>The parent home status strip uses the latest reading, refreshed when parent home opens (at most once a minute).</li>
+        </ul></li>
+      <li><b>Rendering:</b> <code>server/report/template.ts</code> builds a <b>self-contained HTML file</b> in the report mockup's design, saved to <code>Reports\YYYY-MM-DD HHmm &lt;Kid&gt; - &lt;App&gt;.html</code>, with data in <code>reports/&lt;id&gt;.json</code>.</li>
+      <li><b>The app picture:</b> a themed emoji tile (see <a href="#simple">Simplified</a>).</li>
+      <li><b>Alerts</b> (<code>alerts.json</code>): flags and limit-reached go to <b>Needs your attention</b> until dismissed.</li>
+    </ul>
+    <div class="files">server/report/reporter.ts · server/report/template.ts · server/usage.ts</div>
+  </div></details>
+
+  <details id="c-parent"><summary><h3>👩‍💻 Parent Screens</h3><span class="prd">prd › Screens and Layout (parent)</span></summary><div class="body">
+    <ul>
+      <li><b>Screens:</b> <code>web/src/parent/</code> Opening, FirstRun, ParentHome, AllReports, ReportView, KidsManage, TabletSetup, Settings.</li>
+      <li><b>The laptop's root <code>/</code></b> goes to Opening, or FirstRun when there's no <code>family.json</code>. Tablets without a pass see "Ask your parent for a pass 🎟️."</li>
+      <li><b>Live data:</b> parent home subscribes to SSE for active passes, steps, alerts and new reports.</li>
+    </ul>
+    <div class="files">web/src/parent/*</div>
+  </div></details>
+
+  <details id="c-apps"><summary><h3>🗂️ My Apps</h3><span class="prd">prd › My Apps</span></summary><div class="body">
+    <ul>
+      <li><b>Index:</b> <code>kids/&lt;kidId&gt;/apps.json</code> lists <code>{slug, name, emoji, createdAt, projectId}</code>, read newest first.</li>
+      <li><b>Serving:</b> <code>/apps/&lt;kid&gt;/&lt;slug&gt;/</code> serves <code>index.html</code> with a strict Content-Security-Policy (no network access). It needs the laptop or that kid's pass cookie. The QR code links to it on the home address.</li>
+      <li><b>Deleting:</b> Kids &amp; their apps → Manage removes the folder and the index entry.</li>
+    </ul>
+    <div class="files">web/src/screens/MyApps.tsx · server/index.ts (apps route)</div>
+  </div></details>
+
+  <details id="c-exp"><summary><h3>🧪 Usage Experiment</h3><span class="prd">your caching question</span></summary><div class="body">
+    <ul>
+      <li><b>The script:</b> <code>scripts/usage-experiment.ts</code> runs one scripted kid journey (Kid age group, the same 8 answers, one build, one change round) <b>three ways</b>:</li>
+    </ul>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Setup</th><th>Guide</th><th>Checker</th><th>Builder / Reporter</th><th>Idea being tested</th></tr></thead>
+      <tbody>
+        <tr><td><b>A</b> (start)</td><td>Sonnet</td><td>Haiku, own conversation</td><td>Opus</td><td>Cheap checks, the right model per job</td></tr>
+        <tr><td><b>B</b></td><td>Sonnet</td><td>Sonnet, <b>fork of the guide's conversation</b></td><td>Opus</td><td>Checks reuse the guide's cache</td></tr>
+        <tr><td><b>C</b></td><td>Opus</td><td>Opus fork</td><td>Opus</td><td>One model, one cache all the way</td></tr>
+      </tbody>
+    </table></div>
+    <ul>
+      <li><b>Records for each:</b> the <code>/usage</code> 5-hour % before and after, total tokens, cache-read tokens, the <code>total_cost_usd</code> estimate, time per turn, build time.</li>
+      <li><b>Output:</b> <code>devpost/usage-experiment.html</code>. The decision goes into Decisions and Open Issues.</li>
+      <li>A run takes about 5–10% of a 5-hour window (estimate), so it runs <b>when you're ready to spend that</b>.</li>
+    </ul>
+  </div></details>
+
+  <!-- DATA -->
+  <h2 id="data">Data Model</h2>
+  <p class="src">Everything lives in <b>Documents\Build With Me</b> unless noted.</p>
+  <div class="card tablewrap">
+    <table>
+      <thead><tr><th>File</th><th>Holds</th><th>Updated when</th><th>After closing and reopening</th></tr></thead>
+      <tbody>
+        <tr><td><code>family.json</code></td><td>PIN hash and salt, kids <code>[{id, nickname, group, emoji}]</code>, settings (port)</td><td>Setup; Kids &amp; their apps; Settings</td><td>Kept</td></tr>
+        <tr><td><code>passes.json</code></td><td>Passes</td><td>Create, open, extend, end</td><td>Expired kept 30 days for reports, then pruned</td></tr>
+        <tr><td><code>kids/&lt;kid&gt;/projects/&lt;id&gt;/project.json</code></td><td>Stage, theme, transcript (masked), plans, change list, flags, timeline, usage readings, token and cost totals</td><td>Every turn, step, build, flag</td><td><b>Resume point:</b> the next pass picks up here</td></tr>
+        <tr><td><code>…/versions/vN.html</code></td><td>Each built version</td><td>Each build</td><td>Kept; the last working version shown</td></tr>
+        <tr><td><code>kids/&lt;kid&gt;/apps/&lt;slug&gt;/index.html</code> + <code>apps.json</code></td><td>Shipped apps and the shelf index</td><td>Ship; parent delete</td><td>Kept until deleted</td></tr>
+        <tr><td><code>reports/&lt;id&gt;.json</code></td><td>Report data for All reports</td><td>Report written</td><td>Kept</td></tr>
+        <tr><td><code>Reports/&lt;date&gt; &lt;Kid&gt; - &lt;App&gt;.html</code></td><td>The readable report file</td><td>Report written</td><td>Kept; opens without the app</td></tr>
+        <tr><td><code>alerts.json</code></td><td>Needs your attention items</td><td>Flag, limit, dismiss</td><td>Kept until dismissed</td></tr>
+        <tr><td><code>Start Build With Me.cmd/.command</code> + <code>.app-location</code></td><td>Stable start file and pointer</td><td>Every launch</td><td>Kept</td></tr>
+      </tbody>
+    </table>
+    <h4>Plugin private folder (<code>${CLAUDE_PLUGIN_DATA}</code>): kept across updates, deleted on uninstall</h4>
+    <p style="margin:0"><code>node_modules/</code> · <code>models/</code> (Whisper) · <code>certs/</code> (home authority, server cert) · <code>sandbox/</code> (empty working folder for Claude) · <code>server.lock</code></p>
+    <h4>Not kept anywhere</h4>
+    <p style="margin:0">Audio. Claude Code's own session history for these runs (<code>--no-session-persistence</code> keeps kids' chats out of your history).</p>
+  </div>
+
+  <!-- TREE -->
+  <h2 id="tree">File Structure</h2>
+  <div class="card tree">build-with-me-home/                  <span class="c"># repo root = plugin root = marketplace</span>
+├── .claude-plugin/
+│   ├── plugin.json                  <span class="c"># name "build-with-me", version, description</span>
+│   └── marketplace.json             <span class="c"># this repo as a one-plugin marketplace</span>
+├── commands/
+│   ├── build-with-me.md             <span class="c"># /build-with-me → check, then launch</span>
+│   └── reset-pin.md                 <span class="c"># /build-with-me:reset-pin</span>
+├── skills/
+│   └── setup/SKILL.md               <span class="c"># guided install: read the check report, fix gaps</span>
+├── app/
+│   ├── setup-check.mjs              <span class="c"># checks Node, claude login, packages, model, port, folder</span>
+│   ├── launch.mjs                   <span class="c"># start server, write start file and shortcut, open browser</span>
+│   ├── skills/                      <span class="c"># course stage instructions (copied at release) + LICENSE</span>
+│   └── dist/                        <span class="c"># built server + web (committed at release)</span>
+├── server/                          <span class="c"># TypeScript source → app/dist/server</span>
+│   ├── index.ts                     <span class="c"># Express, the two listeners, routes, SSE</span>
+│   ├── auth.ts                      <span class="c"># parent cookie (loopback), pass cookie</span>
+│   ├── store.ts                     <span class="c"># atomic JSON files in Documents\Build With Me</span>
+│   ├── passes.ts                    <span class="c"># create / open / extend / end / expire</span>
+│   ├── kids.ts                      <span class="c"># family.json kids</span>
+│   ├── certs.ts                     <span class="c"># home certificate authority + server cert</span>
+│   ├── speech.ts                    <span class="c"># Whisper (Transformers.js) streaming transcription</span>
+│   ├── safety.ts                    <span class="c"># checker orchestration, flags</span>
+│   ├── usage.ts                     <span class="c"># /usage readings, rate-limit tracking</span>
+│   ├── claude/
+│   │   └── runner.ts                <span class="c"># isolated claude -p (guide, checker, builder, reporter)</span>
+│   ├── journey/                     <span class="c"># ported from Build With Me functions/src</span>
+│   │   ├── guideTurn.ts  startSession.ts  getSession.ts  changeTurn.ts
+│   │   ├── generateApp.ts  edits.ts  checklist.ts  stages.ts  personal.ts
+│   │   └── prompt/                  <span class="c"># buildPrompt, wrapperLayer, safety, dial, builderLayer, …</span>
+│   └── report/
+│       ├── reporter.ts              <span class="c"># reporter call + schema</span>
+│       └── template.ts              <span class="c"># self-contained report HTML</span>
+├── web/                             <span class="c"># React front end → app/dist/web</span>
+│   ├── index.html
+│   └── src/
+│       ├── main.tsx  App.tsx        <span class="c"># routes: parent (laptop) vs kid (pass)</span>
+│       ├── parent/                  <span class="c"># Opening, FirstRun, ParentHome, AllReports, ReportView,</span>
+│       │                            <span class="c"># KidsManage, TabletSetup, Settings</span>
+│       ├── screens/                 <span class="c"># ported kid screens + MyApps, Countdown, TimesUp,</span>
+│       │                            <span class="c"># LimitReached, PassUsed, CantReach</span>
+│       ├── components/  themes/     <span class="c"># ported</span>
+│       └── lib/                     <span class="c"># api.ts (fetch + SSE), speech.ts (PCM streaming), voice.ts</span>
+├── scripts/
+│   ├── usage-experiment.ts          <span class="c"># E3</span>
+│   ├── release.mjs                  <span class="c"># build web + server into app/dist, copy skills</span>
+│   └── verify-*.ts                  <span class="c"># per-step checks used during the build</span>
+├── devpost/                         <span class="c"># planning docs (learner-profile.md is git-ignored)</span>
+├── package.json                     <span class="c"># one package; engines.node "&gt;=22"</span>
+├── LICENSE                          <span class="c"># MIT, plus the course skills' notice</span>
+└── README.md                        <span class="c"># for parents: install, start, tablets, reset PIN, uninstall</span></div>
+
+  <!-- EXT -->
+  <h2 id="ext">External Services and Dependencies</h2>
+  <div class="card tablewrap">
+    <table>
+      <thead><tr><th>Dependency</th><th>How it's called</th><th>Auth</th><th>Limits / cost</th><th>Docs</th></tr></thead>
+      <tbody>
+        <tr><td><b>Claude Code CLI</b> (yours)</td><td><code>claude -p</code> with isolation flags; stream-json in and out; <code>--json-schema</code> for builder and reporter; <code>claude -p "/usage"</code></td><td>Your existing sign-in; the app never touches it</td><td>Your plan's 5-hour and weekly limits; <code>rate_limit_event</code> reports status</td><td><a href="https://code.claude.com/docs/en/headless">Headless</a> · <a href="https://code.claude.com/docs/en/cli-reference">CLI</a> · <a href="https://code.claude.com/docs/en/agent-sdk/typescript">SDK types</a> · <a href="https://code.claude.com/docs/en/legal-and-compliance">Legal</a></td></tr>
+        <tr><td><b>Claude Code plugins</b></td><td><code>plugin.json</code>, <code>marketplace.json</code>, <code>commands/</code>, <code>skills/</code>, <code>${CLAUDE_PLUGIN_ROOT}</code>, <code>${CLAUDE_PLUGIN_DATA}</code></td><td>None</td><td>None</td><td><a href="https://code.claude.com/docs/en/plugins-reference">Plugins ref</a></td></tr>
+        <tr><td><b>Hugging Face model download</b> (once)</td><td>Transformers.js fetches <code>Xenova/whisper-base.en</code> into the models folder</td><td>None</td><td>~75–150 MB once; free</td><td><a href="https://huggingface.co/docs/transformers.js">Transformers.js</a></td></tr>
+        <tr><td><b>npm registry</b> (setup and updates)</td><td><code>npm ci --omit=dev</code></td><td>None</td><td>Free</td><td><a href="https://docs.npmjs.com/cli/commands/npm-ci">npm ci</a></td></tr>
+        <tr><td><b>Node.js</b></td><td>Runtime</td><td>None</td><td>Free</td><td><a href="https://nodejs.org/">nodejs.org</a></td></tr>
+        <tr><td><b>Learn AI Basics skills</b></td><td>Copied into <code>app/skills/</code> at release</td><td>None</td><td>MIT <span class="pill verify">verify</span></td><td>Devpost's skill-pack repo</td></tr>
+      </tbody>
+    </table>
+    <p style="margin:10px 0 0;color:var(--muted);font-size:14px">No other network calls. Kids' apps get a CSP that blocks network access.</p>
+  </div>
+
+  <!-- FAIL -->
+  <h2 id="fail">Important Failure Modes</h2>
+  <div class="fm">
+    <div><b>⛔ Plan limit hit mid-session</b>The kid sees "Limit reached — ask your parent." Work saved; the parent gets an alert with the reset time. Turns resume after <code>resetsAt</code> if the pass is live.</div>
+    <div><b>🧠 <code>claude</code> fails</b> (signed out, crashed, slow). One retry, then "My brain needs a quick break — try again in a minute." The parent home shows "Claude Code isn't responding — check that you're signed in." A failed build keeps the last working version.</div>
+    <div><b>💤 Laptop sleeps or the server stops</b>The tablet's live connection drops: "Can't reach the computer — ask your parent to start Build With Me." Work is saved every turn.</div>
+    <div><b>🎤 Tablet mic not allowed</b>Typing plus the keyboard-dictation hint.</div>
+    <div><b>👂 Whisper mishears</b>The recognized text shows in the answer box before sending, with "Oops, say it again."</div>
+    <div><b>🧱 Firewall blocks tablets</b>The Set up a tablet page self-tests the home address and explains the Windows "private network" allow step.</div>
+  </div>
+
+  <!-- SIMPLE -->
+  <h2 id="simple">What Was Simplified and Why</h2>
+  <div class="card"><ul>
+    <li><b>Pictures:</b>
+      <ul>
+        <li><b>The app picture is a themed emoji tile,</b> not a real screenshot. A screenshot needs a headless browser (another big download). The fuller version would add Playwright to setup.</li>
+        <li><b>Idea and Design pictures:</b> Build With Me's mock-ups stay, with no image service, since the PRD has no keys.</li>
+      </ul></li>
+    <li><b>Device names come from the browser</b> ("iPad," "Windows laptop"), not names you type. Enough to tell devices apart in Active passes.</li>
+    <li><b>Per-app plan usage is a before-and-after difference of <code>/usage</code>,</b> split by token share when sessions overlap. Claude Code doesn't expose exact per-app accounting.</li>
+    <li><b>One English Whisper model,</b> not a language picker. Swappable later.</li>
+    <li><b>Lockout and sessions are in memory:</b> a restart clears the wrong-PIN counter. Fine for a home app.</li>
+    <li><b>The release build is committed</b> (<code>app/dist</code>), so families never build anything, at the cost of repo size.</li>
+  </ul></div>
+
+  <!-- ORDER -->
+  <h2 id="order">Build Order and Early Experiments</h2>
+  <p class="src">Riskiest first, so nothing depends on an unproven piece. Orange = experiment.</p>
+  <div class="card"><ol class="order">
+    <li class="exp"><div><b>E1, Claude isolation and plumbing.</b> Run <code>claude -p</code> with the isolation flags. Confirm:
+      <ul>
+        <li>no CLAUDE.md, tools, plugins or MCP leak in (ask the guide what instructions and tools it has)</li>
+        <li>the stream-json multi-turn conversation works</li>
+        <li>whether <code>--json-schema</code> works with stream-json</li>
+        <li>that <code>/usage</code> output can be read</li>
+        <li>what <code>rate_limit_event</code> looks like</li>
+        <li>whether your plan can use Opus</li>
+      </ul></div></li>
+    <li class="exp"><div><b>E2, tablet talking:</b> the home certificate on your tablet, the mic on HTTPS, Whisper latency (stopped talking → text) on the laptop and the tablet, and accuracy on a kid's voice. If it fails, keyboard dictation, with the result recorded.</div></li>
+    <li><div><b>Plugin skeleton:</b> setup check, launch, start file, shortcut, <code>/build-with-me</code>, on Windows. Mac when a Mac is available.</div></li>
+    <li><div><b>Store, parent gate, first run, kids.</b></div></li>
+    <li><div><b>Passes:</b> QR code, one-use, cookie, SSE countdown, extend and end.</div></li>
+    <li><div><b>Kid journey port:</b> guide and checker on the Claude Runner, the screens, voice out.</div></li>
+    <li><div><b>Build and Ship:</b> the builder, versions, My apps.</div></li>
+    <li><div><b>Reporter and reports, alerts, Limit Reached.</b></div></li>
+    <li class="exp"><div><b>E3, the usage experiment.</b> Then lock in the model mix.</div></li>
+    <li><div><b>README for parents</b> and the demo run-through.</div></li>
+  </ol></div>
+
+  <!-- DECISIONS -->
+  <h2 id="decisions">Decisions and Open Issues</h2>
+  <h4>Your decisions (this conversation)</h4>
+  <div class="card"><ul>
+    <li><b>Copy Build With Me's code</b> and replace only the back office. Tradeoff: the two projects go their separate ways.</li>
+    <li><b>Require Node.js 22+.</b> Setup checks and installs it (with approval) or explains. Tradeoff: one prerequisite, but the simplest build and the same on Windows and Mac.</li>
+    <li><b>Claude Code is the installer:</b> a setup skill that checks dependencies and installs them through your own approval settings, or guides in the chat.</li>
+    <li><b>Speech-to-text on the computer</b> (Whisper), with the tablet only recording. You asked whether Wi-Fi adds delay. Clarified: ~20–40 KB per utterance takes hundredths of a second, and transcription time dominates. Measured in E2.</li>
+    <li><b>A home certificate for tablets,</b> proven first, with dictation as the fallback.</li>
+    <li><b>The course skills ship inside the plugin as the app's instructions,</b> not installed into your Claude Code.</li>
+  </ul></div>
+
+  <h4>Your useful unknown: cache and model economics</h4>
+  <div class="card why">
+    <p style="margin:0 0 6px"><b>The question:</b> "Since my Claude app has a 1-hour cache, is it better for checks to use the same model as the stage, and might designing in Opus carry the cache into build?"</p>
+    <p style="margin:0 0 6px"><b>What clarified it:</b> caches are per model and match only an identical beginning. A check reuses the guide's cache only as a fork of the guide's conversation. Build starts a new conversation anyway.</p>
+    <p style="margin:0 0 6px"><b>Still unknown:</b> whether <code>-p</code> gets the 1-hour cache, and how much cached tokens count against plan limits.</p>
+    <p style="margin:0"><b>How it gets checked:</b> <a href="#c-exp">E3</a> compares A, B and C on real plan-usage %. Setup A until then.</p>
+  </div>
+
+  <h4>Your learning goal, local versus hosted, as it shows up here (for the build wrap-up)</h4>
+  <div class="two">
+    <div class="card pc"><b>Pros</b><ul><li>No per-app cost</li><li>No accounts, keys or servers to run</li><li>Kids' data and voices stay home</li></ul></div>
+    <div class="card cc"><b>Cons</b><ul><li>Every family installs and updates their own copy (handled by the setup skill and plugin updates)</li><li>The laptop must stay on and awake</li><li>Tablets need a one-time certificate</li><li>Windows firewall prompts</li><li>Apps can't be shared outside the house</li></ul></div>
+  </div>
+
+  <h4>Agent-made implementation choices (follow from your decisions; you can change them)</h4>
+  <div class="card"><ul>
+    <li>Express, SSE, Transformers.js, <code>whisper-base.en</code>, <code>@peculiar/x509</code></li>
+    <li>Ports 4747 and 4748, and the data folder in Documents</li>
+    <li>The guide and checker as long-lived processes; at most 2 builds at once</li>
+    <li><code>--no-session-persistence</code></li>
+    <li>Forgotten PIN reset through <code>/build-with-me:reset-pin</code> (resolves the PRD open question)</li>
+  </ul></div>
+
+  <h4>Open (resolved during the build, not blocking approval)</h4>
+  <div class="card tablewrap"><table>
+    <thead><tr><th>Item</th><th>Where it's settled</th></tr></thead>
+    <tbody>
+      <tr><td>Exact isolation flags, CLAUDE.md excluded, <code>--json-schema</code> with stream-json, <code>/usage</code> parsing</td><td>E1</td></tr>
+      <tr><td>Does your plan include Opus in Claude Code? If not, the builder and reporter fall back to Sonnet, and the report notes it</td><td>E1</td></tr>
+      <tr><td>iPad and Android certificate steps, mic, Whisper latency and accuracy</td><td>E2</td></tr>
+      <tr><td>Final model mix</td><td>E3</td></tr>
+      <tr><td>Mac testing (otherwise the README says "should work, untested")</td><td>If a Mac is available</td></tr>
+      <tr><td>Course skills' license: confirm MIT and copy the notice</td><td>Kid journey port</td></tr>
+      <tr><td>Your minor UI tweaks</td><td>After it's running</td></tr>
+    </tbody>
+  </table></div>
+
+  <footer>A full translation of <code>devpost/spec.md</code>, kept in sync with it.</footer>
+</main>
+</div>
+<script>
+const W={parent:'w-parent',kid:'w-kid',server:'w-server',claude:'w-claude',files:'w-files',plugin:'w-plugin'};
+const steps=[
+ {t:'Install',hops:[['parent','Pastes the README install line into Claude Code. Claude adds the repo as a plugin source and installs build-with-me (two short commands).'],['plugin','/build-with-me → the setup skill runs setup-check.mjs: Node version, claude signed in, packages, speech model, port, data folder, firewall note (JSON report).'],['claude','Claude fixes each gap: packages and model into the plugin\'s private folder; Node via winget/brew with your approval, or explained. Then runs launch.mjs.'],['plugin','launch.mjs starts the server in the background, writes the start file, offers the desktop shortcut, opens http://localhost:4747.'],['parent','First-Run Setup in the browser: create the PIN, add kids → family.json written.']]},
+ {t:'Opening',hops:[['parent','Double-clicks Build With Me on the desktop.'],['plugin','The start file runs launch.mjs (starts the server if needed) and opens the browser.'],['parent','Note, PIN, Enter.'],['server','Checks the PIN against the stored hash; sets a parent cookie valid only on this laptop.']]},
+ {t:'Give a pass',hops:[['parent','Picks Maya, 1 hour.'],['server','Writes a pass with a random one-use code.'],['files','passes.json'],['parent','The screen shows a QR code for https://<laptop address>:4748/p/<code>, plus "open on this laptop."']]},
+ {t:'Kid scans',hops:[['kid','The tablet opens the link.'],['server','Code unused and unexpired? Mark used, record the device, set the pass cookie. That browser is Maya\'s for an hour.'],['kid','A second scan gets "already used."']]},
+ {t:'A guide turn',hops:[['kid','Talks. The browser records and streams 16 kHz audio to the server.'],['server','Whisper turns it into text on the laptop; obvious personal details are masked.'],['claude','At the same time: the guide (Sonnet) gets the turn, and the checker (Haiku) judges the kid\'s words.'],['server','If the checker objects: discard the reply, gentle redirect, save a flag. Then the checker reads the guide\'s reply.'],['kid','The reply appears and the browser speaks it with a device voice.'],['files','Every turn, plan and flag saved in project.json, so nothing is lost if the pass ends.']]},
+ {t:'Build',hops:[['claude','The builder (Opus) gets its instructions plus the Idea and Design plans and returns one self-contained HTML file.'],['files','Saved as versions/vN.html.'],['kid','The ⅔ pane shows it in a sandboxed frame. Change rounds repeat this.']]},
+ {t:'Ship',hops:[['kid','Names the app.'],['files','Copied to kids/maya/apps/space-cat-feeder/index.html + apps.json.'],['kid','Served at /apps/maya/space-cat-feeder, with its QR code.']]},
+ {t:'Report',hops:[['claude','The reporter (Opus) gets the transcript, flags, timeline and usage numbers, and returns the report content as JSON.'],['server','Fills the report template.'],['files','Reports\\2026-10-06 Maya - Space Cat Feeder.html + reports/<id>.json'],['parent','Parent home shows it; Needs your attention too if there are flags.']]},
+ {t:'Time',hops:[['server','Keeps each pass\'s end time and pushes updates to every open screen (SSE).'],['kid','At 10 minutes left the countdown appears.'],['parent','+30 min on the laptop updates the kid\'s countdown immediately.'],['kid','At zero: Time\'s up. A running build finishes and saves.']]},
+];
+const st=document.getElementById('stepper'),pn=document.getElementById('panel');let cur=0;
+steps.forEach((s,i)=>{const b=document.createElement('button');b.textContent=(i+1)+'. '+s.t;b.onclick=()=>show(i);st.appendChild(b)});
+const label={parent:'Parent',kid:'Kid',server:'Server',claude:'Claude',files:'Files',plugin:'Plugin'};
+function show(i){cur=i;[...st.children].forEach((b,j)=>b.setAttribute('aria-selected',j===i));
+ pn.innerHTML='<div class="flow">'+steps[i].hops.map(h=>`<div class="hop"><span class="who ${W[h[0]]}">${label[h[0]]}</span><span>${h[1].replace(/</g,'&lt;').replace(/&lt;(\/?)(b|code)>/g,'<$1$2>')}</span></div>`).join('')+'</div>';}
+document.getElementById('prev').onclick=()=>show((cur-1+steps.length)%steps.length);
+document.getElementById('next').onclick=()=>show((cur+1)%steps.length);
+show(0);
+const comps=()=>document.querySelectorAll('details[id^="c-"]');
+document.getElementById('expandAll').onclick=()=>comps().forEach(d=>d.open=true);
+document.getElementById('collapseAll').onclick=()=>comps().forEach(d=>d.open=false);
+document.querySelectorAll('.toc a[href^="#c-"]').forEach(a=>a.addEventListener('click',()=>{const d=document.querySelector(a.getAttribute('href'));if(d)d.open=true}));
+</script>
+</body>
+</html>

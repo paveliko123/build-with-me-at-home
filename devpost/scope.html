@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build With Me at Home — Scope</title>
+<style>
+:root{
+  --bg:#fbf8f3; --card:#ffffff; --ink:#1f2430; --muted:#5d6475; --line:#e6e0d6;
+  --accent:#e2733a; --accent-soft:#fde9dc; --kid:#3a8ee2; --kid-soft:#e1eefc;
+  --parent:#2f9e6e; --parent-soft:#dff3e9; --warn:#b7791f; --warn-soft:#fdf2dc; --cut:#b34a4a; --cut-soft:#f9e2e2;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16181d; --card:#1f232b; --ink:#eceef3; --muted:#a3a9b8; --line:#333945;
+    --accent:#f08a52; --accent-soft:#3a2a20; --kid:#6aaef0; --kid-soft:#1d2c3e;
+    --parent:#4cc08d; --parent-soft:#1b3329; --warn:#e0a84a; --warn-soft:#3a3020; --cut:#e07a7a; --cut-soft:#3a2222;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16181d; --card:#1f232b; --ink:#eceef3; --muted:#a3a9b8; --line:#333945;
+  --accent:#f08a52; --accent-soft:#3a2a20; --kid:#6aaef0; --kid-soft:#1d2c3e;
+  --parent:#4cc08d; --parent-soft:#1b3329; --warn:#e0a84a; --warn-soft:#3a3020; --cut:#e07a7a; --cut-soft:#3a2222;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 64px}
+header .tag{display:inline-block;background:var(--parent-soft);color:var(--parent);font-weight:600;font-size:13px;padding:3px 10px;border-radius:999px}
+h1{font-size:clamp(28px,5vw,40px);margin:10px 0 6px;line-height:1.15}
+.lede{color:var(--muted);font-size:18px;margin:0 0 28px}
+h2{font-size:20px;margin:36px 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.kernel{border-left:5px solid var(--accent);background:var(--accent-soft)}
+.kernel strong{font-size:18px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.who h3{margin:0 0 6px;font-size:16px}
+.who.parent{border-top:4px solid var(--parent)} .who.kid{border-top:4px solid var(--kid)}
+svg{width:100%;height:auto;display:block}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:8px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:10px 0;overflow:hidden}
+summary{cursor:pointer;padding:14px 18px;font-weight:600;list-style:none;display:flex;align-items:center;gap:10px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸";transition:transform .15s;color:var(--muted)}
+details[open] summary::before{transform:rotate(90deg)}
+details .body{padding:0 18px 14px 40px}
+.pill{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px}
+.now .pill{background:var(--parent-soft);color:var(--parent)}
+.later .pill{background:var(--warn-soft);color:var(--warn)}
+.cut .pill{background:var(--cut-soft);color:var(--cut)}
+ul{margin:6px 0;padding-left:20px} li{margin:4px 0}
+.layers{display:grid;gap:10px}
+.layer{display:flex;gap:14px;align-items:flex-start}
+.layer .n{flex:0 0 34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;display:grid;place-items:center}
+.layer p{margin:4px 0 0;color:var(--muted)}
+blockquote{margin:8px 0;padding:6px 14px;border-left:3px solid var(--line);color:var(--muted);font-style:italic}
+.terms .ok{color:var(--parent);font-weight:700} .terms .no{color:var(--cut);font-weight:700}
+a{color:var(--kid)}
+footer{margin-top:40px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <span class="tag">Scope · approved 2026-10-06</span>
+  <h1>Build With Me at Home</h1>
+  <p class="lede">A parent and their kid build real apps together through the plan-first journey. It runs entirely on the family's computer, using the parent's own Claude Code login.</p>
+</header>
+
+<div class="card kernel">
+  <strong>The kernel: a parent introducing their kid to Claude, with the parent kept in the loop.</strong>
+  <p style="margin:8px 0 0">Every finished app ends in two places. The kid gets a link to try it. The parent gets an Opus 5.5 report covering what was built, any red flags, and the link.</p>
+</div>
+
+<h2>Who it's for</h2>
+<div class="grid">
+  <div class="card who parent"><h3>👩‍💻 The parent</h3>Has a Claude subscription and Claude Code installed. "Likes coding or at least is not afraid of it." Installs once and owns the account.</div>
+  <div class="card who kid"><h3>🧒 Their kids</h3>Under 13 and 13–17, guided by that parent. No adults as users, because the consumer terms don't allow sharing an account.</div>
+</div>
+
+<h2>The core loop</h2>
+<div class="card">
+<svg viewBox="0 0 860 300" role="img" aria-label="Core loop: parent starts the app and signs in, kid talks through six steps with a live safety check, the app is saved to the My apps shelf with a local link for the kid, and an Opus report goes to the parent.">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker>
+  </defs>
+  <!-- boxes -->
+  <rect x="10" y="40" width="170" height="90" rx="14" fill="var(--parent-soft)" stroke="var(--parent)"/>
+  <text x="95" y="72" text-anchor="middle" font-weight="700" fill="var(--ink)" font-size="15">1 · Parent</text>
+  <text x="95" y="94" text-anchor="middle" fill="var(--ink)" font-size="13">double-click to start</text>
+  <text x="95" y="112" text-anchor="middle" fill="var(--ink)" font-size="13">sign-in gate</text>
+
+  <rect x="230" y="40" width="200" height="90" rx="14" fill="var(--kid-soft)" stroke="var(--kid)"/>
+  <text x="330" y="72" text-anchor="middle" font-weight="700" fill="var(--ink)" font-size="15">2 · Kid talks</text>
+  <text x="330" y="94" text-anchor="middle" fill="var(--ink)" font-size="13">theme → six steps</text>
+  <text x="330" y="112" text-anchor="middle" fill="var(--ink)" font-size="13">idea → design → build</text>
+
+  <rect x="230" y="190" width="200" height="70" rx="14" fill="var(--accent-soft)" stroke="var(--accent)"/>
+  <text x="330" y="220" text-anchor="middle" font-weight="700" fill="var(--ink)" font-size="15">🛡 Live safety check</text>
+  <text x="330" y="242" text-anchor="middle" fill="var(--ink)" font-size="13">every turn, both ways</text>
+
+  <rect x="480" y="40" width="170" height="90" rx="14" fill="var(--kid-soft)" stroke="var(--kid)"/>
+  <text x="565" y="72" text-anchor="middle" font-weight="700" fill="var(--ink)" font-size="15">3 · My apps</text>
+  <text x="565" y="94" text-anchor="middle" fill="var(--ink)" font-size="13">local link for the kid</text>
+  <text x="565" y="112" text-anchor="middle" fill="var(--ink)" font-size="13">kept weeks/months</text>
+
+  <rect x="700" y="40" width="150" height="90" rx="14" fill="var(--parent-soft)" stroke="var(--parent)"/>
+  <text x="775" y="72" text-anchor="middle" font-weight="700" fill="var(--ink)" font-size="15">4 · Report</text>
+  <text x="775" y="94" text-anchor="middle" fill="var(--ink)" font-size="13">Opus 5.5 summary</text>
+  <text x="775" y="112" text-anchor="middle" fill="var(--ink)" font-size="13">red flags + link</text>
+
+  <!-- arrows -->
+  <line x1="180" y1="85" x2="226" y2="85" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="430" y1="85" x2="476" y2="85" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="650" y1="85" x2="696" y2="85" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="315" y1="130" x2="315" y2="186" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+  <line x1="345" y1="190" x2="345" y2="134" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+  <!-- the computer boundary -->
+  <rect x="2" y="8" width="856" height="284" rx="18" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="20" y="28" fill="var(--muted)" font-size="12" font-weight="600">THE FAMILY'S COMPUTER · everything runs on the parent's own signed-in Claude Code</text>
+  <!-- loop back -->
+  <path d="M775 130 C 775 280, 120 280, 95 134" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 5" marker-end="url(#ar)"/>
+  <text x="560" y="272" text-anchor="middle" fill="var(--muted)" font-size="12">make another app, with no per-app cost</text>
+</svg>
+<div class="legend"><span><span class="dot" style="background:var(--parent)"></span>parent</span><span><span class="dot" style="background:var(--kid)"></span>kid</span><span><span class="dot" style="background:var(--accent)"></span>safety</span></div>
+</div>
+
+<h2>Safety, in three layers</h2>
+<div class="card layers">
+  <div class="layer"><div class="n">1</div><div><strong>The guide knows who it's talking to</strong><p>It's told it's helping a kid of a given age group, with age-appropriate rules. Claude's defaults are set for adults.</p></div></div>
+  <div class="layer"><div class="n">2</div><div><strong>A live check on every turn</strong><p>It checks what the kid says and what the guide replies, catching violent or graphic content and personal details.</p></div></div>
+  <div class="layer"><div class="n">3</div><div><strong>The Opus parent report</strong><p>The backstop: a separate review of the whole conversation, from the idea to the final app.</p></div></div>
+</div>
+
+<h2>What "working" looks like</h2>
+<div class="card">The parent signs in, and the kid talks through the journey and builds a real app. The app opens from its local link and stays on the My apps shelf. <strong>The "oh, that's cool" moment: the parent's report appears.</strong></div>
+
+<h2>The boundary</h2>
+<details class="now" open><summary><span class="pill">NOW</span> In the proof of concept</summary><div class="body"><ul>
+  <li>A local wrapper the parent starts with a double-click. Its own small server shows its screens and the kids' apps.</li>
+  <li>Runs on the parent's <strong>unmodified, already-signed-in Claude Code</strong>. The app never touches the sign-in or its tokens.</li>
+  <li>A parent sign-in gate with a plain-language "you're responsible" screen.</li>
+  <li>The kid and teen paths, with the existing design and flow, through all six steps.</li>
+  <li>Talking (speech in, voice out) without API keys.</li>
+  <li>The three safety layers above, all on the parent's Claude.</li>
+  <li>Each app as one HTML file in a folder, plus the My apps shelf and local links.</li>
+</ul></div></details>
+<details class="later"><summary><span class="pill">LATER</span> Worth doing, not now</summary><div class="body"><ul>
+  <li>Sharing outside the home (hosting). Optional, to evaluate in step 5.</li>
+  <li>A more natural voice than the browser's own voices.</li>
+  <li>The "behind the scenes" learning session after an app is finished.</li>
+</ul></div></details>
+<details class="cut"><summary><span class="pill">CUT</span> Left behind, and why</summary><div class="body"><ul>
+  <li><strong>Firestore and the Firebase setup:</strong> replaced by files on the family's computer.</li>
+  <li><strong>API keys, App Check, and the Google Cloud voice:</strong> they need keys and accounts, and the goal is the simplest install.</li>
+  <li><strong>Invite codes and the allowance:</strong> no per-app cost, so nothing to meter.</li>
+  <li><strong>Adults as users:</strong> the consumer terms bar sharing an account.</li>
+  <li><strong>Public-service compliance work:</strong> each install is a parent's own project. The conversation still reaches Anthropic under the parent's own account.</li>
+</ul></div></details>
+
+<h2>Why it matters</h2>
+<div class="card">
+  <blockquote>"Charging $2 per each app is not practical... My kid really loved the idea and was ready to build 5 apps a day."</blockquote>
+  <blockquote>"This becomes a personal project for each parent where everything stays local."</blockquote>
+  <p style="margin:8px 0 0"><strong>Learning goal:</strong> understand the pros, cons and limitations of running local copies.</p>
+</div>
+
+<h2>Terms check (2026-10-06)</h2>
+<details class="terms"><summary>What the current Anthropic terms say</summary><div class="body">
+  <p><span class="ok">✓ Allowed:</span> a user signing in to the <em>unmodified</em> Claude Code program with their own subscription, even when another product runs it (<a href="https://code.claude.com/docs/en/legal-and-compliance">Claude Code legal page</a>). Apps may not offer Claude login themselves or handle sign-in tokens.</p>
+  <p><span class="no">✗ Constraint:</span> the consumer accounts require users to be 18+, and "You also may not make your Account available to anyone else" (<a href="https://www.anthropic.com/legal/consumer-terms">Consumer Terms</a>).</p>
+  <p><strong>Decision:</strong> the parent guides their own kids, with a parent gate and plain-language responsibility, and no sharing with other adults. Not legal advice.</p>
+</div></details>
+
+<h2>Open for the PRD and Spec</h2>
+<div class="card"><ul>
+  <li>What the parent gate actually is: the Claude sign-in on the machine, plus an app-level step such as a PIN.</li>
+  <li>Keeping "talking" local. Chrome's built-in speech recognition sends audio to Google.</li>
+  <li>How the wrapper runs Claude Code for the guide, builder, checks and report, and how much of the parent's subscription each app uses.</li>
+</ul></div>
+
+<footer>Companion to <code>devpost/scope.md</code>, which is the canonical version.</footer>
+</main>
+</body>
+</html>

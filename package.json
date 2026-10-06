@@ -1,0 +1,21 @@
+{
+  "name": "build-with-me-home",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Build With Me at Home: a local, parent-run plan-first app builder for kids, on the parent's own Claude Code.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "e1": "tsx scripts/e1-isolation.ts",
+    "typecheck": "tsc --noEmit",
+    "test:guard": "tsx scripts/guard-test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "tsx": "^4.20.0",
+    "typescript": "~6.0.2"
+  }
+}
