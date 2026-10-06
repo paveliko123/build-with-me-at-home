@@ -133,3 +133,8 @@ Measured with JS in emulated viewports (scrollWidth, element rectangles, tap siz
   - Picking a card starts the customizing at once: the guide asks the idea's first "make it yours" question, so in two or three taps it's their app.
   - The parent report says it honestly: started from a library idea and how the kid made it theirs.
   - Later, not now: the same button at other stages (Design: "🎨 Show me looks").
+- **Teen plan review: clear direction, a designed card, no Markdown (learner decisions).** The teen's plan panel shows the whole document with a "Download .md" button, and the guide often just asks "Does this look good?" without pointing to the plan (on phones it isn't even on screen).
+  - The app gives the direction itself, not the model: when a draft plan arrives, a card slides in with **📋 Your plan is ready: have a look. Happy with it?** and two big buttons, **👍 Looks good** and **✏️ Change something** (saying or typing still works). On phones a **See your plan** button in the conversation scrolls to it. The guide's line backs it up.
+  - A short plan card instead of the document: 4–6 key decisions with icons per section (🎯 idea, 👤 who it's for, ⭐ what it does, 🎨 look), in the theme's colors; the full plan folds underneath ("Show the whole plan"). The teen approves the card.
+  - No Download .md button. The plans move to **My apps** as **📄 How I planned it**: a styled HTML page matching the app's look, nice to show or print.
+  - Plans stay Markdown behind the scenes (the builder reads them); the teen never sees Markdown.
