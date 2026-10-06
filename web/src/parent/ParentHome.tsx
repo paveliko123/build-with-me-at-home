@@ -61,7 +61,7 @@ export function ParentHome({ onLock }: { onLock: () => void }) {
             ))}
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 14 }}>
               <button className="ghost" onClick={() => setModal('kids')}>＋ Add a kid</button>
-              <button className="ghost" onClick={() => setModal('tablet')}>📱 Set up a tablet for talking</button>
+              <button className="ghost" onClick={() => setModal('tablet')}>📱 Set up a tablet or laptop for talking</button>
             </div>
           </div>
         </div>
@@ -143,23 +143,23 @@ function TabletSetup({ onClose }: { onClose: () => void }) {
   const [info, setInfo] = useState<{ url: string | null; qr: string | null; certificateName?: string } | null>(null);
   useEffect(() => { api('/api/parent/tablet-setup').then(setInfo).catch(() => setInfo({ url: null, qr: null })); }, []);
   return (
-    <Modal title="📱 Set up a tablet for talking" onClose={onClose}>
+    <Modal title="📱 Set up a tablet or laptop for talking" onClose={onClose}>
       <b>What this does, and why</b>
       <ul className="explain">
-        <li><b>Goal:</b> your kid can <b>talk</b> to Claude on a tablet or phone, not only type.</li>
-        <li><b>Why a setup step:</b> browsers only allow the microphone on <b>secure</b> pages. A secure page needs the tablet to trust this computer.</li>
-        <li><b>What you install:</b> a small <b>home certificate</b>{info?.certificateName ? <> called <b>{info.certificateName}</b></> : null}. It only works inside your home network and can't vouch for any real website. Only you can approve it, in the tablet's Settings.</li>
-        <li><b>Heads-up:</b> when the tablet opens the link, the browser warns that the site <b>"doesn't support a secure connection"</b> or shows <b>"Not secure"</b>. That's expected for this one setup page: tap <b>Continue to site</b>. Kids' pages are secure once setup is done.</li>
-        <li><b>How long:</b> once per tablet, about 2 minutes. A step-by-step guide opens and ends with a ✅ check.</li>
+        <li><b>Goal:</b> your kid can <b>talk</b> to Claude on a tablet, phone, laptop or Chromebook, not only type.</li>
+        <li><b>Why a setup step:</b> browsers only allow the microphone on <b>secure</b> pages. A secure page needs that device to trust this computer.</li>
+        <li><b>What you install:</b> a small <b>home certificate</b>{info?.certificateName ? <> called <b>{info.certificateName}</b></> : null}. It only works inside your home network and can't vouch for any real website. Only you can approve it, in the device's Settings.</li>
+        <li><b>Heads-up:</b> when the device opens the link, the browser warns that the site <b>"doesn't support a secure connection"</b> or shows <b>"Not secure"</b>. That's expected for this one setup page: tap <b>Continue to site</b>. Kids' pages are secure once setup is done.</li>
+        <li><b>How long:</b> once per device, about 2 minutes. A step-by-step guide opens and ends with a ✅ check.</li>
       </ul>
       {!info ? <p className="muted">Loading…</p> : info.url ? (
         <div style={{ display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
-          <img className="qr" src={info.qr!} alt="QR code for the tablet setup page" />
-          <div><b>Scan with the tablet camera, or type:</b><br /><code>{info.url}</code>
-            <p className="muted" style={{ fontSize: 13 }}>The tablet must be on the same Wi-Fi. If it can't open the page, allow Node.js on <b>private networks</b> in the Windows firewall.</p></div>
+          <img className="qr" src={info.qr!} alt="QR code for the device setup page" />
+          <div><b>Tablet or phone:</b> scan with the camera.<br /><b>Laptop or Chromebook:</b> type this in the browser:<br /><code>{info.url}</code>
+            <p className="muted" style={{ fontSize: 13 }}>The device must be on the same Wi-Fi. If it can't open the page, allow Node.js on <b>private networks</b> in the Windows firewall.</p></div>
         </div>
       ) : <p className="err">This computer doesn't seem to be on a home network right now.</p>}
-      <p className="muted" style={{ fontSize: 13 }}>Without this setup, kids can still type (or use the keyboard's 🎤 button) on the tablet.</p>
+      <p className="muted" style={{ fontSize: 13 }}>Without this setup, kids can still type, or talk with the device's own dictation: the keyboard's 🎤 on tablets, Win+H on Windows, Fn Fn on a Mac, Search+D on a Chromebook. School Chromebooks usually block this setup.</p>
     </Modal>
   );
 }

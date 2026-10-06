@@ -195,8 +195,9 @@ Implements `prd.md > Kids`.
 
 ### Passes
 Implements `prd.md > Passes`.
-- **Each pass:** `{id, kidId, code, createdAt, endsAt, usedAt, device, endedAt}`. The code is 128 random bits (base64url).
+- **Each pass:** `{id, kidId, code, typedCode, createdAt, endsAt, usedAt, device, endedAt}`. The code is 128 random bits (base64url).
 - **Opening it:** `GET /p/:code`. If the code is unused and unexpired, the server stores `usedAt` and the device (a friendly label from the browser's user agent, e.g. "iPad," "Windows laptop") and sets the pass cookie (a different random token, `HttpOnly`, expiring at `endsAt`). Otherwise it shows "already used" or "expired."
+- **Typed code (laptops, Chromebooks):** each pass also has `typedCode`, 8 characters from an alphabet without look-alikes (no 0/O, 1/I/L), shown as `K7QM-3XPA` (about 40 bits). The kid types it on the no-pass screen, which calls `POST /api/pass/redeem {code}`. It runs the same open logic as `/p/:code`, so either one uses up the pass. 5 wrong codes from one address → a 60-second wait. Only live, unused passes match.
 - **Extend and end:** `POST /api/parent/passes/:id/extend {minutes}` and `/end`. Each sends an SSE `pass` event to that kid's screens.
 - **Rules:** one live pass per kid. Creating a new one for a kid with a live pass asks "end the old one?"
 - **The countdown:** the kid screen shows a countdown when there are ≤10 minutes left. At `endsAt`, the server stops taking new turns for that pass. A **build already running finishes and saves**. The kid screen shows Time's up.
@@ -275,13 +276,13 @@ Implements `prd.md > Talking` (tablet), `prd.md > Product Decisions` (tablet on 
   - **name constraints** limiting it to the laptop's private addresses (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`) and `*.local`, so it can't vouch for any real website
 - **On every start,** it issues a short-lived server certificate for the laptop's current home IP address(es) and hostname. When the address changes, it re-issues, and the tablet keeps trusting it because the authority is the same.
 - **📱 Set up a tablet for talking** shows a QR code to `http://<laptop's address>:4747/setup-tablet` (plain HTTP, since there's no certificate yet). That page:
-  - detects iPad or Android
-  - offers the **iPad** profile (`.mobileconfig`) or the **Android** certificate (`.crt`)
+  - detects iPad, Android, Windows, Mac or Chromebook
+  - offers the **iPad** profile (`.mobileconfig`) or the certificate (`.crt`) for everything else
   - shows 3–4 picture-free steps ("Settings → General → About → Certificate Trust Settings → turn on Build With Me")
 
   This one page and the certificate files are the only things served on plain HTTP to the network.
 - **The guided wizard** (learner decision after E2: option A, with keyboard dictation as fallback B):
-  - `/setup-tablet` is a step-by-step page: platform detection; one step per screen for iPad, Pixel/stock Android and Samsung; and a **Check** step.
+  - `/setup-tablet` is a step-by-step page: platform detection; one step per screen for iPad, Pixel/stock Android, Samsung, Windows (Current User → Trusted Root Certification Authorities, no admin), Mac (Keychain → Always Trust) and Chromebook (Manage certificates → Authorities → Import, "identifying websites" ticked); and a **Check** step. On a failed Check, laptops also get their dictation shortcut. School-managed Chromebooks usually block certificates.
   - The Check loads `https://<laptop>:4748/api/health` with `fetch` (no-cors). If it fails, the certificate isn't trusted, and the page shows which step to redo. If it succeeds, ✅ plus a link to the kid's start page.
   - Silent installs are impossible by OS design.
 - **Uninstalling** deletes the authority, and old tablet certificates become useless.

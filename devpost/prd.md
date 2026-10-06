@@ -131,6 +131,7 @@ Source: `scope.md > The Core Loop`.
   - [ ] Create pass needs a kid and a duration. Duration has presets (30 min, 1 hour, 2 hours, Rest of today) or any custom length.
   - [ ] The QR code is **single-use**. The first device that opens it holds the pass. Opening it again on any device shows "This pass was already used — ask your parent for a new one."
   - [ ] "Open on this laptop" uses up the pass the same way.
+  - [ ] **Laptops and Chromebooks can't scan**, so next to the QR code there's a **short typed code** (e.g. `K7QM-3XPA`). The kid types it on the "Ask your parent for a pass" screen. It's the same pass: one use, and the QR code and the typed code stop working together. Wrong codes are limited (5 tries, then a 1-minute wait).
   - [ ] The pass works only on the home Wi-Fi or the laptop itself, and only until it ends.
   - [ ] **Active passes** shows each live pass: kid, device, current step, and a live countdown.
   - [ ] **+30 min / +1 hr** extend the pass right away, and the kid's countdown updates on its own. **End now** ends it right away.
@@ -181,14 +182,14 @@ Source: `scope.md > The POC Boundary` ("the existing design and flow"). This is 
 
 ### Talking
 Source: `scope.md > The POC Boundary` ("talking without API keys"), `scope.md > Open Questions`.
-- As a kid, I want to talk to my helper on the laptop or the tablet, and hear it talk back.
+- As a kid, I want to talk to my helper on the laptop, a tablet, or my own laptop or Chromebook, and hear it talk back.
   - [ ] **On the laptop:** full talking. The guide reads its words aloud, and listening is hands-free after it speaks, with an "I'm done" button.
-  - [ ] **On a tablet:** full talking after a **one-time parent setup**. **📱 Set up a tablet for talking** shows a QR code that opens a **guided wizard on the tablet**:
-    - one step per screen, with the right path for iPad, Pixel or Samsung
+  - [ ] **On a tablet, or a kid's own laptop or Chromebook:** full talking after a **one-time parent setup**. **📱 Set up a tablet or laptop for talking** shows a QR code (and an address to type on laptops) that opens a **guided wizard on that device**:
+    - one step per screen, with the right path for iPad, Pixel, Samsung, Windows, Mac or Chromebook (learner decision, 2026-10-06)
     - a final **Check** that turns green ✅ when the tablet trusts the computer, or names the missed step
 
     Phones and tablets block websites from installing certificates silently, so a person must approve it once in Settings (learner decision, 2026-10-06, after E2).
-  - [ ] **A tablet that isn't set up** falls back to the keyboard's own 🎤 dictation button and the guide still talks. A friendly note tells the parent how to set it up.
+  - [ ] **A device that isn't set up** falls back to its own dictation (the keyboard's 🎤 on tablets; Win+H, Fn Fn or Search+D on laptops) and the guide still talks. School-managed Chromebooks usually block the setup, so they use dictation. A friendly note tells the parent how to set it up.
   - [ ] **Kids' voices stay in the house.** Speech is turned into text on the family's own devices, not by an outside service.
   - [ ] Each theme has its own voice. Kids get a gentler, slower pace. A ⚙️ menu holds the voice and speed.
   - [ ] No microphone means typing, with a friendly note.
@@ -241,7 +242,7 @@ Source: `scope.md > The Unique Kernel`. Laid out as in `report-mockup.html`.
 - **Wrong PIN:** "That's not the PIN." After 5 wrong tries, wait 1 minute *(assumption)*.
 - **Forgot the PIN:** reset from the laptop, with steps in the app's help *(assumption; Spec decides how)*.
 - **No kids added:** Give a pass shows "Add a kid first."
-- **QR code opened a second time, or a screenshot of it:** "This pass was already used — ask your parent for a new one."
+- **QR code (or typed code) used a second time, or a screenshot of it:** "This pass was already used — ask your parent for a new one."
 - **Pass expired or ended:** Time's up. Work saved.
 - **App not running, or the laptop asleep:** the tablet shows "Can't reach the computer — ask your parent to start Build With Me." *(The laptop must stay on and awake during a pass.)*
 - **Plan limit reached:** described under **Limit Reached**.
@@ -263,6 +264,7 @@ Source: `scope.md > The Unique Kernel`. Laid out as in `report-mockup.html`.
 - **A pass on every device, the laptop included.** One rule everywhere.
 - **Extending happens on the laptop,** where the pass was made. The kid gets a 10-minute countdown.
 - **Tablet on the home Wi-Fi: in.** Full talking on the tablet is wanted, set up once through a QR code, with keyboard dictation as the fallback.
+- **Kids' own laptops and Chromebooks: in** (learner decision, 2026-10-06, during the build). The same one-time setup, plus a typed pass code because laptops can't scan.
 - **Kids' voices stay in the house.**
 - **Reports live locally,** in the app and in a folder. Pushing them into the parent's Claude account isn't possible without the app handling the Claude sign-in, which the terms forbid.
 - **Plan usage is shown as % of the 5-hour and weekly limits,** the same scale as Claude Code's Plan Usage.

@@ -326,6 +326,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
       <li>Create pass needs a kid and a duration. Duration has presets (30 min, 1 hour, 2 hours, Rest of today) or any custom length.</li>
       <li>The QR code is <b>single-use</b>. The first device that opens it holds the pass. Opening it again on any device shows "This pass was already used — ask your parent for a new one."</li>
       <li>"Open on this laptop" uses up the pass the same way.</li>
+      <li><b>Laptops and Chromebooks can't scan</b>, so next to the QR code there's a <b>short typed code</b> (e.g. <code>K7QM-3XPA</code>). The kid types it on the "Ask your parent for a pass" screen. It's the same pass: one use, and the QR code and the typed code stop working together. Wrong codes are limited (5 tries, then a 1-minute wait). <span class="pill">added in build</span></li>
       <li>The pass works only on the home Wi-Fi or the laptop itself, and only until it ends.</li>
       <li><b>Active passes</b> shows each live pass: kid, device, current step, and a live countdown.</li>
       <li><b>+30 min / +1 hr</b> extend the pass right away, and the kid's countdown updates on its own. <b>End now</b> ends it right away.</li>
@@ -374,7 +375,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     <p class="story">As a kid, I want to talk to my helper on the laptop or the tablet, and hear it talk back.</p>
     <ul class="crit">
       <li><b>On the laptop:</b> full talking. The guide reads its words aloud, and listening is hands-free after it speaks, with an "I'm done" button.</li>
-      <li><b>On a tablet:</b> full talking after a <b>one-time parent setup</b>. <b>📱 Set up a tablet for talking</b> shows a QR code that opens a <b>guided wizard on the tablet</b>:<ul><li>one step per screen, with the right path for iPad, Pixel or Samsung</li><li>a final <b>Check</b> that turns green ✅ when the tablet trusts the computer, or names the missed step</li></ul>Phones and tablets block websites from installing certificates silently, so a person must approve it once in Settings (your decision after E2).</li>
+      <li><b>On a tablet, or a kid's own laptop or Chromebook:</b> full talking after a <b>one-time parent setup</b>. <b>📱 Set up a tablet or laptop for talking</b> shows a QR code (and an address to type on laptops) that opens a <b>guided wizard on that device</b>:<ul><li>one step per screen, with the right path for iPad, Pixel, Samsung, Windows, Mac or Chromebook (your decision during the build)</li><li>a final <b>Check</b> that turns green ✅ when the tablet trusts the computer, or names the missed step</li></ul>Phones and tablets block websites from installing certificates silently, so a person must approve it once in Settings (your decision after E2).</li>
       <li><b>A tablet that isn't set up</b> falls back to the keyboard's own 🎤 dictation button, and the guide still talks. A friendly note tells the parent how to set it up.</li>
       <li><b>Kids' voices stay in the house.</b> Speech is turned into text on the family's own devices, not by an outside service.</li>
       <li>Each theme has its own voice. Kids get a gentler, slower pace. A ⚙️ menu holds the voice and speed.</li>
@@ -445,7 +446,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     <div class="state"><b>🔢 Wrong PIN</b>"That's not the PIN." After 5 wrong tries, wait 1 minute. <span class="assume">ASSUMPTION</span></div>
     <div class="state"><b>🔑 Forgot the PIN</b>Reset from the laptop, with steps in the app's help. <span class="assume">ASSUMPTION · Spec decides how</span></div>
     <div class="state"><b>👶 No kids added</b>Give a pass shows "Add a kid first."</div>
-    <div class="state"><b>🔁 QR code reused or screenshotted</b>"This pass was already used — ask your parent for a new one."</div>
+    <div class="state"><b>🔁 QR code (or typed code) reused or screenshotted</b>"This pass was already used — ask your parent for a new one."</div>
     <div class="state"><b>⏱ Pass expired or ended</b>Time's up. Work saved.</div>
     <div class="state"><b>💤 App closed or laptop asleep</b>Tablet: "Can't reach the computer — ask your parent to start Build With Me." The laptop must stay on and awake during a pass.</div>
     <div class="state"><b>⛔ Plan limit reached</b>See <a href="#f-limit">Limit Reached</a>.</div>
@@ -468,6 +469,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     <li><b>A pass on every device, the laptop included.</b> One rule everywhere.</li>
     <li><b>Extending happens on the laptop,</b> where the pass was made. The kid gets a 10-minute countdown.</li>
     <li><b>Tablet on the home Wi-Fi: in.</b> Full talking on the tablet, set up once through a QR code, with keyboard dictation as the fallback.</li>
+    <li><b>Kids' own laptops and Chromebooks: in</b> (your decision during the build). The same one-time setup, plus a typed pass code because laptops can't scan.</li>
     <li><b>Kids' voices stay in the house.</b></li>
     <li><b>Reports live locally,</b> in the app and in a folder. Pushing them into the parent's Claude account isn't possible without handling the Claude sign-in, which the terms forbid.</li>
     <li><b>Plan usage is shown as % of the 5-hour and weekly limits,</b> the same scale as Claude Code's Plan Usage.</li>

@@ -91,19 +91,20 @@ Build mode: fast — pause only for significant decisions, the planned checkpoin
 - [ ] **4. Give a kid a one-use, timed pass**
   Becomes usable:
   - In the parent home, pick a kid and a duration (presets or custom) and create a pass. A QR code appears.
-  - Scanning it on the tablet (or "open on this laptop") lands that kid on their Welcome screen, with their name and age group.
-  - Scanning it again shows "already used."
+  - Scanning it on the tablet (or "open on this laptop", or typing its short code on a kid's laptop or Chromebook) lands that kid on their Welcome screen, with their name and age group.
+  - Scanning it again, or typing the code again, shows "already used."
   - Active passes shows the device and a live countdown, and +30 min / +1 hr / End now work instantly.
   - The kid sees the countdown at 10 minutes left, and Time's up at zero.
   Why now: The pass is the other half of "the parent in control," and every kid screen sits behind it. Building it before the journey means the journey is born gated.
   PRD ref: `prd.md > Passes`, `prd.md > States and Boundaries`
   Spec ref: `spec.md > Passes`, `spec.md > Server Core` (SSE), `spec.md > Parent Screens`
   Build:
-  - **Server:** `server/passes.ts` (create, open with `/p/:code`, the cookie, extend, end, expire), the SSE `/api/events`, and the kid-route guard in `server/auth.ts`.
+  - **Server:** `server/passes.ts` (create, open with `/p/:code` or the typed code via `/api/pass/redeem`, the cookie, extend, end, expire), the SSE `/api/events`, and the kid-route guard in `server/auth.ts`.
   - **Screens:** the Give a pass and Active passes cards (QR code via `qrcode`), plus the kid screens Countdown, TimesUp, PassUsed, CantReach and "Ask your parent for a pass."
   Verify (mechanical): A script covers:
   - create pass → open the code → cookie set
   - a second open → "already used"
+  - the typed code opens a pass too, dies with the QR code, and 5 wrong codes → 60 s wait
   - extend → `endsAt` moved and an SSE event received
   - end → the kid API returns 401
   - an expired pass → Time's up state
@@ -277,3 +278,5 @@ Activity mode:
 - **The home certificate moved to the family folder, and the tablet screen explains itself** (learner test).
   - What the build found: the installed plugin made a new certificate in its own folder. The learner's phone trusted the one from the speech test, which has the same name, so the Check said "Not yet." A reinstall would do the same to every family, because uninstalling deletes the plugin folder.
   - What changes: one certificate per family, in `.home-certificate/`, reusing the oldest one already on the computer. New ones carry a date in their name. The wizard names it and says "Not secure" is expected there. The parent's tablet screen explains what, why and how in plain bullets, including the browser's "doesn't support a secure connection" warning.
+- **Kids' own laptops and Chromebooks can join, not only tablets** (learner decision).
+  - What changes: the setup wizard adds Windows, Mac and Chromebook steps, with auto-detection and the dictation shortcut as a fallback. Slice 4 adds a short typed pass code next to the QR code, because laptops can't scan. School-managed Chromebooks usually block certificates, so they fall back to dictation.
