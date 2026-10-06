@@ -164,25 +164,10 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
     window.location.reload();
   }
 
-  return (
-    <div style={themeStyle(theme)} className="bwm-journey min-h-screen bg-bg text-ink">
-      {screen === 'loading' && <div className="flex min-h-screen items-center justify-center"><Thinking theme={theme} big /></div>}
-      {screen === 'welcome' && <Welcome name={name} onChoose={mode => { setInputMode(mode); setScreen('profile'); }} />}
-      {screen === 'profile' && (
-        <>
-          <ProgressBar stage="intro" />
-          <ThemePick inputMode={inputMode} theme={theme} onThemeChange={setTheme} onDone={begin} busy={busy} />
-          {error && <p className="pb-6 text-center font-bold text-ink">{error.replace(/^LIMIT:/, '')}</p>}
-        </>
-      )}
-      {screen === 'guide' && profile && (
-        <>
-          {/* z-30: above the screens below, so the voice menu opens over the picture pane. */}
-          <div className="relative z-30">
-            <button onClick={() => void startOver()}
-              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">＋ New app</button>
-            <ProgressBar stage={stage} />
-            <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
+  // Learner request (early checkpoint): the answer controls sit right above the talk button,
+  // next to where the kid answers, on every screen size (they were in the top bar).
+  const controls = profile && (
+    <>
               {profile.inputMode === 'talk'
                 ? <button onClick={() => switchMode('type')} title="Stop the microphone and type your answers"
                     className="rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">⌨️ Type instead</button>
@@ -195,7 +180,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
                     <button onClick={() => setVoiceMenu(m => !m)} aria-expanded={voiceMenu} aria-label="Voice settings"
                       className="rounded-full border-2 border-line bg-surface px-2.5 py-1 text-sm font-bold text-ink hover:border-accent">⚙️</button>
                     {voiceMenu && (
-                      <div className="absolute right-0 top-full z-30 mt-2 flex w-56 flex-col gap-2 rounded-2xl border-2 border-line bg-surface p-3 shadow-lg">
+                      <div className="absolute bottom-full left-0 z-30 mb-2 flex w-56 flex-col gap-2 rounded-2xl border-2 border-line bg-surface p-3 shadow-lg">
                         <label className="flex flex-col gap-1 text-sm font-bold text-ink">
                           🗣️ Voice
                           <select value={voiceName} onChange={e => { stopSpeaking(); changeVoice(e.target.value); }}
@@ -220,11 +205,30 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
                 </button>
               </>
             )}
-            </div>
+    </>
+  );
+
+  return (
+    <div style={themeStyle(theme)} className="bwm-journey min-h-screen bg-bg text-ink">
+      {screen === 'loading' && <div className="flex min-h-screen items-center justify-center"><Thinking theme={theme} big /></div>}
+      {screen === 'welcome' && <Welcome name={name} onChoose={mode => { setInputMode(mode); setScreen('profile'); }} />}
+      {screen === 'profile' && (
+        <>
+          <ProgressBar stage="intro" />
+          <ThemePick inputMode={inputMode} theme={theme} onThemeChange={setTheme} onDone={begin} busy={busy} />
+          {error && <p className="pb-6 text-center font-bold text-ink">{error.replace(/^LIMIT:/, '')}</p>}
+        </>
+      )}
+      {screen === 'guide' && profile && (
+        <>
+          <div className="flex items-center gap-1 pl-3">
+            <button onClick={() => void startOver()}
+              className="shrink-0 rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">＋ New app</button>
+            <div className="min-w-0 flex-1"><ProgressBar stage={stage} /></div>
           </div>
           {GUIDE_STAGES.includes(stage) && (
             <GuideStage profile={profile} reply={reply} history={history} visual={visual} docs={docs} pane={pane} onPane={setPane}
-              busy={busy} error={error} onSend={text => (error && /^\W*(try (it |that )?again|again|retry)\b/i.test(text) ? turn(lastText, profile, true) : turn(text))} onRetry={() => turn(lastText, profile, true)} voiceOn={voiceOn} />
+              controls={controls} busy={busy} error={error} onSend={text => (error && /^\W*(try (it |that )?again|again|retry)\b/i.test(text) ? turn(lastText, profile, true) : turn(text))} onRetry={() => turn(lastText, profile, true)} voiceOn={voiceOn} />
           )}
           {!GUIDE_STAGES.includes(stage) && (
             <main className="mx-auto flex max-w-xl flex-col items-center gap-4 px-4 py-16 text-center">

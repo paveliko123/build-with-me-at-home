@@ -36,9 +36,10 @@ interface Props {
   onSend: (text: string) => void;
   onRetry: () => void;
   voiceOn: boolean; // read replies aloud, then listen (talk mode)
+  controls?: React.ReactNode; // type/talk switch, voice settings and toggle (above the answer box)
 }
 
-export default function GuideStage({ profile, reply, history, visual, docs, pane, onPane, busy, error, onSend, onRetry, voiceOn }: Props) {
+export default function GuideStage({ profile, reply, history, visual, docs, pane, onPane, busy, error, onSend, onRetry, voiceOn, controls }: Props) {
   const young = profile.experience <= 1;
   const showReply = reply && !busy;
   const shownDocs = profile.experience >= 2 ? DOC_ORDER.filter(k => docs[k]) : [];
@@ -115,6 +116,7 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
           )}
         </div>
 
+        {controls && <div className="relative z-20 flex flex-wrap items-center gap-2 pt-2">{controls}</div>}
         {showReply && (
           <div className="pt-2">
             <AnswerBox inputMode={profile.inputMode} onSend={onSend} placeholder={placeholder}
