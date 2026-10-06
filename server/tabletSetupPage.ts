@@ -5,7 +5,7 @@
 
 import { homeAddresses } from './certs.js';
 
-export function setupTabletPage(host: string, httpsPort: number): string {
+export function setupTabletPage(host: string, httpsPort: number, caName: string): string {
   const ips = homeAddresses();
   const ip = ips.includes(host) ? host : ips[0] ?? host;
   const secureBase = `https://${ip}:${httpsPort}`;
@@ -39,6 +39,7 @@ button.back{background:var(--card);color:var(--ink);border:1px solid var(--line)
 </style></head><body><main>
 <h1>📱 Set up this tablet for talking</h1>
 <p class="muted">One time per tablet, about 2 minutes. Phones and tablets only let <b>you</b> approve this, in Settings, which keeps everyone safe. The certificate only works for your home network.</p>
+<div class="tip">This page shows “Not secure”. That’s expected: it’s the page that teaches the tablet to trust your computer. Kids’ pages will be secure once setup is done.</div>
 <div class="tabs" id="tabs">
   <button data-p="ipad">iPad / iPhone</button>
   <button data-p="pixel">Android (Pixel & most)</button>
@@ -48,11 +49,13 @@ button.back{background:var(--card);color:var(--ink);border:1px solid var(--line)
 <div class="dots" id="dots"></div>
 <script>
 const SECURE = ${JSON.stringify(secureBase)};
+const NAME = ${JSON.stringify(caName.replace(/[<>&]/g, ""))};
+const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 const P = {
   ipad: [
     { t: 'Download the profile', b: 'Tap the button, then tap <b>Allow</b>. You’ll see “Profile Downloaded”.', btn: ['Download the profile', '/home-certificate.mobileconfig'] },
     { t: 'Install it', b: 'Open the <b>Settings</b> app. At the top you’ll see <b>Profile Downloaded</b>. Tap it, then <b>Install</b> (enter the tablet passcode) and <b>Install</b> again.', path: ['Settings', 'Profile Downloaded', 'Install'] },
-    { t: 'Turn on full trust', b: 'This switch is the step most people miss.', path: ['Settings', 'General', 'About', 'Certificate Trust Settings'], tip: 'Turn ON “Build With Me Home”, then tap Continue.' },
+    { t: 'Turn on full trust', b: 'This switch is the step most people miss.', path: ['Settings', 'General', 'About', 'Certificate Trust Settings'], tip: 'Turn ON “' + esc(NAME) + '”, then tap Continue.' },
     { t: 'Check', check: true },
   ],
   pixel: [
@@ -73,7 +76,6 @@ const P = {
 let plat = /iPad|iPhone/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && 'ontouchend' in document) ? 'ipad' : /SM-|Samsung/i.test(navigator.userAgent) ? 'samsung' : 'pixel';
 let step = 0;
 try { const s = JSON.parse(localStorage.getItem('bwm-tablet-setup') || '{}'); if (s.plat && P[s.plat]) { plat = s.plat; step = s.step || 0; } } catch {}
-const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 function save() { try { localStorage.setItem('bwm-tablet-setup', JSON.stringify({ plat, step })); } catch {} }
 function render() {
   const steps = P[plat]; step = Math.min(step, steps.length - 1); save();
@@ -104,7 +106,8 @@ async function check() {
     res.innerHTML = '<div class="result ok">✅ All set! This tablet can talk to Build With Me. Your kid can now scan their pass.</div><p><a class="go" style="display:block" href="' + SECURE + '/talk-test">Try talking</a></p>';
   } catch {
     const hint = plat === 'ipad' ? 'Most often it’s step 3: the “Certificate Trust Settings” switch.' : 'Most often the certificate was installed as the wrong type (it must be “CA certificate”), or the browser wasn’t fully closed (the last step).';
-    res.innerHTML = '<div class="result bad">Not yet. The tablet doesn’t trust the computer. ' + hint + '</div>';
+    res.innerHTML = '<div class="result bad">Not yet. The tablet doesn’t trust the computer. ' + hint + '</div>'
+      + '<p class="muted" style="font-size:15px">Set this up before? This computer’s certificate is called <b>' + esc(NAME) + '</b>. If the one on the tablet has a different name or date, it’s an older one: remove it in Settings and start again from step 1.</p>';
   }
 }
 document.querySelectorAll('#tabs button').forEach((b) => b.addEventListener('click', () => { plat = b.dataset.p; step = 0; render(); }));

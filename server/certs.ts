@@ -4,16 +4,19 @@
 // certificate for the laptop's current home address(es) is issued from it on every start.
 // Tablets install the authority once (setup-tablet page); then https://<laptop>:4748 is
 // "secure" and the microphone is allowed.
+// It lives in the family folder (<home>\Build With Me\.home-certificate), not the plugin
+// folder: plugin data is deleted on uninstall, and a new authority would silently break
+// every tablet that trusts the old one (found in the learner's slice 3 test).
 
 import 'reflect-metadata';
 import * as x509 from '@peculiar/x509';
 import { webcrypto } from 'node:crypto';
-import { networkInterfaces, hostname } from 'node:os';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { networkInterfaces, hostname, tmpdir } from 'node:os';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { AsnConvert } from '@peculiar/asn1-schema';
 import { NameConstraints, GeneralSubtree, GeneralSubtrees, GeneralName, id_ce_nameConstraints } from '@peculiar/asn1-x509';
-import { pluginDataDir } from './paths.js';
+import { pluginDataDir, familyDataDir } from './paths.js';
 
 x509.cryptoProvider.set(webcrypto as unknown as Crypto);
 
@@ -22,9 +25,30 @@ const PRIVATE_RANGES = ['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', '127.0.
 const DAY = 24 * 60 * 60 * 1000;
 
 function certsDir(): string {
-  const dir = join(pluginDataDir(), 'certs');
+  const dir = join(familyDataDir(), '.home-certificate');
   mkdirSync(dir, { recursive: true });
+  if (!existsSync(join(dir, 'home-ca.crt'))) adoptExistingAuthority(dir);
   return dir;
+}
+
+/** One authority per family: reuse the oldest one this computer already made (earlier
+ *  versions kept it in the plugin folder, or the development folder), since that is the
+ *  one tablets are most likely to trust already. */
+function adoptExistingAuthority(dir: string): void {
+  const places = [join(pluginDataDir(), 'certs')];
+  if (!process.env.BWM_DATA) places.push(join(tmpdir(), 'build-with-me-dev', 'certs'));
+  const found = places
+    .filter((p) => existsSync(join(p, 'home-ca.crt')) && existsSync(join(p, 'home-ca.key')))
+    .map((p) => ({ p, from: new x509.X509Certificate(readFileSync(join(p, 'home-ca.crt'), 'utf8')).notBefore.getTime() }))
+    .sort((a, b) => a.from - b.from);
+  if (!found[0]) return;
+  copyFileSync(join(found[0].p, 'home-ca.key'), join(dir, 'home-ca.key'));
+  copyFileSync(join(found[0].p, 'home-ca.crt'), join(dir, 'home-ca.crt'));
+}
+
+/** The name a tablet shows for the authority, e.g. "Build With Me Home (LAPTOP) 6 Oct 2026". */
+export function authorityName(ca: Authority): string {
+  return new x509.X509Certificate(ca.certPem).subjectName.getField('CN')[0] ?? 'Build With Me Home';
 }
 
 function toPem(der: ArrayBuffer, label: string): string {
@@ -77,7 +101,8 @@ export async function loadOrCreateAuthority(): Promise<Authority> {
   const now = new Date();
   const cert = await x509.X509CertificateGenerator.createSelfSigned({
     serialNumber: Buffer.from(webcrypto.getRandomValues(new Uint8Array(16))).toString('hex').replace(/^[89a-f]/, '1'),
-    name: `CN=Build With Me Home (${hostname()}), O=Build With Me at Home`,
+    // The date tells this authority apart from any older one on a tablet.
+    name: `CN=Build With Me Home (${hostname()}) ${now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}, O=Build With Me at Home`,
     notBefore: new Date(now.getTime() - DAY),
     notAfter: new Date(now.getTime() + 10 * 365 * DAY),
     signingAlgorithm: ALG,

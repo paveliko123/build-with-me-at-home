@@ -140,15 +140,22 @@ function KidsManage({ kids, reload, onClose }: { kids: Kid[]; reload: () => void
 }
 
 function TabletSetup({ onClose }: { onClose: () => void }) {
-  const [info, setInfo] = useState<{ url: string | null; qr: string | null } | null>(null);
+  const [info, setInfo] = useState<{ url: string | null; qr: string | null; certificateName?: string } | null>(null);
   useEffect(() => { api('/api/parent/tablet-setup').then(setInfo).catch(() => setInfo({ url: null, qr: null })); }, []);
   return (
     <Modal title="📱 Set up a tablet for talking" onClose={onClose}>
-      <p>Once per tablet (about 2 minutes). On the tablet, scan this code with the camera. A step-by-step guide opens and ends with a ✅ check.</p>
+      <b>What this does, and why</b>
+      <ul className="explain">
+        <li><b>Goal:</b> your kid can <b>talk</b> to Claude on a tablet or phone, not only type.</li>
+        <li><b>Why a setup step:</b> browsers only allow the microphone on <b>secure</b> pages. A secure page needs the tablet to trust this computer.</li>
+        <li><b>What you install:</b> a small <b>home certificate</b>{info?.certificateName ? <> called <b>{info.certificateName}</b></> : null}. It only works inside your home network and can't vouch for any real website. Only you can approve it, in the tablet's Settings.</li>
+        <li><b>Heads-up:</b> when the tablet opens the link, the browser warns that the site <b>"doesn't support a secure connection"</b> or shows <b>"Not secure"</b>. That's expected for this one setup page: tap <b>Continue to site</b>. Kids' pages are secure once setup is done.</li>
+        <li><b>How long:</b> once per tablet, about 2 minutes. A step-by-step guide opens and ends with a ✅ check.</li>
+      </ul>
       {!info ? <p className="muted">Loading…</p> : info.url ? (
         <div style={{ display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
           <img className="qr" src={info.qr!} alt="QR code for the tablet setup page" />
-          <div><b>Or type this on the tablet:</b><br /><code>{info.url}</code>
+          <div><b>Scan with the tablet camera, or type:</b><br /><code>{info.url}</code>
             <p className="muted" style={{ fontSize: 13 }}>The tablet must be on the same Wi-Fi. If it can't open the page, allow Node.js on <b>private networks</b> in the Windows firewall.</p></div>
         </div>
       ) : <p className="err">This computer doesn't seem to be on a home network right now.</p>}

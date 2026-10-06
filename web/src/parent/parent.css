@@ -69,3 +69,5 @@
 .parent .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:grid;place-items:center;padding:16px;z-index:20}
 .parent .modal .card{width:min(560px,100%);max-height:90vh;overflow:auto}
 .parent .qr{width:200px;height:200px;background:#fff;border-radius:12px;padding:8px}
+.parent .explain{margin:6px 0 14px;padding-left:20px;font-size:14px;line-height:1.5}
+.parent .explain li{margin:4px 0}

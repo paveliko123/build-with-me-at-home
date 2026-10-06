@@ -8,6 +8,8 @@ import { mkdtempSync, readFileSync, existsSync, rmSync, cpSync, mkdirSync } from
 import { join } from 'node:path';
 import { tmpdir, networkInterfaces } from 'node:os';
 import https from 'node:https';
+import tls from 'node:tls';
+import { X509Certificate } from 'node:crypto';
 
 const checks: { name: string; pass: boolean; detail: string }[] = [];
 const add = (name: string, pass: boolean, detail: string) => { checks.push({ name, pass, detail }); console.log(`${pass ? 'PASS' : 'FAIL'}  ${name} — ${detail}`); };
@@ -62,6 +64,8 @@ async function main() {
 
   // 4. launch: starts one server; a second launch doesn't start another
   stopServer();
+  const oldCa = join(DATA, 'certs', 'home-ca.crt'); // left by earlier versions (plugin folder)
+  const oldFp = existsSync(oldCa) ? new X509Certificate(readFileSync(oldCa)).fingerprint256 : null;
   const l1 = JSON.parse(node(['app/launch.mjs', '--data', DATA, '--no-open']).stdout);
   const l2 = JSON.parse(node(['app/launch.mjs', '--data', DATA, '--no-open']).stdout);
   add('launch starts the server', l1.ok && l1.started, `${l1.url} started=${l1.started}`);
@@ -114,10 +118,21 @@ async function main() {
   r = await call('/api/parent/setup', { pin: '2468', kids: [] });
   add('new PIN only (no kids needed)', r.status === 200, String(r.status));
 
+  // 8b. one home certificate per family, kept in the family folder (survives plugin reinstall)
+  const caFile = join(FAMILY, '.home-certificate', 'home-ca.crt');
+  const ca = existsSync(caFile) ? new X509Certificate(readFileSync(caFile)) : null;
+  const served = await new Promise<string>((res) => { const sock = tls.connect({ host: '127.0.0.1', port: PORT + 1, rejectUnauthorized: false }, () => { res([sock.getPeerCertificate().issuer?.CN ?? ''].flat()[0]); sock.end(); }); sock.on('error', () => res('')); });
+  add('home certificate lives in the family folder and signs the HTTPS server', !!ca && served !== '' && ca.subject.includes(served), `family CA ${ca ? 'found' : 'missing'}; served issuer ${served}`);
+  if (oldFp) add('an existing certificate is reused, not replaced', ca?.fingerprint256 === oldFp, 'adopted from the plugin folder');
+  const tab = await call('/api/parent/tablet-setup');
+  add('tablet setup names the certificate', !!tab.body?.certificateName && served.startsWith(tab.body.certificateName.slice(0, 18)), tab.body?.certificateName ?? String(tab.status));
+
   // 9. the start file restarts a stopped server
   stopServer(); await sleep(800);
   const start = spawnSync(process.platform === 'win32' ? 'cmd' : 'sh', process.platform === 'win32' ? ['/c', l1.startFile] : [l1.startFile], { encoding: 'utf8', env: { ...env, BWM_NO_OPEN: '1' }, timeout: 120_000 });
   const up = await fetch(`${base}/api/health`).then((x) => x.ok, () => false);
+  const caAfter = existsSync(caFile) ? new X509Certificate(readFileSync(caFile)).fingerprint256 : null;
+  add('same home certificate after a restart', !!caAfter && caAfter === ca?.fingerprint256, caAfter?.slice(0, 23) ?? 'missing');
   add('start file brings the app back after it stopped', up, (start.stdout || '').trim().split('\n').find((x) => x.includes('"url"'))?.trim() ?? String(start.status));
 
   stopServer();

@@ -21,7 +21,7 @@ export async function currentUsage(maxAgeMs = 60_000): Promise<UsageReading> {
   return reading;
 }
 
-export function parentRoutes(opts: { httpPort: number; httpsPort: number }): Router {
+export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName: string }): Router {
   const r = Router();
   r.use(express.json({ limit: '100kb' }));
 
@@ -106,7 +106,7 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number }): Rou
   r.get('/tablet-setup', async (_req, res) => {
     const ips = homeAddresses();
     const url = ips[0] ? `http://${ips[0]}:${opts.httpPort}/setup-tablet` : null;
-    res.json({ url, addresses: ips, httpsPort: opts.httpsPort, qr: url ? await QRCode.toDataURL(url, { margin: 1, width: 240 }) : null });
+    res.json({ url, addresses: ips, httpsPort: opts.httpsPort, certificateName: opts.caName, qr: url ? await QRCode.toDataURL(url, { margin: 1, width: 240 }) : null });
   });
 
   return r;

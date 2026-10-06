@@ -274,3 +274,6 @@ Activity mode:
 - **The family data lives in `<home>\Build With Me`, not Documents** (learner decision).
   - What the build found: on the learner's PC, Desktop and Documents are redirected to a work OneDrive. Kids' data must never sync to any cloud.
   - What changes: the launcher moves an old Documents folder once, if one exists.
+- **The home certificate moved to the family folder, and the tablet screen explains itself** (learner test).
+  - What the build found: the installed plugin made a new certificate in its own folder. The learner's phone trusted the one from the speech test, which has the same name, so the Check said "Not yet." A reinstall would do the same to every family, because uninstalling deletes the plugin folder.
+  - What changes: one certificate per family, in `.home-certificate/`, reusing the oldest one already on the computer. New ones carry a date in their name. The wizard names it and says "Not secure" is expected there. The parent's tablet screen explains what, why and how in plain bullets, including the browser's "doesn't support a secure connection" warning.

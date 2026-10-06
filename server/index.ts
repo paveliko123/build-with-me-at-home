@@ -10,7 +10,7 @@ import https from 'node:https';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadOrCreateAuthority, issueServerCert, mobileConfig, type Authority } from './certs.js';
+import { loadOrCreateAuthority, issueServerCert, mobileConfig, authorityName, type Authority } from './certs.js';
 import { addChunk, finishUtterance, loadSpeech } from './speech.js';
 import { isLoopback } from './auth.js';
 import { parentRoutes } from './parentRoutes.js';
@@ -64,11 +64,11 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
   });
   app.get('/setup-tablet', (req, res) => {
     const host = (req.headers.host ?? 'localhost').replace(/:\d+$/, '');
-    res.type('html').send(setupTabletPage(host, httpsPort));
+    res.type('html').send(setupTabletPage(host, httpsPort, authorityName(authority)));
   });
 
   // ---- parent ----
-  app.use('/api/parent', parentRoutes({ httpPort, httpsPort }));
+  app.use('/api/parent', parentRoutes({ httpPort, httpsPort, caName: authorityName(authority) }));
 
   // ---- speech (gated by passes from slice 4) ----
   app.post('/api/speech/:id', express.raw({ type: 'application/octet-stream', limit: '1mb' }), (req, res) => {

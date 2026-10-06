@@ -270,7 +270,8 @@ Implements `prd.md > Talking`.
 ### Home Certificate (tablets)
 Implements `prd.md > Talking` (tablet), `prd.md > Product Decisions` (tablet on home Wi-Fi).
 - **On first launch,** `server/certs.ts` creates a **home certificate authority**:
-  - a key that **never leaves the computer**, stored in `${CLAUDE_PLUGIN_DATA}/certs`
+  - a key that **never leaves the computer**, stored in the family folder (`.home-certificate/`), so it survives plugin updates and reinstalls. A new authority would silently break every tablet that trusts the old one.
+  - named with its creation date ("Build With Me Home (LAPTOP) 6 Oct 2026"), so a parent can tell it apart from an older one on a tablet
   - **name constraints** limiting it to the laptop's private addresses (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`) and `*.local`, so it can't vouch for any real website
 - **On every start,** it issues a short-lived server certificate for the laptop's current home IP address(es) and hostname. When the address changes, it re-issues, and the tablet keeps trusting it because the authority is the same.
 - **📱 Set up a tablet for talking** shows a QR code to `http://<laptop's address>:4747/setup-tablet` (plain HTTP, since there's no certificate yet). That page:
@@ -343,11 +344,11 @@ Everything lives in **`<home>\Build With Me`**, unless noted:
 | `Reports/<date> <Kid> - <App>.html` | The readable report file | Report written | Kept; opens without the app |
 | `alerts.json` | Needs your attention items | Flag, limit, dismiss | Kept until dismissed |
 | `Start Build With Me.cmd` / `.command` and `.app-location` | Stable start file and pointer | Every launch | Kept |
+| `.home-certificate/` | The home authority (tablets trust it) | First launch | Kept, so set-up tablets keep working |
 
 In the plugin's private folder (`${CLAUDE_PLUGIN_DATA}`), kept across updates and deleted on uninstall:
 - `node_modules/`
 - `models/` (Whisper)
-- `certs/` (the home authority and server certificate)
 - `sandbox/` (an empty working folder for Claude)
 - `server.lock`
 

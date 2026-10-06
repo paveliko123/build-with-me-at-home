@@ -484,7 +484,8 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
     <ul>
       <li><b>On first launch,</b> <code>server/certs.ts</code> creates a <b>home certificate authority</b>:
         <ul>
-          <li>its key <b>never leaves the computer</b>, stored in <code>${CLAUDE_PLUGIN_DATA}/certs</code></li>
+          <li>its key <b>never leaves the computer</b>, stored in the family folder (<code>.home-certificate/</code>), so it survives plugin updates and reinstalls. A new authority would silently break every tablet that trusts the old one. <span class="pill verify">build revision</span></li>
+          <li>named with its creation date ("Build With Me Home (LAPTOP) 6 Oct 2026"), so a parent can tell it apart from an older one on a tablet</li>
           <li><b>name constraints</b> limit it to private addresses (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code>) and <code>*.local</code>, so it can't vouch for any real website</li>
         </ul></li>
       <li><b>On every start,</b> it issues a short-lived server certificate for the laptop's current home IP(s) and hostname. When the address changes it re-issues, and the tablet keeps trusting it because the authority is the same.</li>
@@ -583,10 +584,11 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
         <tr><td><code>Reports/&lt;date&gt; &lt;Kid&gt; - &lt;App&gt;.html</code></td><td>The readable report file</td><td>Report written</td><td>Kept; opens without the app</td></tr>
         <tr><td><code>alerts.json</code></td><td>Needs your attention items</td><td>Flag, limit, dismiss</td><td>Kept until dismissed</td></tr>
         <tr><td><code>Start Build With Me.cmd/.command</code> + <code>.app-location</code></td><td>Stable start file and pointer</td><td>Every launch</td><td>Kept</td></tr>
+        <tr><td><code>.home-certificate/</code></td><td>The home authority (tablets trust it)</td><td>First launch</td><td>Kept, so set-up tablets keep working</td></tr>
       </tbody>
     </table>
     <h4>Plugin private folder (<code>${CLAUDE_PLUGIN_DATA}</code>): kept across updates, deleted on uninstall</h4>
-    <p style="margin:0"><code>node_modules/</code> · <code>models/</code> (Whisper) · <code>certs/</code> (home authority, server cert) · <code>sandbox/</code> (empty working folder for Claude) · <code>server.lock</code></p>
+    <p style="margin:0"><code>node_modules/</code> · <code>models/</code> (Whisper) · <code>sandbox/</code> (empty working folder for Claude) · <code>server.lock</code></p>
     <h4>Not kept anywhere</h4>
     <p style="margin:0">Audio. Claude Code's own session history for these runs (<code>--no-session-persistence</code> keeps kids' chats out of your history).</p>
   </div>
