@@ -28,8 +28,8 @@ You are doing a security audit of "Build With Me at Home" in this folder (C:\APP
 - **Real data:**
   - Don't touch the parent's real install or data: ports 4747/4748, %USERPROFILE%\Build With Me and %USERPROFILE%\.claude\plugins\data\.
   - For live tests, run your own server on another port. In Git Bash, run each command below in a fresh shell, never one where these variables are already exported:
-    - Start a test server with `npm run build`, then `BWM_DATA=<temp>/family BWM_PLUGIN_DATA=<temp>/plugin BWM_PORT=4791 node app/dist/server/main.mjs` (run it in the background).
-    - Stop it by killing the process that listens on 4791.
+    - Start a test server with `npm run build`, then `BWM_DATA=<temp>/family BWM_PLUGIN_DATA=<temp>/plugin BWM_PORT=4801 node app/dist/server/main.mjs` (run it in the background). The server binds BWM_PORT and BWM_PORT+1, so this uses 4801 and 4802; leave any other port alone.
+    - Stop it by killing the process that listens on 4801.
 - **No sound and no microphone.**
   - On kid pages, always choose "Type", never "Talk" or the 🎤 or 🔊 buttons.
   - Stub `window.speechSynthesis.speak` before interacting with a page.
