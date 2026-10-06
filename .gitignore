@@ -7,3 +7,6 @@
 node_modules/
 .local-data/
 *.log
+
+# built app: committed at release time (slice 9)
+app/dist/

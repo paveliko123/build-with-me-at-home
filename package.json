@@ -10,21 +10,43 @@
   },
   "scripts": {
     "e1": "tsx scripts/e1-isolation.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p web",
     "test:guard": "tsx scripts/guard-test.ts",
     "e2": "tsx scripts/e2-speech.ts",
-    "dev:server": "tsx server/main.ts"
+    "dev:server": "tsx server/main.ts",
+    "dev:web": "vite",
+    "build:web": "vite build",
+    "build:server": "esbuild server/main.ts --bundle --platform=node --format=esm --target=node22 --packages=external --outfile=app/dist/server/main.mjs",
+    "build": "npm run build:web && npm run build:server",
+    "start": "node app/dist/server/main.mjs",
+    "verify:3": "tsx scripts/verify-3.ts"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/express": "^5.0.6",
     "@types/node": "^24.13.3",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "esbuild": "^0.28.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-markdown": "^10.1.0",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1",
+    "tailwindcss": "^4.3.3",
     "tsx": "^4.20.0",
-    "typescript": "~6.0.2"
+    "typescript": "~6.0.2",
+    "vite": "^8.3.3"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.3.0",
+    "@peculiar/asn1-schema": "^2.10.0",
+    "@peculiar/asn1-x509": "^2.10.0",
     "@peculiar/x509": "^2.1.0",
     "express": "^5.2.1",
+    "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.2"
   }
 }

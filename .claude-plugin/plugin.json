@@ -1,0 +1,9 @@
+{
+  "name": "build-with-me",
+  "displayName": "Build With Me at Home",
+  "version": "0.1.0",
+  "description": "A parent-run, fully local app where kids talk their way through plan-first app building on the parent's own Claude Code. Timed passes for kids, a report for the parent after every app.",
+  "author": { "name": "Build With Me at Home" },
+  "license": "MIT",
+  "keywords": ["kids", "education", "plan-first", "local"]
+}

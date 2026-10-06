@@ -16,13 +16,13 @@ Source: `scope.md > The Unique Kernel`, `scope.md > Who It's For`.
 Source: `scope.md > The Core Loop`, `scope.md > What "Working" Looks Like`.
 
 **First run (once).**
-1. The parent installs it as a **Claude Code plugin** from the public GitHub repo, with one install command in Claude Code, and starts it with `/build-with-me` (see **Installing and Updating**).
+1. The parent installs it as a **Claude Code plugin** from the public GitHub repo, with one install command in Claude Code, and starts it with `/build-with-me:start` (see **Installing and Updating**).
 2. The app checks that Claude Code is installed and signed in. If it isn't, it explains how to fix that before going on.
 3. The parent reads the responsibility note, creates a **PIN**, and adds each kid: a nickname, **Kid (under 13)** or **Teen (13–17)**, and an emoji.
 4. Setup offers to add a **desktop shortcut**, so later starts are a double-click.
 
 **Every time.**
-1. **Opening (laptop).** The parent double-clicks the shortcut (or types `/build-with-me` in Claude Code). The browser opens, and the opening screen shows the **"You're responsible"** note, the PIN, and **Enter**, which leads to the **parent home**.
+1. **Opening (laptop).** The parent double-clicks the shortcut (or types `/build-with-me:start` in Claude Code). The browser opens, and the opening screen shows the **"You're responsible"** note, the PIN, and **Enter**, which leads to the **parent home**.
 2. **Give a pass.** The parent picks the kid and a length of time (a preset or any custom length) and presses **Create pass**. A **QR code** appears, with "open on this laptop" as an alternative.
 3. **The kid opens the pass.** They scan the QR code on a tablet on the home Wi-Fi, or the parent opens it on the laptop. That device gets the pass, and the QR code stops working.
 4. **The kid's journey.** Welcome ("your helper is an AI, not a person," talk or type), then Theme, then the six steps. The guide adjusts to the kid's age group from their profile (see **The Kid's Journey**).
@@ -95,7 +95,7 @@ Source: `scope.md > Inspiration & Identity`.
 Source: learner discussion after the first PRD draft. Delivery replaces a share link for a local app.
 - As a parent who already uses Claude Code, I want to add Build With Me with one command, on Windows or a Mac.
   - [ ] **Install:** one Claude Code plugin install command, pointing at the public GitHub repo, adds Build With Me. No other downloads, accounts or keys, unless a required runtime is missing; the Spec checks for one.
-  - [ ] **Start:** `/build-with-me` in Claude Code starts the app and opens the browser to the opening screen (or to first-run setup the first time).
+  - [ ] **Start:** `/build-with-me:start` in Claude Code starts the app and opens the browser to the opening screen (or to first-run setup the first time).
   - [ ] **Desktop shortcut:** setup offers one. Afterwards a double-click starts the app with no terminal and no Claude Code window to manage.
   - [ ] **Windows and Mac:** the same steps and the same screens on both.
   - [ ] **Updating:** Claude Code's normal plugin update brings the new version. Kids' apps, reports, kids and the PIN are kept.
@@ -183,7 +183,11 @@ Source: `scope.md > The POC Boundary` ("the existing design and flow"). This is 
 Source: `scope.md > The POC Boundary` ("talking without API keys"), `scope.md > Open Questions`.
 - As a kid, I want to talk to my helper on the laptop or the tablet, and hear it talk back.
   - [ ] **On the laptop:** full talking. The guide reads its words aloud, and listening is hands-free after it speaks, with an "I'm done" button.
-  - [ ] **On a tablet:** full talking after a **one-time parent setup**. **📱 Set up a tablet for talking** shows a QR code and short steps for that tablet.
+  - [ ] **On a tablet:** full talking after a **one-time parent setup**. **📱 Set up a tablet for talking** shows a QR code that opens a **guided wizard on the tablet**:
+    - one step per screen, with the right path for iPad, Pixel or Samsung
+    - a final **Check** that turns green ✅ when the tablet trusts the computer, or names the missed step
+
+    Phones and tablets block websites from installing certificates silently, so a person must approve it once in Settings (learner decision, 2026-10-06, after E2).
   - [ ] **A tablet that isn't set up** falls back to the keyboard's own 🎤 dictation button and the guide still talks. A friendly note tells the parent how to set it up.
   - [ ] **Kids' voices stay in the house.** Speech is turned into text on the family's own devices, not by an outside service.
   - [ ] Each theme has its own voice. Kids get a gentler, slower pace. A ⚙️ menu holds the voice and speed.
@@ -268,7 +272,7 @@ Source: `scope.md > The Unique Kernel`. Laid out as in `report-mockup.html`.
 - **Windows and Mac,** "if possible."
 
 ## What We're Building
-- install as a Claude Code plugin from the GitHub repo, `/build-with-me`, a desktop shortcut, on Windows and Mac
+- install as a Claude Code plugin from the GitHub repo, `/build-with-me:start`, a desktop shortcut, on Windows and Mac
 - first-run setup: the Claude Code check, PIN, kids
 - the opening screen (note, PIN, Enter) and the parent home, as in the mockup
 - passes: kid plus any duration, a one-use QR code, active passes with extend and end, the kid's 10-minute countdown, Time's up with resume

@@ -14,7 +14,7 @@ The app has five pieces, all on the parent's computer:
 1. **The Claude Code plugin** (the *delivery box*). The parent adds it to their Claude Code from the public GitHub repo. It carries:
    - the whole app
    - a **setup skill**: Claude checks what's missing (Node.js, the speech model, and so on), fixes it using the parent's normal approval prompts, or explains the steps in the chat
-   - a `/build-with-me` command that starts the app
+   - a `/build-with-me:start` command that starts the app
 2. **The server** (the *back office*). A small **Node.js** program, the same kind of code as Build With Me's Cloud Functions, now running on the laptop. It:
    - shows the screens to the laptop's browser and to tablets on the home Wi-Fi
    - keeps the PIN, kids, passes, projects, apps and reports in **plain files** in `Documents\Build With Me`
@@ -40,7 +40,7 @@ PRD ref: `prd.md > The Core Journey`.
 
 **Install (once).**
 1. The parent pastes the install line from the README into Claude Code. Claude adds the repo as a plugin source and installs `build-with-me` (two short commands).
-2. The parent types `/build-with-me`. The setup skill runs `setup-check.mjs`, which reports the following as JSON:
+2. The parent types `/build-with-me:start`. The setup skill runs `setup-check.mjs`, which reports the following as JSON:
    - the Node version
    - `claude` signed in
    - the app's packages
@@ -121,8 +121,8 @@ These come from Build With Me's model comparison. See **Usage Experiment**.
   /plugin marketplace add <github-user>/build-with-me-home
   /plugin install build-with-me@build-with-me-home
   ```
-  Then type `/build-with-me`.
-- **Start later:** the desktop shortcut, or `/build-with-me`.
+  Then type `/build-with-me:start`.
+- **Start later:** the desktop shortcut, or `/build-with-me:start`.
 - **Development (the learner's machine):**
   ```bash
   npm install
@@ -147,7 +147,7 @@ PRD ref: `prd.md > Look and Feel`.
 ### Plugin and Setup
 Implements `prd.md > Installing and Updating`, `prd.md > First-Run Setup`.
 - `.claude-plugin/plugin.json` (name `build-with-me`) and `.claude-plugin/marketplace.json` at the repo root. The repo is its own marketplace.
-- **`/build-with-me` command** (`commands/build-with-me.md`): tells Claude to run the setup skill if `setup-check.mjs` reports problems, otherwise to run `launch.mjs` and report the address. It stays short to keep the parent's usage low.
+- **`/build-with-me:start` command** (`commands/build-with-me.md`): tells Claude to run the setup skill if `setup-check.mjs` reports problems, otherwise to run `launch.mjs` and report the address. It stays short to keep the parent's usage low.
 - **Setup skill** (`skills/setup/SKILL.md`): runs `node "${CLAUDE_PLUGIN_ROOT}/app/setup-check.mjs"` and then fixes each item:
   - **Node 22+ missing or old:** offer `winget install OpenJS.NodeJS.LTS` (Windows) or `brew install node` (Mac) through the normal permission prompt. Otherwise explain the official installer.
   - **App packages:** run `npm ci --omit=dev` into `${CLAUDE_PLUGIN_DATA}` (kept across updates). This happens automatically.
@@ -279,6 +279,10 @@ Implements `prd.md > Talking` (tablet), `prd.md > Product Decisions` (tablet on 
   - shows 3–4 picture-free steps ("Settings → General → About → Certificate Trust Settings → turn on Build With Me")
 
   This one page and the certificate files are the only things served on plain HTTP to the network.
+- **The guided wizard** (learner decision after E2: option A, with keyboard dictation as fallback B):
+  - `/setup-tablet` is a step-by-step page: platform detection; one step per screen for iPad, Pixel/stock Android and Samsung; and a **Check** step.
+  - The Check loads `https://<laptop>:4748/api/health` with `fetch` (no-cors). If it fails, the certificate isn't trusted, and the page shows which step to redo. If it succeeds, ✅ plus a link to the kid's start page.
+  - Silent installs are impossible by OS design.
 - **Uninstalling** deletes the authority, and old tablet certificates become useless.
 - **Proven first** (experiment E2), with keyboard dictation as the fallback.
 
@@ -454,7 +458,7 @@ Riskiest first, so nothing depends on an unproven piece:
    - Whisper accuracy on a kid's voice
 
    If it fails, switch to keyboard dictation and record the result.
-3. **The plugin skeleton:** setup check, launch, start file, shortcut, `/build-with-me`, on Windows. Mac when a Mac is available.
+3. **The plugin skeleton:** setup check, launch, start file, shortcut, `/build-with-me:start`, on Windows. Mac when a Mac is available.
 4. **Store, parent gate, first run, kids.**
 5. **Passes:** QR code, one-use, cookie, SSE countdown, extend and end.
 6. **The kid journey port:** guide and checker on the Claude Runner, the screens, voice out.

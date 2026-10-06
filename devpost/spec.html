@@ -146,7 +146,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
   <p style="margin:0 0 12px">Five pieces, all on the parent's computer:</p>
   <div class="pieces">
     <div class="piece" style="--c:var(--warn)"><h3>📦 1. The Claude Code plugin</h3><span class="nick">the delivery box</span>
-      <ul><li>The parent adds it from the public GitHub repo</li><li>Carries the whole app</li><li>A <b>setup skill</b>: Claude checks what's missing (Node.js, the speech model…), fixes it with your normal approval prompts, or explains in the chat</li><li><code>/build-with-me</code> starts the app</li></ul></div>
+      <ul><li>The parent adds it from the public GitHub repo</li><li>Carries the whole app</li><li>A <b>setup skill</b>: Claude checks what's missing (Node.js, the speech model…), fixes it with your normal approval prompts, or explains in the chat</li><li><code>/build-with-me:start</code> starts the app</li></ul></div>
     <div class="piece" style="--c:var(--accent)"><h3>🖥️ 2. The server</h3><span class="nick">the back office</span>
       <ul><li>A small <b>Node.js</b> program, like Build With Me's Cloud Functions but on the laptop</li><li>Shows the screens to the laptop and to tablets on home Wi-Fi</li><li>Keeps the PIN, kids, passes, projects, apps and reports in <b>plain files</b> in <code>Documents\Build With Me</code></li><li>Turns speech into text <b>on this computer</b> (Whisper)</li><li>Asks Claude to guide, check, build and report</li></ul></div>
     <div class="piece" style="--c:var(--claude)"><h3>🧠 3. The parent's Claude Code</h3><span class="nick">the brains</span>
@@ -284,8 +284,8 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
       <li><b>Install:</b> paste the README's install line into Claude Code, or run:
 <pre><code>/plugin marketplace add &lt;github-user&gt;/build-with-me-home
 /plugin install build-with-me@build-with-me-home</code></pre>
-        Then type <code>/build-with-me</code>.</li>
-      <li><b>Start later:</b> the desktop shortcut, or <code>/build-with-me</code>.</li>
+        Then type <code>/build-with-me:start</code>.</li>
+      <li><b>Start later:</b> the desktop shortcut, or <code>/build-with-me:start</code>.</li>
       <li><b>Development (your machine):</b> <code>npm install</code>, then <code>npm run dev</code>. This runs the server (:4747) plus Vite with hot reload. Test the plugin locally with <code>claude --plugin-dir .</code></li>
       <li><b>Release:</b> <code>npm run release</code> builds the front end and server into <code>app/dist/</code>, which is committed so families never need a build step.</li>
       <li><b>Demo recording:</b> the laptop screen (parent home, give a pass, the QR code) side by side with the tablet (scan, talk, build, ship), then back to the laptop for the report.</li>
@@ -325,7 +325,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
   <details id="c-plugin"><summary><h3>📦 Plugin and Setup</h3><span class="prd">prd › Installing and Updating · First-Run Setup</span></summary><div class="body">
     <ul>
       <li><code>.claude-plugin/plugin.json</code> (name <code>build-with-me</code>) and <code>.claude-plugin/marketplace.json</code> at the repo root. The repo is its own marketplace.</li>
-      <li><b><code>/build-with-me</code> command</b> (<code>commands/build-with-me.md</code>): runs the setup skill if <code>setup-check.mjs</code> reports problems, otherwise runs <code>launch.mjs</code> and reports the address. Short, to keep your usage low.</li>
+      <li><b><code>/build-with-me:start</code> command</b> (<code>commands/build-with-me.md</code>): runs the setup skill if <code>setup-check.mjs</code> reports problems, otherwise runs <code>launch.mjs</code> and reports the address. Short, to keep your usage low.</li>
       <li><b>Setup skill</b> (<code>skills/setup/SKILL.md</code>): runs <code>node "${CLAUDE_PLUGIN_ROOT}/app/setup-check.mjs"</code>, then fixes each item:
         <ul>
           <li><b>Node 22+ missing or old:</b> offer <code>winget install OpenJS.NodeJS.LTS</code> (Windows) or <code>brew install node</code> (Mac) through your normal permission prompt; otherwise explain the official installer.</li>
@@ -495,6 +495,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
           <li>shows 3–4 steps ("Settings → General → About → Certificate Trust Settings → turn on Build With Me")</li>
         </ul>
         This page and the certificate files are the only things served on plain HTTP to the network.</li>
+      <li><b>The guided wizard</b> (your decision after E2: A, with keyboard dictation as fallback B): <code>/setup-tablet</code> goes step by step, one step per screen for iPad, Pixel/stock Android and Samsung, ending with a <b>Check</b> that loads <code>https://&lt;laptop&gt;:4748/api/health</code>. If it fails, the page shows the step to redo; if it succeeds, ✅. Silent installs are impossible by OS design.</li>
       <li><b>Uninstalling</b> deletes the authority, and old tablet certificates become useless.</li>
       <li><b>Proven first</b> (E2), with keyboard dictation as the fallback.</li>
     </ul>
@@ -701,7 +702,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
         <li>whether your plan can use Opus</li>
       </ul></div></li>
     <li class="exp"><div><b>E2, tablet talking:</b> the home certificate on your tablet, the mic on HTTPS, Whisper latency (stopped talking → text) on the laptop and the tablet, and accuracy on a kid's voice. If it fails, keyboard dictation, with the result recorded.</div></li>
-    <li><div><b>Plugin skeleton:</b> setup check, launch, start file, shortcut, <code>/build-with-me</code>, on Windows. Mac when a Mac is available.</div></li>
+    <li><div><b>Plugin skeleton:</b> setup check, launch, start file, shortcut, <code>/build-with-me:start</code>, on Windows. Mac when a Mac is available.</div></li>
     <li><div><b>Store, parent gate, first run, kids.</b></div></li>
     <li><div><b>Passes:</b> QR code, one-use, cookie, SSE countdown, extend and end.</div></li>
     <li><div><b>Kid journey port:</b> guide and checker on the Claude Runner, the screens, voice out.</div></li>

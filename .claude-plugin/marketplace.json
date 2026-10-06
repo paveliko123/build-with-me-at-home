@@ -1,0 +1,12 @@
+{
+  "name": "build-with-me-home",
+  "owner": { "name": "Build With Me at Home" },
+  "description": "Build With Me at Home: a local, parent-run plan-first app builder for kids on the parent's own Claude Code.",
+  "plugins": [
+    {
+      "name": "build-with-me",
+      "source": "./",
+      "description": "Kids talk their way through plan-first app building on the parent's own Claude Code, fully local."
+    }
+  ]
+}

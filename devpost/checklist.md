@@ -60,7 +60,7 @@ Build mode: fast — pause only for significant decisions, the planned checkpoin
   Learner check: Install the certificate on your tablet from `/setup-tablet`, then open the talk test on the laptop and on the tablet. Say a sentence on each. Tell me whether the words are right and how the wait feels. (Ideally, have one of your kids try a sentence too.)
   Commit: `Prove local speech-to-text and tablet microphone (E2)`
 
-- [ ] **3. Install it as a Claude Code plugin and open your Parent area**
+- [x] **3. Install it as a Claude Code plugin and open your Parent area**
   Becomes usable:
   - In Claude Code, `claude --plugin-dir .` (locally) and then `/build-with-me` runs the setup check, fixes or explains anything missing, and starts the app.
   - The browser opens First-Run Setup (create the PIN, add your kids), then the opening screen (note, PIN, Enter), then the parent home with the real status strip (Claude Code signed in, 5-hour and weekly %).
@@ -262,3 +262,8 @@ Activity mode:
 - **The tablet certificate works, but Android installs it only from inside Settings,** not by tapping the downloaded file.
   - What E2 found: the learner confirmed no warnings and a working microphone after installing it from Settings. They found the steps "very not intuitive."
   - What changes: the setup page now gives the exact Settings path, and a friendlier guided setup is being decided with the learner.
+- **The start command is `/build-with-me:start`, not `/build-with-me`.**
+  - What the build found: Claude Code always prefixes plugin commands with the plugin name. Typing `/build-with-me` autocompletes it. The files are `commands/start.md`, `commands/reset-pin.md` and `skills/setup/SKILL.md` (`/build-with-me:setup`).
+- **The app runs from a "runtime" copy inside the plugin's private folder** (`${CLAUDE_PLUGIN_DATA}/runtime`: the built app plus `npm ci --omit=dev`).
+  - What the build found: the bundled server must find its packages, and the plugin folder itself moves on every update and shouldn't hold state.
+  - What changes: `setup-check --install-packages` refreshes the runtime when the version changes. The desktop start file reads `.app-location.json` in Documents\Build With Me, so it survives updates.

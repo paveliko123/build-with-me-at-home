@@ -25,7 +25,7 @@ function pctNear(lines: string[], heading: RegExp): { pct?: number; resets?: str
     const m = l.match(/(\d{1,3}(?:\.\d+)?)\s*%/);
     if (m && pct === undefined) pct = Number(m[1]);
     const r = l.match(/resets?\s+(.+)$/i);
-    if (r && !resets) resets = r[1].trim();
+    if (r && !resets) resets = r[1].replace(/\s*\([^)]*\)\s*$/, '').trim(); // drop the time-zone name
   }
   return { pct, resets };
 }

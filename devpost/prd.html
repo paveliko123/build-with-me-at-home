@@ -133,7 +133,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
       <li>Scope said <b>"a local link."</b> Now: a per-kid <b>My apps</b> shelf, with links and QR codes that work on any device on the home Wi-Fi.</li>
       <li>Scope said <b>"the parent gets an Opus report."</b> Now: an exact layout, an <b>All reports</b> list, a reports folder, and <b>% of your 5-hour and weekly limits</b>.</li>
       <li>New: <b>tablets on the home Wi-Fi</b>, with full talking after a one-time setup.</li>
-      <li>New: <b>delivered as a Claude Code plugin</b>. One install command, <code>/build-with-me</code> to start, a desktop shortcut afterwards. Windows and Mac.</li>
+      <li>New: <b>delivered as a Claude Code plugin</b>. One install command, <code>/build-with-me:start</code> to start, a desktop shortcut afterwards. Windows and Mac.</li>
     </ul>
   </div>
 
@@ -177,7 +177,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     <div class="card side">
       <h3>First run (once)</h3>
       <ol>
-        <li>The parent installs it as a <b>Claude Code plugin</b> from the public GitHub repo, with one install command in Claude Code, and starts it with <code>/build-with-me</code>.</li>
+        <li>The parent installs it as a <b>Claude Code plugin</b> from the public GitHub repo, with one install command in Claude Code, and starts it with <code>/build-with-me:start</code>.</li>
         <li>The app checks that Claude Code is installed and signed in. If it isn't, it explains how to fix that before going on.</li>
         <li>The parent reads the responsibility note, creates a <b>PIN</b>, and adds each kid: a nickname, <b>Kid (under 13)</b> or <b>Teen (13–17)</b>, and an emoji.</li>
         <li>Setup offers to add a <b>desktop shortcut</b>, so later starts are a double-click.</li>
@@ -186,7 +186,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     <div class="card side k">
       <h3>Every time</h3>
       <ol>
-        <li><b>Opening (laptop).</b> The parent double-clicks the shortcut (or types <code>/build-with-me</code>). The browser opens: the "You're responsible" note, the PIN, and <b>Enter</b>, which leads to the <b>parent home</b>.</li>
+        <li><b>Opening (laptop).</b> The parent double-clicks the shortcut (or types <code>/build-with-me:start</code>). The browser opens: the "You're responsible" note, the PIN, and <b>Enter</b>, which leads to the <b>parent home</b>.</li>
         <li><b>Give a pass.</b> The parent picks the kid and a length of time (a preset or any custom length), then <b>Create pass</b>. A <b>QR code</b> appears, with "open on this laptop" as an alternative.</li>
         <li><b>The kid opens the pass.</b> They scan it on a home-Wi-Fi tablet, or the parent opens it on the laptop. That device gets the pass, and the QR code stops working.</li>
         <li><b>The kid's journey.</b> Welcome ("your helper is an AI, not a person," talk or type), then Theme, then the six steps, adjusted to the kid's age group.</li>
@@ -281,7 +281,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     <p class="story">As a parent who already uses Claude Code, I want to add Build With Me with one command, on Windows or a Mac.</p>
     <ul class="crit">
       <li><b>Install:</b> one Claude Code plugin install command, pointing at the public GitHub repo, adds Build With Me. No other downloads, accounts or keys, unless a required runtime is missing; the Spec checks for one.</li>
-      <li><b>Start:</b> <code>/build-with-me</code> in Claude Code starts the app and opens the browser to the opening screen (or first-run setup the first time).</li>
+      <li><b>Start:</b> <code>/build-with-me:start</code> in Claude Code starts the app and opens the browser to the opening screen (or first-run setup the first time).</li>
       <li><b>Desktop shortcut:</b> setup offers one. Afterwards a double-click starts the app with no terminal and no Claude Code window to manage.</li>
       <li><b>Windows and Mac:</b> the same steps and the same screens on both.</li>
       <li><b>Updating:</b> Claude Code's normal plugin update brings the new version. Kids' apps, reports, kids and the PIN are kept.</li>
@@ -374,7 +374,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     <p class="story">As a kid, I want to talk to my helper on the laptop or the tablet, and hear it talk back.</p>
     <ul class="crit">
       <li><b>On the laptop:</b> full talking. The guide reads its words aloud, and listening is hands-free after it speaks, with an "I'm done" button.</li>
-      <li><b>On a tablet:</b> full talking after a <b>one-time parent setup</b>. <b>📱 Set up a tablet for talking</b> shows a QR code and short steps for that tablet.</li>
+      <li><b>On a tablet:</b> full talking after a <b>one-time parent setup</b>. <b>📱 Set up a tablet for talking</b> shows a QR code that opens a <b>guided wizard on the tablet</b>:<ul><li>one step per screen, with the right path for iPad, Pixel or Samsung</li><li>a final <b>Check</b> that turns green ✅ when the tablet trusts the computer, or names the missed step</li></ul>Phones and tablets block websites from installing certificates silently, so a person must approve it once in Settings (your decision after E2).</li>
       <li><b>A tablet that isn't set up</b> falls back to the keyboard's own 🎤 dictation button, and the guide still talks. A friendly note tells the parent how to set it up.</li>
       <li><b>Kids' voices stay in the house.</b> Speech is turned into text on the family's own devices, not by an outside service.</li>
       <li>Each theme has its own voice. Kids get a gentler, slower pace. A ⚙️ menu holds the voice and speed.</li>
@@ -480,7 +480,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
   <!-- BOUNDARY -->
   <h2 id="boundary">What we're building, what waits, what we won't do</h2>
   <details open><summary><span class="pill now">BUILDING</span> <b>What We're Building</b></summary><div class="body"><ul>
-    <li>Install as a Claude Code plugin from the GitHub repo, <code>/build-with-me</code>, a desktop shortcut, on Windows and Mac</li>
+    <li>Install as a Claude Code plugin from the GitHub repo, <code>/build-with-me:start</code>, a desktop shortcut, on Windows and Mac</li>
     <li>First-run setup: the Claude Code check, PIN, kids</li>
     <li>The opening screen (note, PIN, Enter) and the parent home, as in the mockup</li>
     <li>Passes: kid plus any duration, a one-use QR code, active passes with extend and end, the kid's 10-minute countdown, Time's up with resume</li>
