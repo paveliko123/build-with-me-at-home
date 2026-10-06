@@ -117,3 +117,7 @@ Measured with JS in emulated viewports (scrollWidth, element rectangles, tap siz
 - **The built app inside the sandboxed iframe on iPad Safari**: touch events, audio unlock on first tap, and the in-memory storage shim.
 - **Windows high-contrast / forced-colors mode** on the parent side (pills and meters are color-only).
 - **A screen reader pass** (NVDA on the laptop, VoiceOver on iPad): the conversation `aria-live` regions (the guide card and Thinking both announce), and the modals (A4).
+
+## Family trial notes (for the revision round)
+
+- **Samsung tablet, after setup: the pass page still said "Connection is not secure"** although the Check step showed "All set". The cause was Chrome remembering a certificate warning that was tapped through earlier in the same session. Fully closing Chrome and opening a new pass cleared it. Fix: add one line to the setup page's "All set!" message (`server/tabletSetupPage.ts`): "If the kid page still says not secure, close the browser completely and open a new pass."
