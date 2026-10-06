@@ -12,6 +12,9 @@ export function ParentHome({ onLock }: { onLock: () => void }) {
   const [modal, setModal] = useState<'kids' | 'tablet' | 'settings' | null>(null);
   const [passes, setPasses] = useState<ActivePass[]>([]);
   const [shown, setShown] = useState<string | null>(null);
+  const [apps, setApps] = useState<Record<string, KidApp[]>>({});
+  const loadApps = useCallback(() => api<Record<string, KidApp[]>>('/api/parent/apps').then(setApps).catch(() => {}), []);
+  useEffect(() => { loadApps(); }, [loadApps]);
 
   const loadKids = useCallback(() => api<Kid[]>('/api/parent/kids').then(setKids).catch(() => onLock()), [onLock]);
   useEffect(() => {
@@ -62,7 +65,7 @@ export function ParentHome({ onLock }: { onLock: () => void }) {
             <h2>🧒 Kids &amp; their apps</h2>
             {kids.map((k) => (
               <div className="row" key={k.id}>
-                <div>{k.emoji} <b>{k.nickname}</b> <span className={`pill ${k.group === 'teen' ? 't' : 'k'}`}>{k.group === 'teen' ? 'Teen' : 'Kid'}</span><br /><span className="muted">0 apps</span></div>
+                <div>{k.emoji} <b>{k.nickname}</b> <span className={`pill ${k.group === 'teen' ? 't' : 'k'}`}>{k.group === 'teen' ? 'Teen' : 'Kid'}</span><br /><span className="muted">{(apps[k.id]?.length ?? 0) === 1 ? '1 app' : `${apps[k.id]?.length ?? 0} apps`}</span></div>
                 <button className="ghost" onClick={() => setModal('kids')}>Manage</button>
               </div>
             ))}
@@ -74,7 +77,7 @@ export function ParentHome({ onLock }: { onLock: () => void }) {
         </div>
       </div>
 
-      {modal === 'kids' && <KidsManage kids={kids} reload={loadKids} onClose={() => setModal(null)} />}
+      {modal === 'kids' && <KidsManage kids={kids} apps={apps} reload={() => { loadKids(); loadApps(); }} onClose={() => setModal(null)} />}
       {modal === 'tablet' && <TabletSetup onClose={() => setModal(null)} />}
       {modal === 'settings' && <Settings onClose={() => setModal(null)} />}
     </main>
@@ -118,7 +121,9 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
   );
 }
 
-function KidsManage({ kids, reload, onClose }: { kids: Kid[]; reload: () => void; onClose: () => void }) {
+interface KidApp { slug: string; name: string; emoji: string; createdAt: number; path: string }
+
+function KidsManage({ kids, apps, reload, onClose }: { kids: Kid[]; apps: Record<string, KidApp[]>; reload: () => void; onClose: () => void }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [err, setErr] = useState('');
   return (
@@ -128,7 +133,8 @@ function KidsManage({ kids, reload, onClose }: { kids: Kid[]; reload: () => void
           <KidForm initial={k} submitLabel="Save" onCancel={() => setEditing(null)} onSubmit={async (d) => { await api(`/api/parent/kids/${k.id}`, { method: 'PUT', body: d }); setEditing(null); reload(); }} />
         </div>
       ) : (
-        <div className="row" key={k.id}>
+        <div key={k.id}>
+        <div className="row">
           <div>{k.emoji} <b>{k.nickname}</b> <span className={`pill ${k.group === 'teen' ? 't' : 'k'}`}>{k.group === 'teen' ? 'Teen' : 'Kid'}</span></div>
           <div style={{ display: 'flex', gap: 6 }}>
             <button className="ghost" onClick={() => setEditing(k.id)}>Edit</button>
@@ -137,6 +143,19 @@ function KidsManage({ kids, reload, onClose }: { kids: Kid[]; reload: () => void
               try { await api(`/api/parent/kids/${k.id}`, { method: 'DELETE' }); setErr(''); reload(); } catch (e) { setErr((e as Error).message); }
             }}>Remove</button>
           </div>
+        </div>
+        {(apps[k.id] ?? []).map((a) => (
+          <div className="row" key={a.slug} style={{ paddingLeft: 28 }}>
+            <div>{a.emoji} {a.name} <span className="muted" style={{ fontSize: 13 }}>· {new Date(a.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span></div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <a className="ghost" style={{ textDecoration: 'none' }} href={a.path} target="_blank" rel="noopener">Open</a>
+              <button className="ghost danger" onClick={async () => {
+                if (!confirm(`Delete ${a.name}? It disappears from ${k.nickname}'s shelf. Its report stays.`)) return;
+                try { await api(`/api/parent/kids/${k.id}/apps/${a.slug}`, { method: 'DELETE' }); setErr(''); reload(); } catch (e) { setErr((e as Error).message); }
+              }}>Delete</button>
+            </div>
+          </div>
+        ))}
         </div>
       ))}
       <p className="err">{err}</p>

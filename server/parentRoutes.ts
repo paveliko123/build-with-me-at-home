@@ -10,6 +10,7 @@ import { findClaude } from './claude/runner.js';
 import { readUsage, type UsageReading } from './usage.js';
 import { homeAddresses } from './certs.js';
 import { activePasses, createPass, extendPass, endPass } from './passes.js';
+import { deleteApp, shelf } from './journey/apps.js';
 
 let usageCache: { reading: UsageReading; at: number } | null = null;
 let usageInFlight: Promise<UsageReading> | null = null;
@@ -108,6 +109,15 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
     const ips = homeAddresses();
     const url = ips[0] ? `http://${ips[0]}:${opts.httpPort}/setup-tablet` : null;
     res.json({ url, addresses: ips, httpsPort: opts.httpsPort, certificateName: opts.caName, qr: url ? await QRCode.toDataURL(url, { margin: 1, width: 240 }) : null });
+  });
+
+  // ---- each kid's apps (prd.md > My Apps: Kids & their apps → Manage) ----
+  r.get('/apps', (_req, res) => {
+    res.json(Object.fromEntries(readFamily().kids.map((k) => [k.id, shelf(k.id).map((a) => ({ ...a, path: `/apps/${k.id}/${a.slug}/` }))])));
+  });
+  r.delete('/kids/:kidId/apps/:slug', (req, res) => {
+    if (!deleteApp(String(req.params.kidId), String(req.params.slug))) { res.status(404).json({ error: 'That app is already gone.' }); return; }
+    res.json({ ok: true });
   });
 
   // ---- passes (prd.md > Passes) ----

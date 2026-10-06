@@ -12,10 +12,11 @@ import { join, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadOrCreateAuthority, issueServerCert, mobileConfig, authorityName, type Authority } from './certs.js';
 import { addChunk, finishUtterance, loadSpeech } from './speech.js';
-import { isLoopback, isThisComputer } from './auth.js';
+import { isLoopback, isParent, isThisComputer } from './auth.js';
 import { parentRoutes } from './parentRoutes.js';
 import { kidRoutes } from './kidRoutes.js';
-import { journeyRoutes } from './journey/routes.js';
+import { journeyRoutes, shelfRoutes } from './journey/routes.js';
+import { APP_CSP, servedApp } from './journey/apps.js';
 import { kidSession } from './passes.js';
 import { setupTabletPage } from './tabletSetupPage.js';
 
@@ -77,7 +78,24 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
 
   // ---- passes, the kid's session, live updates ----
   app.use('/api', kidRoutes());
-  app.use('/api/kid/journey', journeyRoutes());
+  app.use('/api/kid/journey', journeyRoutes({ httpsPort }));
+  app.use('/api/kid/apps', shelfRoutes({ httpsPort }));
+
+  // ---- shipped apps (prd.md > My Apps): this laptop, or a live pass for that kid ----
+  // (Express matches the address with and without the final slash.)
+  app.get('/apps/:kid/:slug', (req, res) => {
+    const kid = String(req.params.kid), slug = String(req.params.slug);
+    // The parent, or this laptop without a pass, can open any kid's app. A device holding a
+    // kid's pass (this laptop included) opens only that kid's apps, while the pass is live.
+    const session = kidSession(req);
+    const allowed = isParent(req) || (session ? session.live && session.kid.id === kid : isThisComputer(req));
+    res.set('Content-Security-Policy', APP_CSP).set('X-Content-Type-Options', 'nosniff').set('Referrer-Policy', 'no-referrer').set('Cache-Control', 'no-store');
+    const page = (emoji: string, title: string, text: string) => `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><body style="font:18px system-ui;margin:0;display:grid;place-items:center;min-height:100vh;background:#f6f4ef;color:#1f2430;text-align:center"><div><div style="font-size:56px">${emoji}</div><h1 style="font-size:24px">${title}</h1><p>${text}</p></div>`;
+    if (!allowed) { res.status(403).type('html').send(page('🎟️', 'This app needs a pass', "Ask a parent for a pass. Each kid's apps open with their own pass.")); return; }
+    const found = servedApp(kid, slug);
+    if (!found) { res.status(404).type('html').send(page('🔍', 'App not found', 'It may have been deleted.')); return; }
+    res.type('html').send(found.html);
+  });
 
   // ---- speech: a kid with a live pass, or the laptop itself ----
   const mayTalk = (req: Request, res: Response, next: NextFunction) => {
@@ -114,6 +132,8 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
 
   const httpServer = http.createServer(app);
   const httpsServer = https.createServer({ key: serverCert.keyPem, cert: serverCert.certPem }, app);
+  // Builds can take several minutes: keep their requests open (Node's default is 5 minutes).
+  for (const s of [httpServer, httpsServer]) s.requestTimeout = 20 * 60_000;
   await new Promise<void>((r, j) => httpServer.once('error', j).listen(httpPort, '0.0.0.0', r));
   await new Promise<void>((r, j) => httpsServer.once('error', j).listen(httpsPort, '0.0.0.0', r));
 

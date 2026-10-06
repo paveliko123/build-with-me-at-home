@@ -447,7 +447,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
           <li>Resume needs nothing special: the transcript is in <code>project.json</code>. E3 (slice 8) measures the cost.</li>
           <li>The checker reads each kid message and each guide reply on its own, as in Build With Me.</li>
         </ul></li>
-      <li><b>One-shot jobs:</b> the <b>builder</b> and <b>reporter</b> start a fresh process per job with <code>--output-format json</code> and <code>--json-schema</code>. The builder returns <code>{html, notes, leftovers}</code>; the reporter returns the report fields.</li>
+      <li><b>One-shot jobs:</b> the <b>builder</b> and <b>reporter</b> start a fresh process per job. The reporter uses <code>--json-schema</code> for the report fields. The builder keeps Build With Me's plain-text output: a whole HTML document, or small find-and-replace edits for changes and fixes, checked against the hard rules; what a change left out is found by a separate check and said honestly. Versions are saved as <code>versions/vN.html</code>. <span class="pill verify">build revision</span></li>
       <li><b>Structured guide replies:</b> Build With Me's reply shape (say, cards, mock-up, plan). It uses <code>--json-schema</code> if that works with stream-json <span class="pill verify">E1</span>; otherwise the system prompt asks for JSON and <code>replySchema.ts</code> validates it, with one automatic retry.</li>
       <li><b>Limits:</b> every <code>rate_limit_event</code> is watched. <code>allowed_warning</code> is recorded; <code>rejected</code> triggers <b>Limit Reached</b>, keeping <code>resetsAt</code>. <code>api_retry</code> with <code>rate_limit</code> is treated the same once retries run out.</li>
       <li><b>Costs:</b> <code>total_cost_usd</code> and the usage figures are summed per project for the report fallback.</li>
@@ -546,7 +546,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
   <details id="c-apps"><summary><h3>🗂️ My Apps</h3><span class="prd">prd › My Apps</span></summary><div class="body">
     <ul>
       <li><b>Index:</b> <code>kids/&lt;kidId&gt;/apps.json</code> lists <code>{slug, name, emoji, createdAt, projectId}</code>, read newest first.</li>
-      <li><b>Serving:</b> <code>/apps/&lt;kid&gt;/&lt;slug&gt;/</code> serves <code>index.html</code> with a strict Content-Security-Policy (no network access). It needs the laptop or that kid's pass cookie. The QR code links to it on the home address.</li>
+      <li><b>Serving:</b> <code>/apps/&lt;kid&gt;/&lt;slug&gt;/</code> serves <code>index.html</code> inside Build With Me's small wrapper page: the app runs in a sandboxed frame with no origin of its own, under a strict Content-Security-Policy (no network, no outside files, no navigation), and its saved data lives in the wrapper's own key space on that device. It needs the laptop or a live pass for that kid. The QR code links to it on the home address. <span class="pill verify">build revision</span></li>
       <li><b>Deleting:</b> Kids &amp; their apps → Manage removes the folder and the index entry.</li>
     </ul>
     <div class="files">web/src/screens/MyApps.tsx · server/index.ts (apps route)</div>

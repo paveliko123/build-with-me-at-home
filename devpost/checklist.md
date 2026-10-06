@@ -136,7 +136,7 @@ Build mode: fast — pause only for significant decisions, the planned checkpoin
   Learner check: Give a pass to one of your kids (or play the kid yourself) and talk through to the Tech plan. Try one "naughty" request and one personal detail. How do the guide's words, the voice and the waiting feel? What would you change?
   Commit: `Kid journey on the parent's Claude Code with live safety checks`
 
-- [ ] **6. Build, change and ship an app onto the kid's My apps shelf**
+- [x] **6. Build, change and ship an app onto the kid's My apps shelf**
   Becomes usable:
   - The Build screen (⅔ app, ⅓ chat) shows a themed animation, then a true working app built by Opus in a sandboxed frame.
   - The kid asks for changes and the app updates. Leftovers are said honestly, and a broken build keeps the last working version.
@@ -294,3 +294,9 @@ Activity mode:
 - **Talking in the journey uses the computer's own speech-to-text** (slice 5, internal).
   - What the build found: Build With Me's talk button used the browser's speech recognition, which sends audio to an outside service. That breaks "kids' voices stay in the house."
   - What changes: the same talk button now records on the device and the family's computer turns it into text (slice 2's Moonshine). The guide's voice uses only the device's voices; the cloud voice is gone. The Nunito font is bundled instead of loaded from Google.
+- **The builder keeps Build With Me's plain-text output, and operations merge when they save** (slice 6, internal).
+  - What the build found: the ported builder returns a whole HTML page, or find-and-replace edits for changes and fixes, tuned in live testing. A JSON wrapper around a 60 KB page would add nothing. A build runs for minutes while the kid chats or adds changes, so whole-project saves could overwrite each other.
+  - What changes: no `--json-schema` for the builder. Every journey operation works on a copy of the project and merges only what it changed (new messages, flags, usage, versions, documents, stage) into the newest file. One build at a time per project, at most 2 across the family.
+- **Shipped apps run inside Build With Me's wrapper page** (slice 6, internal).
+  - What the build found: an app served straight from the family's address would share that address's browser storage and cookies with the app itself.
+  - What changes: the app runs in a sandboxed frame with no origin of its own, under the strict policy; its saved data lives in the wrapper's own key space. Each new version's words also go through the safety check before they're shown.

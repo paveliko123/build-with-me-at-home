@@ -241,7 +241,7 @@ Implements the AI behind `prd.md > The Kid's Journey`, `prd.md > Safety`, `prd.m
   - The `--setting-sources ""` form and isolation from `~/.claude/CLAUDE.md` are **to verify** in experiment E1. If CLAUDE.md still loads, a fallback is chosen there.
 - **One call per turn** (build revision, slice 5): the guide, the plan writer and the checker each run as one sealed-off `claude -p` call with the stage's system prompt (identical for every turn of a stage, so Claude Code's prompt cache reuses it) and the conversation so far as JSON. The ported turn logic asks again with app notes, writes plans in a separate call and changes the system prompt at every stage, which a single long-lived process can't do cleanly. Resume needs nothing special: the transcript is in `project.json`. E3 (slice 8) measures the cost.
   - The checker reads each kid message and each guide reply on its own, as in Build With Me.
-- **One-shot jobs:** the **builder** and the **reporter** each start a fresh process per job, with `--output-format json` and `--json-schema` for structured output (the builder returns `{html, notes, leftovers}`, the reporter the report fields).
+- **One-shot jobs:** the **builder** and the **reporter** each start a fresh process per job. The reporter uses `--json-schema` for the report fields. The builder keeps Build With Me's plain-text output (build revision, slice 6): a whole HTML document, or small find-and-replace edits for changes and fixes, checked against the hard rules; what a change left out is found by a separate check and said honestly. Versions are saved as `versions/vN.html`.
 - **Structured guide replies:** the guide must return Build With Me's reply shape (say, cards, mock-up, plan). It uses `--json-schema` if that works with stream-json (to verify in E1). Otherwise it's told in its system prompt to answer in JSON, and `replySchema.ts` validates it, with one automatic retry.
 - **Limits:** every `rate_limit_event` is watched:
   - `allowed_warning` is recorded.
@@ -318,7 +318,7 @@ Implements `prd.md > Screens and Layout` (parent side).
 ### My Apps
 Implements `prd.md > My Apps`.
 - **Index:** `kids/<kidId>/apps.json` lists `{slug, name, emoji, createdAt, projectId}`. The shelf reads it, newest first.
-- **Serving:** `/apps/<kid>/<slug>/` serves `index.html`, with a strict Content-Security-Policy (no network access except inline). It needs the laptop or a pass cookie for that kid. The app's QR code links to it on the home address.
+- **Serving:** `/apps/<kid>/<slug>/` serves `index.html` inside Build With Me's small wrapper page (build revision, slice 6): the app runs in a sandboxed frame with no origin of its own, under a strict Content-Security-Policy (no network, no outside files, no navigation), and its saved data lives in the wrapper's own key space on that device. It needs the laptop or a live pass for that kid. The app's QR code links to it on the home address.
 - **Deleting:** **Kids & their apps → Manage** removes the folder and the index entry.
 
 ### Usage Experiment

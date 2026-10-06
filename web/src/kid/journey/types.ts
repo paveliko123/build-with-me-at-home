@@ -62,4 +62,5 @@ export interface SessionSnapshot {
   app: { version: number; html: string } | null;
   stepsBuilt: number;
   pendingChanges: string[]; // the change list waiting to be built
+  techSummary?: string; // the Tech plan's one-line "Here's how I'll build it!"
 }

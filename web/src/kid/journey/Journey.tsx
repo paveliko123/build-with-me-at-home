@@ -1,12 +1,15 @@
 // The kid's journey behind a pass (prd.md > The Kid's Journey): Welcome → Theme → Start, Idea,
-// Design and Tech plan with the guide. Ported from Build With Me's App.tsx: the project lives
-// on the family's computer (one unfinished project per kid, resumed by the next pass), so
-// there's no project ID in the browser. Build and Ship arrive in slice 6.
+// Design and Tech plan with the guide → Build → Ship onto My apps. Ported from Build With Me's
+// App.tsx: the project lives on the family's computer (one unfinished project per kid, resumed by
+// the next pass), so there's no project ID in the browser.
 import { useEffect, useRef, useState } from 'react';
 import ProgressBar from './components/ProgressBar';
 import Thinking from './components/Thinking';
 import GuideStage, { type Line, type Pane } from './screens/GuideStage';
 import ThemePick, { type ProfileChoice } from './screens/ThemePick';
+import BuildScreen, { type Resume } from './screens/BuildScreen';
+import ShipScreen from './screens/ShipScreen';
+import MyApps from './screens/MyApps';
 import Welcome from './screens/Welcome';
 import { getJourney, guideTurn, limitMessage, newApp, passEnded, setInputMode as saveInputMode, startJourney } from './lib/api';
 import { speechSupported } from './lib/speech';
@@ -65,6 +68,11 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
     try { localStorage.setItem('bwm-voice-speed', String(value)); } catch { /* storage unavailable */ }
   }
   const [busy, setBusy] = useState(false);
+  // Build and Ship: the newest app (after a refresh too), and the Tech plan's one-liner.
+  const [resumeApp, setResumeApp] = useState<Resume | undefined>(undefined);
+  const [techSummary, setTechSummary] = useState<string | undefined>(undefined);
+  const [shipHtml, setShipHtml] = useState<string | null>(null);
+  const [shelfOpen, setShelfOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastText, setLastText] = useState<string | undefined>(undefined);
   const started = useRef(false);
@@ -78,6 +86,8 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
     setReply(s.reply);
     setDocs(Object.fromEntries(s.docs.map(d => [d.kind, d])));
     if (s.doc) setPane(s.doc.kind);
+    if (s.app) setResumeApp({ html: s.app.html, version: s.app.version, stepsBuilt: 0, pendingChanges: s.pendingChanges });
+    setTechSummary(s.techSummary);
     if (s.reply?.visualHtml) setVisual(s.reply.visualHtml);
     if (s.lastExchange) setHistory([...(s.lastExchange.question ? [{ from: 'guide' as const, text: s.lastExchange.question }] : []), { from: 'me', text: s.lastExchange.answer }]);
     else setHistory([{ from: 'stage', text: STAGE_LABELS[s.stage] ?? s.stage }]);
@@ -98,6 +108,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
 
   function settle(r: GuideTurnResult) {
     setReply(r.reply);
+    if (r.reply.techSummary) setTechSummary(r.reply.techSummary);
     setStage(r.stage);
     if (r.reply.visualHtml) { setVisual(r.reply.visualHtml); setPane('picture'); }
     const doc = r.reply.doc;
@@ -211,34 +222,45 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
   return (
     <div style={themeStyle(theme)} className="bwm-journey min-h-screen bg-bg text-ink">
       {screen === 'loading' && <div className="flex min-h-screen items-center justify-center"><Thinking theme={theme} big /></div>}
-      {screen === 'welcome' && <Welcome name={name} onChoose={mode => { setInputMode(mode); setScreen('profile'); }} />}
-      {screen === 'profile' && (
+      {shelfOpen && <MyApps name={name} onClose={() => setShelfOpen(false)} />}
+      {!shelfOpen && screen === 'welcome' && (
+        <>
+          <div className="flex justify-end px-3 pt-3"><button onClick={() => setShelfOpen(true)} className="rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">📚 My apps</button></div>
+          <Welcome name={name} onChoose={mode => { setInputMode(mode); setScreen('profile'); }} />
+        </>
+      )}
+      {!shelfOpen && screen === 'profile' && (
         <>
           <ProgressBar stage="intro" />
           <ThemePick inputMode={inputMode} theme={theme} onThemeChange={setTheme} onDone={begin} busy={busy} />
           {error && <p className="pb-6 text-center font-bold text-ink">{error.replace(/^LIMIT:/, '')}</p>}
         </>
       )}
+      {/* The journey stays mounted under the shelf, so a build keeps going while it's open. */}
       {screen === 'guide' && profile && (
-        <>
-          <div className="flex items-center gap-1 pl-3">
+        <div className={shelfOpen ? 'hidden' : undefined}>
+          <div className="flex items-center gap-1 px-3">
             <button onClick={() => void startOver()}
               className="shrink-0 rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">＋ New app</button>
             <div className="min-w-0 flex-1"><ProgressBar stage={stage} /></div>
+            <button onClick={() => setShelfOpen(true)}
+              className="shrink-0 rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">📚 My apps</button>
           </div>
           {GUIDE_STAGES.includes(stage) && (
             <GuideStage profile={profile} reply={reply} history={history} visual={visual} docs={docs} pane={pane} onPane={setPane}
               controls={controls} busy={busy} error={error} onSend={text => (error && /^\W*(try (it |that )?again|again|retry)\b/i.test(text) ? turn(lastText, profile, true) : turn(text))} onRetry={() => turn(lastText, profile, true)} voiceOn={voiceOn} />
           )}
-          {!GUIDE_STAGES.includes(stage) && (
-            <main className="mx-auto flex max-w-xl flex-col items-center gap-4 px-4 py-16 text-center">
-              <div className="text-7xl" aria-hidden>🏗️</div>
-              <h1 className="text-3xl font-extrabold">Your plan is ready!</h1>
-              {reply?.techSummary && <p className="rounded-2xl bg-accent-soft px-5 py-3 text-xl font-bold">🛠️ {reply.techSummary}</p>}
-              <p className="text-lg text-muted">Building your app comes next. It's saved, so you'll start right here next time.</p>
-            </main>
+          {/* The Build screen stays mounted (hidden) on the Ship screen, so "Keep building" returns to the same chat. */}
+          {(stage === 'build' || (stage === 'ship' && !!shipHtml)) && (
+            <div className={stage === 'ship' ? 'hidden' : undefined}>
+              <BuildScreen profile={profile} intro={techSummary ?? (reply?.say || undefined)} resume={resumeApp} controls={controls}
+                onShip={html => { stopSpeaking(); setShipHtml(html); setStage('ship'); }} voiceOn={voiceOn && stage === 'build'} onPassEnded={onPassEnded} />
+            </div>
           )}
-        </>
+          {stage === 'ship' && shipHtml && (
+            <ShipScreen profile={profile} html={shipHtml} onBack={() => setStage('build')} voiceOn={voiceOn} onPassEnded={onPassEnded} />
+          )}
+        </div>
       )}
     </div>
   );

@@ -36,3 +36,30 @@ export function limitMessage(err: unknown): string | null {
 export function passEnded(err: unknown): boolean {
   return err instanceof ApiError && (err.status === 410 || err.status === 401);
 }
+
+export type BuildMode = 'full' | 'edit' | 'repair' | 'step';
+export type GenerateAppResult =
+  | { needsConfirm?: undefined; unsuitable?: undefined; version: number; html: string; changed?: string; missing?: string[] }
+  | { needsConfirm: true; reason: string; unsuitable?: undefined }
+  | { unsuitable: true; needsConfirm?: undefined };
+
+/** Build (full), rebuild with the saved change list (edit), or fix an error (repair). */
+export async function generateApp(args: { mode: BuildMode; request?: string; error?: string; step?: number; confirmed?: boolean; fromList?: boolean }) {
+  return api<GenerateAppResult>('/api/kid/journey/build', { body: { mode: args.mode, error: args.error } });
+}
+
+export async function changeTurn(args: { text?: string; remove?: number; chatQuestion?: string }) {
+  return api<{ changes: string[]; ready: boolean; ship?: boolean; reply: { say: string; question?: string } | null }>('/api/kid/journey/changes', { body: args });
+}
+
+export interface ShelfApp { slug: string; name: string; emoji: string; createdAt: number; projectId: string; version: number; path: string; homeUrl: string | null; qr: string | null }
+
+/** Ship: final. Returns the app as it sits on the kid's shelf. */
+export async function shipApp(name: string) {
+  return api<ShelfApp>('/api/kid/journey/ship', { body: { name } });
+}
+
+/** This kid's "My apps" shelf, newest first. */
+export async function myApps() {
+  return api<ShelfApp[]>('/api/kid/apps');
+}

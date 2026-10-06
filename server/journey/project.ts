@@ -27,6 +27,7 @@ export interface Project {
   updatedAt: number;
   shipped?: { name: string; slug: string; at: number };
   pendingChanges?: string[];
+  versions?: { n: number; mode: 'full' | 'edit' | 'repair'; note: string; at: number }[];
 }
 
 const projectFile = (kidId: string, id: string) => `kids/${kidId}/projects/${id}/project.json`;
@@ -101,3 +102,41 @@ export async function exclusive<T>(projectId: string, work: () => Promise<T>): P
   busy.add(projectId);
   try { return await work(); } finally { busy.delete(projectId); }
 }
+
+// ---------- saving when two things run at once ----------
+// A build can run for minutes while the kid keeps chatting or adds changes. Each operation works
+// on its own copy and, when it's done, merges only what it changed into the newest file.
+
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+/** Merges the changes from `before` → `after` into the project as it is on disk now. */
+export function commitProject(before: Project, after: Project): Project {
+  return changeProject(after.kidId, after.id, (fresh) => {
+    // New messages, renumbered after the newest saved one.
+    const known = new Set(before.messages.map((m) => `${m.thread}|${m.seq}`));
+    let seq = fresh.messages.reduce((n, m) => Math.max(n, m.seq + 1), 0);
+    for (const m of after.messages) if (!known.has(`${m.thread}|${m.seq}`)) fresh.messages.push({ ...m, seq: seq++ });
+    fresh.flags.push(...after.flags.slice(before.flags.length));
+    fresh.timeline.push(...after.timeline.slice(before.timeline.length));
+    (fresh.versions ??= []).push(...(after.versions ?? []).slice((before.versions ?? []).length));
+    const u = fresh.usage, a = after.usage, b = before.usage;
+    u.calls += a.calls - b.calls; u.costUsd += a.costUsd - b.costUsd;
+    u.inputTokens += a.inputTokens - b.inputTokens; u.outputTokens += a.outputTokens - b.outputTokens;
+    u.cacheReadTokens += a.cacheReadTokens - b.cacheReadTokens; u.cacheWriteTokens += a.cacheWriteTokens - b.cacheWriteTokens;
+    for (const [m, n] of Object.entries(a.byModel)) u.byModel[m] = (u.byModel[m] ?? 0) + n - (b.byModel[m] ?? 0);
+    for (const k of Object.keys(after.docs) as DocKind[]) if (!same(before.docs[k], after.docs[k])) fresh.docs[k] = after.docs[k];
+    if (before.stage !== after.stage) fresh.stage = after.stage;
+    if (!same(before.profile, after.profile)) fresh.profile = after.profile;
+    if (!same(before.pendingChanges, after.pendingChanges)) fresh.pendingChanges = after.pendingChanges;
+    if (!same(before.shipped, after.shipped)) fresh.shipped = after.shipped;
+  });
+}
+
+// One build at a time per project, and one chat turn at a time per project (separately).
+const building = new Set<string>();
+export async function exclusiveBuild<T>(projectId: string, work: () => Promise<T>): Promise<T | 'busy'> {
+  if (building.has(projectId)) return 'busy';
+  building.add(projectId);
+  try { return await work(); } finally { building.delete(projectId); }
+}
+export const isBuilding = (projectId: string) => building.has(projectId);

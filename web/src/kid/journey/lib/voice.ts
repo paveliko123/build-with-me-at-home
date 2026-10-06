@@ -134,3 +134,8 @@ function say(clean: string, theme: ThemeId, mine: number, onDone?: () => void) {
   };
 }
 const LEAD_IN_MS = 500;
+
+// Build With Me's Build screen waited for its cloud voice before showing a line; the device voice
+// starts at once, so these are no-ops kept for the ported screens.
+export const voiceReady = (_text: string): Promise<void> => Promise.resolve();
+export function warmVoice() { /* nothing to warm up */ }
