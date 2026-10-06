@@ -211,7 +211,7 @@ Implements `prd.md > The Kid's Journey`.
 - `web/src/lib/api.ts` is rewritten from Firebase callables to `fetch('/api/...')` plus an `EventSource`.
 - **Server side:** `guideTurn`, `startSession`, `getSession`, `changeTurn`, `generateApp`, `edits`, `checklist`, `stages`, `personal`, and the whole `prompt/` folder are ported. Every Firestore read or write becomes a **Store** call, and every Anthropic SDK call becomes a **Claude Runner** call.
 - **Removed server code:** `access`, `billing`, `meter`, `pricing`, `appCheck`, `origins`, `publishApp` (hosting), `reportApp`, `speak` (Cloud TTS), and `samples`.
-- **The course skills** are copied into `app/skills/` at release (the stage instructions), with their LICENSE notice. *Verify the MIT license in Devpost's repo when copying.*
+- **The course skills** are copied unchanged into `app/skills/` (the stage instructions), with Devpost's LICENSE. **Verified:** `challengepost/learn-ai-basics` added the MIT license on 2026-10-05 ("Copyright (c) 2026 Devpost"), and the copied SKILL.md files match it byte for byte. The build copies them to `app/dist/skills` next to the server.
 - **The kid's app** shows in an `<iframe sandbox="allow-scripts">` served from `/apps/...`, never with same-origin access to the app.
 
 ### Claude Runner
@@ -239,9 +239,8 @@ Implements the AI behind `prd.md > The Kid's Journey`, `prd.md > Safety`, `prd.m
   - It runs with a **cleaned environment**: every `CLAUDE*` and `ANTHROPIC*` variable is removed. A server started from a Claude Code session would otherwise inherit that session's sign-in proxy. Kids' runs use only the CLI's own sign-in.
   - It finds `claude` on PATH, then in the official install locations (`~/.local/bin`), with an override setting.
   - The `--setting-sources ""` form and isolation from `~/.claude/CLAUDE.md` are **to verify** in experiment E1. If CLAUDE.md still loads, a fallback is chosen there.
-- **Long-lived conversations:** one **guide** process and one **checker** process per active kid session. Each kid turn is sent as a new user message on stdin, so the conversation (and its cache) carries forward.
-  - The checker sees each turn as it happens, so it can notice a pattern across turns.
-  - The processes are stopped when the pass ends or after 15 minutes idle. They're re-created on resume, with the saved transcript replayed into the first message.
+- **One call per turn** (build revision, slice 5): the guide, the plan writer and the checker each run as one sealed-off `claude -p` call with the stage's system prompt (identical for every turn of a stage, so Claude Code's prompt cache reuses it) and the conversation so far as JSON. The ported turn logic asks again with app notes, writes plans in a separate call and changes the system prompt at every stage, which a single long-lived process can't do cleanly. Resume needs nothing special: the transcript is in `project.json`. E3 (slice 8) measures the cost.
+  - The checker reads each kid message and each guide reply on its own, as in Build With Me.
 - **One-shot jobs:** the **builder** and the **reporter** each start a fresh process per job, with `--output-format json` and `--json-schema` for structured output (the builder returns `{html, notes, leftovers}`, the reporter the report fields).
 - **Structured guide replies:** the guide must return Build With Me's reply shape (say, cards, mock-up, plan). It uses `--json-schema` if that works with stream-json (to verify in E1). Otherwise it's told in its system prompt to answer in JSON, and `replySchema.ts` validates it, with one automatic retry.
 - **Limits:** every `rate_limit_event` is watched:
@@ -265,7 +264,7 @@ Implements `prd.md > Safety`.
 
 ### Speech
 Implements `prd.md > Talking`.
-- **In the browser** (`web/src/lib/speech.ts`, rewritten): `getUserMedia` microphone, an AudioWorklet resampling to **16 kHz mono PCM**, sent in ~1-second chunks over `POST /api/speech/:utteranceId`. A quiet-detection step ends the utterance (longer pause for kids), and there's an "I'm done" button.
+- **In the browser** (`web/src/kid/journey/lib/speech.ts`, rewritten over `public/lib/recorder.js`): `getUserMedia` microphone, an AudioWorklet resampling to **16 kHz mono PCM**, sent in ~1-second chunks over `POST /api/speech/:utteranceId`. A quiet-detection step ends the utterance (4 s for kids, 3 s for teens), and there's an "I'm done" button. Build With Me's browser speech recognition (which sends audio to an outside service) is gone.
 - **On the server** (`server/speech.ts`): a Transformers.js `automatic-speech-recognition` pipeline with **Moonshine base**, loaded once at startup from `${CLAUDE_PLUGIN_DATA}/models`. Moonshine replaced Whisper after E2 (see `checklist.md > Revisions`). Chunks are transcribed as they arrive, and the final text is returned when the utterance ends. No audio is saved.
 - **Voice out:** Build With Me's `voice.ts`, using `speechSynthesis` with a voice chosen per theme from the device's voices and a slower rate for kids. The ⚙️ menu is kept. Neural2 is removed.
 - **No microphone, or the tablet isn't set up** (the page isn't secure): the talk button is replaced by the text box with a "tap 🎤 on your keyboard to talk" hint. The parent sees "Set up this tablet for talking" in **Kids & their apps**.

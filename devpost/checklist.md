@@ -112,7 +112,7 @@ Build mode: fast — pause only for significant decisions, the planned checkpoin
   Learner check: Give a 15-minute pass to one kid and scan it on the tablet. Scan it again on your phone. Then extend it, and watch the tablet's timer change. Shorten a test pass to see the countdown and Time's up.
   Commit: `One-use timed passes with live countdown`
 
-- [ ] **5. A kid talks through Start → Idea → Design → Tech plan, with live safety checks**
+- [x] **5. A kid talks through Start → Idea → Design → Tech plan, with live safety checks**
   Becomes usable: With a pass, the kid goes through Welcome ("an AI, not a person," talk or type), Theme, and the guided steps, all from Build With Me, now on your Claude Code:
   - Kid vs Teen guidance follows the profile you set.
   - Talking uses the slice 2 speech, and the guide speaks with a device voice.
@@ -283,3 +283,12 @@ Activity mode:
 - **Opening a pass takes one tap, and opening it on the laptop locks the parent area** (slice 4, internal).
   - What the build found: a link that uses itself up on load can be spent by a link preview or a browser prefetch, and a kid on the laptop would be one tab away from the unlocked parent area.
   - What changes: `/p/<code>` shows whose pass it is with a **Start** button. "Open on this laptop" ends the parent session in that browser. Passes and kid requests only work from the laptop or the home network.
+- **The course skills are MIT-licensed now** (found during slice 5).
+  - What the build found: Build With Me had found no license, so it kept the skill text private. The learner heard from Devpost, and the check confirmed it: `challengepost/learn-ai-basics` added an MIT license on 2026-10-05, and the local copies match it byte for byte.
+  - What changes: `app/skills/` holds the five stage folders unchanged, with Devpost's LICENSE and a README. The build copies them next to the server.
+- **The guide runs one call per turn, not one long-lived process per session** (slice 5, internal).
+  - What the build found: the ported turn logic asks again with app notes, writes plans in a separate call, and changes the system prompt at every stage. A single long-lived conversation can't do that cleanly.
+  - What changes: each guide, plan-writer and checker call is one sealed-off `claude -p` run with the stage's prompt (the same for every turn of a stage, so Claude Code caches it) plus the conversation as JSON. System prompt files are named by content, so they don't pile up. E3 measures the cost.
+- **Talking in the journey uses the computer's own speech-to-text** (slice 5, internal).
+  - What the build found: Build With Me's talk button used the browser's speech recognition, which sends audio to an outside service. That breaks "kids' voices stay in the house."
+  - What changes: the same talk button now records on the device and the family's computer turns it into text (slice 2's Moonshine). The guide's voice uses only the device's voices; the cloud voice is gone. The Nunito font is bundled instead of loaded from Google.

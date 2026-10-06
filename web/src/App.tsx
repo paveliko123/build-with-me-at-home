@@ -14,7 +14,7 @@ type View = 'loading' | 'first-run' | 'new-pin' | 'opening' | 'home' | 'kid' | '
 export default function App() {
   const passCode = location.pathname.match(/^\/p\/([A-Za-z0-9_-]{8,64})\/?$/)?.[1];
   if (passCode) return <div className="parent"><PassOpen code={passCode} /></div>;
-  if (location.pathname.startsWith('/kid')) return <div className="parent"><KidApp /></div>;
+  if (location.pathname.startsWith('/kid')) return <KidApp />;
   return <ParentApp />;
 }
 
@@ -31,6 +31,7 @@ function ParentApp() {
   }, []);
   useEffect(() => { refresh(); }, [refresh]);
 
+  if (view === 'kid') return <KidApp />;
   return (
     <div className="parent">
       {view === 'loading' && <main><p className="muted">Loading…</p></main>}
@@ -38,7 +39,6 @@ function ParentApp() {
       {view === 'new-pin' && <FirstRun onDone={refresh} newPinOnly />}
       {view === 'opening' && <Opening onUnlocked={refresh} />}
       {view === 'home' && <ParentHome onLock={refresh} />}
-      {view === 'kid' && <KidApp />}
       {view === 'error' && (
         <div className="pinwrap"><div className="logo">🔌</div><h1>Can't reach Build With Me</h1><p className="muted">Make sure it's running on the computer, then reload this page.</p></div>
       )}

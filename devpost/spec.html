@@ -409,7 +409,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
       <li><code>web/src/lib/api.ts</code> is rewritten from Firebase callables to <code>fetch('/api/…')</code> plus an <code>EventSource</code>.</li>
       <li><b>Server side:</b> <code>guideTurn</code>, <code>startSession</code>, <code>getSession</code>, <code>changeTurn</code>, <code>generateApp</code>, <code>edits</code>, <code>checklist</code>, <code>stages</code>, <code>personal</code> and the whole <code>prompt/</code> folder are ported. Firestore calls become <b>Store</b> calls; Anthropic SDK calls become <b>Claude Runner</b> calls.</li>
       <li><b>Removed server code:</b> access, billing, meter, pricing, appCheck, origins, publishApp, reportApp, speak (Cloud TTS), samples.</li>
-      <li><b>The course skills</b> are copied into <code>app/skills/</code> at release, with their LICENSE notice. <span class="pill verify">verify MIT</span></li>
+      <li><b>The course skills</b> are copied unchanged into <code>app/skills/</code>, with Devpost's LICENSE. <b>Verified:</b> <code>challengepost/learn-ai-basics</code> added the MIT license on 2026-10-05 ("Copyright (c) 2026 Devpost"), and the copies match it byte for byte. The build copies them to <code>app/dist/skills</code> next to the server. <span class="pill verify">build revision</span></li>
       <li><b>The kid's app</b> shows in an <code>&lt;iframe sandbox="allow-scripts"&gt;</code> served from <code>/apps/…</code>, never with same-origin access.</li>
     </ul>
     <div class="files">server/journey/** · web/src/screens/** · web/src/lib/api.ts</div>
@@ -441,11 +441,11 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
       <li>It runs with a <b>cleaned environment</b>: every <code>CLAUDE*</code> and <code>ANTHROPIC*</code> variable is removed. A server started from a Claude Code session would otherwise inherit that session's sign-in proxy. Kids' runs use only the CLI's own sign-in. <span class="pill verify">build revision</span></li>
       <li>It finds <code>claude</code> on PATH, then in the official install locations (<code>~/.local/bin</code>), with an override setting.</li>
       <li>It runs in an empty folder, <code>${CLAUDE_PLUGIN_DATA}/sandbox</code>. The <code>--setting-sources ""</code> form and isolation from <code>~/.claude/CLAUDE.md</code> are <span class="pill verify">to verify in E1</span>, with a fallback chosen there.</li>
-      <li><b>Long-lived conversations:</b> one <b>guide</b> and one <b>checker</b> process per active kid session.
+      <li><b>One call per turn</b> <span class="pill verify">build revision</span>: the guide, the plan writer and the checker each run as one sealed-off <code>claude -p</code> call with the stage's system prompt (the same for every turn of a stage, so Claude Code's prompt cache reuses it) and the conversation so far as JSON.
         <ul>
-          <li>Each turn is a new message on stdin, so the conversation (and its cache) carries forward.</li>
-          <li>The checker sees turns as they happen, so it can spot patterns.</li>
-          <li>They're stopped when the pass ends or after 15 minutes idle, and re-created on resume with the saved transcript replayed.</li>
+          <li>Why: the ported turn logic asks again with app notes, writes plans in a separate call and changes the system prompt at every stage, which a single long-lived process can't do cleanly.</li>
+          <li>Resume needs nothing special: the transcript is in <code>project.json</code>. E3 (slice 8) measures the cost.</li>
+          <li>The checker reads each kid message and each guide reply on its own, as in Build With Me.</li>
         </ul></li>
       <li><b>One-shot jobs:</b> the <b>builder</b> and <b>reporter</b> start a fresh process per job with <code>--output-format json</code> and <code>--json-schema</code>. The builder returns <code>{html, notes, leftovers}</code>; the reporter returns the report fields.</li>
       <li><b>Structured guide replies:</b> Build With Me's reply shape (say, cards, mock-up, plan). It uses <code>--json-schema</code> if that works with stream-json <span class="pill verify">E1</span>; otherwise the system prompt asks for JSON and <code>replySchema.ts</code> validates it, with one automatic retry.</li>
@@ -475,7 +475,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
 
   <details id="c-speech"><summary><h3>🎤 Speech</h3><span class="prd">prd › Talking</span></summary><div class="body">
     <ul>
-      <li><b>In the browser</b> (<code>web/src/lib/speech.ts</code>, rewritten): <code>getUserMedia</code> microphone, an AudioWorklet resampling to <b>16 kHz mono PCM</b>, sent in ~1-second chunks to <code>POST /api/speech/:utteranceId</code>. Quiet-detection ends the utterance (longer pause for kids), and there's an "I'm done" button.</li>
+      <li><b>In the browser</b> (<code>web/src/kid/journey/lib/speech.ts</code>, rewritten over <code>public/lib/recorder.js</code>): <code>getUserMedia</code> microphone, an AudioWorklet resampling to <b>16 kHz mono PCM</b>, sent in ~1-second chunks to <code>POST /api/speech/:utteranceId</code>. Quiet-detection ends the utterance (4 s for kids, 3 s for teens), and there's an "I'm done" button. Build With Me's browser speech recognition, which sends audio to an outside service, is gone. <span class="pill verify">build revision</span></li>
       <li><b>On the server</b> (<code>server/speech.ts</code>): a Transformers.js <code>automatic-speech-recognition</code> pipeline, <b>Moonshine base</b> (replaced Whisper after E2: about 1.2 s vs 2.7 s), loaded once at startup from <code>${CLAUDE_PLUGIN_DATA}/models</code>. Chunks are transcribed as they arrive; the final text is returned when the utterance ends. <b>No audio is saved.</b></li>
       <li><b>Voice out:</b> Build With Me's <code>voice.ts</code>, using <code>speechSynthesis</code> with a voice per theme from the device's voices and a slower rate for kids. The ⚙️ menu is kept; Neural2 is removed.</li>
       <li><b>No microphone, or the tablet isn't set up:</b> the text box with a "tap 🎤 on your keyboard to talk" hint. The parent sees "Set up this tablet for talking."</li>

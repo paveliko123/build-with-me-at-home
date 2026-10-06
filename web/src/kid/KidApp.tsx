@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError, clock, timeOfDay, type KidSessionView, type PassPeek } from '../lib/api';
 import { useNow } from '../parent/Passes';
+import Journey from './journey/Journey';
 
 // The kid's side behind a pass (prd.md > Passes, States and Boundaries): no pass → ask a parent
-// (or type a code); live → Welcome (the journey arrives in slice 5) with a countdown from 10
-// minutes; over → Time's up; server gone → Can't reach the computer.
+// (or type a code); live → the journey (themed, ./journey) with a countdown from 10 minutes;
+// over → Time's up; server gone → Can't reach the computer. The simple screens use the
+// parent-side styles (.parent); the journey brings its own theme.
 
 const OPEN_ERRORS: Record<string, string> = {
   used: 'This pass was already used — ask your parent for a new one.',
@@ -50,30 +52,16 @@ export function KidApp() {
     return () => { es.close(); if (timer) clearTimeout(timer); };
   }, [live]);
 
-  if (s === null) return <div className="kidwrap"><p className="muted">Loading…</p></div>;
-  if (s === 'unreachable') return <CantReach />;
-  if (s === 'none') return <NoPass onOpened={load} />;
-  if (s.state === 'over') return <TimesUp name={s.kid.nickname} onOpened={load} />;
+  if (s === null) return <div className="parent"><div className="kidwrap"><p className="muted">Loading…</p></div></div>;
+  if (s === 'unreachable') return <div className="parent"><CantReach /></div>;
+  if (s === 'none') return <div className="parent"><NoPass onOpened={load} /></div>;
+  if (s.state === 'over') return <div className="parent"><TimesUp name={s.kid.nickname} onOpened={load} /></div>;
   return (
     <>
-      <Welcome view={s} />
+      <Journey name={s.kid.nickname} onPassEnded={load} />
       <Countdown endsAt={s.endsAt} offset={offset} onZero={load} />
-      {lost && <div className="overlay"><CantReach /></div>}
+      {lost && <div className="bwm-overlay"><div className="parent"><CantReach /></div></div>}
     </>
-  );
-}
-
-function Welcome({ view }: { view: KidSessionView }) {
-  return (
-    <div className="kidwrap">
-      <div className="bigemoji">{view.kid.emoji}</div>
-      <h1>Hi {view.kid.nickname}!</h1>
-      <div className="kidcard">
-        <p style={{ fontSize: 18, margin: 0 }}><b>Your helper is an AI, not a person.</b> It's a computer program that's good at building apps with you.</p>
-        <p className="muted" style={{ marginBottom: 0 }}>{view.kid.group === 'teen' ? 'Teen mode' : 'Kid mode'} · your pass lasts until {timeOfDay(view.endsAt)}</p>
-      </div>
-      <p className="muted" style={{ marginTop: 18 }}>🛠️ Building apps together starts here very soon.</p>
-    </div>
   );
 }
 
@@ -83,7 +71,7 @@ function Countdown({ endsAt, offset, onZero }: { endsAt: number; offset: number;
   const fired = useRef(false);
   useEffect(() => { if (left <= 0 && !fired.current) { fired.current = true; onZero(); } if (left > 0) fired.current = false; }, [left, onZero]);
   if (left > 10 * 60_000 || left <= 0) return null;
-  return <div className="countdown" role="timer" aria-live="off">⏰ {clock(left)} left</div>;
+  return <div className="bwm-countdown" role="timer" aria-live="off">⏰ {clock(left)} left</div>;
 }
 
 export function CodeEntry({ onOpened }: { onOpened: () => void }) {

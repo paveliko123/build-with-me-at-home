@@ -243,3 +243,10 @@ setInterval(() => {
 
 /** Test hook. */
 export function resetPassesForTests(): void { wrong.clear(); announced.clear(); }
+
+/** Where the kid is now ("Idea", "Design"…), shown on the parent's Active passes card. */
+export function setPassStep(id: string, step: string): void {
+  let changed = false;
+  update((ps) => { const p = ps.find((x) => x.id === id); if (p && p.step !== step) { p.step = step; changed = true; } });
+  if (changed) passEvents.emit('changed');
+}

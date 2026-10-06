@@ -15,6 +15,7 @@ import { addChunk, finishUtterance, loadSpeech } from './speech.js';
 import { isLoopback } from './auth.js';
 import { parentRoutes } from './parentRoutes.js';
 import { kidRoutes } from './kidRoutes.js';
+import { journeyRoutes } from './journey/routes.js';
 import { kidSession } from './passes.js';
 import { setupTabletPage } from './tabletSetupPage.js';
 
@@ -74,6 +75,7 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
 
   // ---- passes, the kid's session, live updates ----
   app.use('/api', kidRoutes());
+  app.use('/api/kid/journey', journeyRoutes());
 
   // ---- speech: a kid with a live pass, or the laptop itself ----
   const mayTalk = (req: Request, res: Response, next: NextFunction) => {

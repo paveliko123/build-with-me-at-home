@@ -1,4 +1,65 @@
 @import "tailwindcss";
 
+/* Kid journey (ported from Build With Me): theme colors are CSS variables set per theme
+   (src/kid/journey/themes/themes.ts). Nunito is bundled locally, never fetched from Google. */
+@theme inline {
+  --color-bg: var(--t-bg);
+  --color-surface: var(--t-surface);
+  --color-surface-2: var(--t-surface-2);
+  --color-ink: var(--t-ink);
+  --color-muted: var(--t-muted);
+  --color-accent: var(--t-accent);
+  --color-accent-soft: var(--t-accent-soft);
+  --color-line: var(--t-line);
+  --font-sans: "Nunito Variable", "Nunito", ui-rounded, system-ui, sans-serif;
+}
+
 html, body, #root { min-height: 100%; }
 body { margin: 0; }
+.bwm-journey { font-family: var(--font-sans); }
+
+/* Theme waiting animations (src/components/WaitingAnimation.tsx). */
+@keyframes ppg-bounce { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-18px) } }
+@keyframes ppg-hop { 0%, 100% { transform: translateY(0) rotate(0) } 30% { transform: translateY(-26px) rotate(-8deg) } 60% { transform: translateY(0) rotate(6deg) } }
+@keyframes ppg-twinkle { 0%, 100% { transform: scale(1); filter: brightness(1) } 50% { transform: scale(1.12); filter: brightness(1.3) } }
+@keyframes ppg-drive { 0% { transform: translateX(-120px) } 100% { transform: translateX(120px) } }
+@keyframes ppg-orbit { from { transform: rotate(0deg) translateX(70px) rotate(0deg) } to { transform: rotate(360deg) translateX(70px) rotate(-360deg) } }
+@keyframes ppg-type { 0%, 100% { transform: translateY(0) } 25% { transform: translateY(-4px) } 75% { transform: translateY(2px) } }
+@keyframes ppg-float { 0%, 100% { transform: translateY(0); opacity: .55 } 50% { transform: translateY(-12px); opacity: 1 } }
+
+.ppg-bounce { animation: ppg-bounce 1s ease-in-out infinite; }
+.ppg-hop { animation: ppg-hop 1.2s ease-in-out infinite; }
+.ppg-twinkle { animation: ppg-twinkle 1.4s ease-in-out infinite; }
+.ppg-drive { animation: ppg-drive 2.2s linear infinite alternate; }
+.ppg-orbit { animation: ppg-orbit 3s linear infinite; }
+.ppg-type { animation: ppg-type .5s ease-in-out infinite; }
+.ppg-float { animation: ppg-float 2.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ppg-bounce, .ppg-hop, .ppg-twinkle, .ppg-drive, .ppg-orbit, .ppg-type, .ppg-float { animation: none; }
+}
+
+/* Planning documents (src/components/DocReview.tsx). */
+.ppg-doc h1 { font-size: 1.5rem; font-weight: 800; margin: .75rem 0 .5rem; }
+.ppg-doc h2 { font-size: 1.2rem; font-weight: 800; margin: 1.1rem 0 .4rem; }
+.ppg-doc h3 { font-size: 1.05rem; font-weight: 700; margin: .9rem 0 .3rem; }
+.ppg-doc p { margin: .4rem 0; line-height: 1.6; }
+.ppg-doc ul, .ppg-doc ol { margin: .4rem 0 .4rem 1.4rem; list-style: disc; }
+.ppg-doc ol { list-style: decimal; }
+.ppg-doc li { margin: .2rem 0; }
+.ppg-doc code { background: var(--t-surface-2); padding: 0 .3rem; border-radius: .3rem; font-size: .9em; }
+.ppg-doc blockquote { border-left: 3px solid var(--t-line); padding-left: .8rem; color: var(--t-muted); }
+.ppg-doc table { border-collapse: collapse; margin: .5rem 0; }
+.ppg-doc th, .ppg-doc td { border: 1px solid var(--t-line); padding: .3rem .6rem; text-align: left; }
+.ppg-doc li:has(> input[type="checkbox"]) { list-style: none; margin-left: -1.4rem; }
+.ppg-doc input[type="checkbox"] { margin-right: .5rem; accent-color: var(--t-accent); }
+
+/* The guide's replies (src/screens/GuideStage.tsx): Markdown, kept compact. */
+.ppg-say p { margin: .3rem 0; }
+.ppg-say ul, .ppg-say ol { margin: .3rem 0 .3rem 1.3rem; list-style: disc; }
+.ppg-say ol { list-style: decimal; }
+.ppg-say strong { color: var(--t-ink); }
+
+/* Kid pass overlays (src/kid/KidApp.tsx), above any theme. */
+.bwm-countdown{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#fdf2dc;color:#8a5a12;border:2px solid #b7791f;border-radius:999px;padding:10px 20px;font:800 18px/1.2 system-ui,sans-serif;font-variant-numeric:tabular-nums;box-shadow:0 6px 20px rgba(0,0,0,.12);z-index:40;white-space:nowrap}
+.bwm-overlay{position:fixed;inset:0;z-index:50}

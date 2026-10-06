@@ -8,7 +8,7 @@ import { existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
-import { randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { pluginDataDir, sandboxDir } from '../paths.js';
 import { SEAL_RULE, scrubText, scrubDeep } from './guard.js';
 
@@ -30,6 +30,7 @@ export interface TurnResult {
   durationMs: number;
   error?: string;
   rateLimit?: RateLimitInfo;
+  stopReason?: string | null;
 }
 
 export interface RunnerEvents {
@@ -82,11 +83,12 @@ export function cleanEnv(): NodeJS.ProcessEnv {
 
 const EMPTY_MCP = JSON.stringify({ mcpServers: {} });
 
+// Named by content, so the same stage prompt (every turn of a stage) reuses one file.
 function promptFile(systemPrompt: string): string {
   const dir = join(pluginDataDir(), 'prompts');
   mkdirSync(dir, { recursive: true });
-  const file = join(dir, `${randomUUID()}.txt`);
-  writeFileSync(file, systemPrompt, 'utf8');
+  const file = join(dir, `${createHash('sha256').update(systemPrompt).digest('hex').slice(0, 32)}.txt`);
+  if (!existsSync(file)) writeFileSync(file, systemPrompt, 'utf8');
   return file;
 }
 
@@ -130,6 +132,7 @@ function toTurnResult(msg: any, started: number, rateLimit?: RateLimitInfo): Tur
     durationMs: Date.now() - started,
     error: ok ? undefined : (msg.terminal_reason || msg.subtype || 'error') + (typeof msg.result === 'string' ? `: ${scrubText(msg.result)}` : ''),
     rateLimit,
+    stopReason: msg.stop_reason ?? null,
   };
 }
 

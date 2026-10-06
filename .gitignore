@@ -10,3 +10,6 @@ node_modules/
 
 # built app: committed at release time (slice 9)
 app/dist/
+
+# scratch scripts
+/tmp/
