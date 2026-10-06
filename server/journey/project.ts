@@ -28,6 +28,9 @@ export interface Project {
   shipped?: { name: string; slug: string; at: number };
   pendingChanges?: string[];
   versions?: { n: number; mode: 'full' | 'edit' | 'repair'; note: string; at: number }[];
+  device?: string; // where the kid used it last (from the pass)
+  usageStart?: { at: number; fiveHourPct?: number; weeklyPct?: number }; // /usage before the first call
+  reports?: { id: string; at: number; finished: boolean }[];
 }
 
 const projectFile = (kidId: string, id: string) => `kids/${kidId}/projects/${id}/project.json`;
@@ -129,6 +132,7 @@ export function commitProject(before: Project, after: Project): Project {
     if (!same(before.profile, after.profile)) fresh.profile = after.profile;
     if (!same(before.pendingChanges, after.pendingChanges)) fresh.pendingChanges = after.pendingChanges;
     if (!same(before.shipped, after.shipped)) fresh.shipped = after.shipped;
+    if (before.device !== after.device) fresh.device = after.device;
   });
 }
 

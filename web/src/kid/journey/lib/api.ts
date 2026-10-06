@@ -27,9 +27,10 @@ export async function newApp() {
 
 /** The parent's plan limit (prd.md > Limit Reached): a friendly message, shown as is. */
 export function limitMessage(err: unknown): string | null {
-  return err instanceof ApiError && err.status === 429 && err.body?.error === 'limit'
-    ? "Your helper needs a rest for now. Ask your parent: they can see when it's ready again."
-    : null;
+  if (!(err instanceof ApiError && err.status === 429 && err.body?.error === 'limit')) return null;
+  // The Limit reached screen (Journey.tsx) listens for this.
+  window.dispatchEvent(new CustomEvent('bwm-limit', { detail: { resetsAt: err.body?.resetsAt ?? null } }));
+  return 'Limit reached — ask your parent about it. Your work is saved.';
 }
 
 /** Time's up or no pass (the pass screens take over). */

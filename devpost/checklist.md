@@ -158,9 +158,9 @@ Build mode: fast — pause only for significant decisions, the planned checkpoin
   Learner check: Have a kid finish a build, ask for one change, and ship it. Open it from My apps on the tablet and on the laptop. Is the app good? Does the shelf feel right?
   Commit: `Build, change rounds, ship and My apps shelf`
 
-- [ ] **7. The parent gets a report for every app, with flags, plan usage and alerts**
+- [x] **7. The parent gets a report for every app, with flags, plan usage and alerts**
   Becomes usable:
-  - When an app ships, or an unfinished pass ends, Opus writes the report. It appears in the parent home's Latest reports and in All reports, and as a self-contained HTML file in `Documents\Build With Me\Reports` that opens without the app.
+  - When an app ships, or an unfinished pass ends, Opus writes the report. It appears in the parent home's Latest reports and in All reports, and as a self-contained HTML file in `<home>\Build With Me\Reports` that opens without the app.
   - It has everything from the mockup, including % of your 5-hour and weekly limits.
   - Flags and limit-reached events show under Needs your attention.
   - Hitting the plan limit shows the kid "Limit reached — ask your parent."
@@ -300,3 +300,6 @@ Activity mode:
 - **Shipped apps run inside Build With Me's wrapper page** (slice 6, internal).
   - What the build found: an app served straight from the family's address would share that address's browser storage and cookies with the app itself.
   - What changes: the app runs in a sandboxed frame with no origin of its own, under the strict policy; its saved data lives in the wrapper's own key space. Each new version's words also go through the safety check before they're shown.
+- **Reports keep the facts even without the review, and the usage note is honest** (slice 7, internal).
+  - What the build found: the Opus review is one more Claude call, so it can fail at exactly the wrong moment (a limit just hit). And `/usage` measures the whole account, including the parent's own Claude Code use at the same time.
+  - What changes: time, rounds, device, flags, timeline and usage always come from the project; if the review can't run, the report says so and shows the facts. The usage line says that anything else on the account counts too, and which kid's session it was shared with. A `simulate-limit` file in the plugin folder simulates a rejected limit for testing.

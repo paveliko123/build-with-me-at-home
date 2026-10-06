@@ -16,6 +16,8 @@ import { changeTurn } from './changes.js';
 import { shelf, shipApp, type ShelfApp } from './apps.js';
 import { commitProject, createProject, currentProject, exclusive, exclusiveBuild, leaveCurrent, thread, type Project } from './project.js';
 import { firstStage, stageDocKind } from './stages.js';
+import { makeReport, noteUsageStart } from '../report/reporter.js';
+import { addAlert } from '../report/alerts.js';
 import type { GuideReply, Profile, Stage, ThemeId } from './types.js';
 
 const THEMES: ThemeId[] = ['unicorns', 'princesses', 'robots', 'cars', 'space', 'arcade', 'music', 'sports', 'nature', 'office'];
@@ -61,8 +63,13 @@ export function snapshot(p: Project) {
   };
 }
 
-function fail(res: Response, err: unknown) {
-  if (err instanceof LimitError) { res.status(429).json({ error: 'limit', resetsAt: err.resetsAt ?? null }); return; }
+function fail(res: Response, err: unknown, s?: KidSession) {
+  if (err instanceof LimitError) {
+    // prd.md > Limit Reached: the parent sees when, in whose session, and when it resets.
+    if (s) addAlert({ kind: 'limit', kidId: s.kid.id, kidName: s.kid.nickname, resetsAt: err.resetsAt ?? null, text: `Limit reached during ${s.kid.nickname}'s session. ${s.kid.nickname} saw "Limit reached, ask your parent." The work is saved.` });
+    res.status(429).json({ error: 'limit', resetsAt: err.resetsAt ?? null });
+    return;
+  }
   if (err instanceof TurnError) { res.status(err.status).json({ error: err.message }); return; }
   console.error('[journey]', err);
   res.status(500).json({ error: 'hiccup' });
@@ -79,6 +86,7 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
     const before = currentProject(s.kid.id);
     if (!before) { res.status(409).json({ error: 'no-project' }); return; }
     const p = copy(before);
+    if (s.pass.device) p.device = s.pass.device;
     const run = async () => {
       try {
         const out = await work(p, s);
@@ -87,7 +95,7 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
         res.json(out);
       } catch (err) {
         commitProject(before, p); // keeps flags and usage from an operation that failed part-way
-        fail(res, err);
+        fail(res, err, s);
       }
     };
     const out = lock === 'chat' ? await exclusive(before.id, run) : lock === 'build' ? await exclusiveBuild(before.id, run) : await run();
@@ -111,6 +119,7 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
     if (!THEMES.includes(theme)) { res.status(400).json({ error: 'Unknown theme.' }); return; }
     const profile: Profile = { ageGroup: s.kid.group, experience: LEVEL[s.kid.group], theme, inputMode: req.body?.inputMode === 'talk' ? 'talk' : 'type' };
     const p = createProject(s.kid.id, profile, firstStage(profile));
+    noteUsageStart(p); // plan usage before the first Claude call, for the report
     setPassStep(s.pass.id, STEP_NAMES[p.stage]);
     res.json(snapshot(p));
   });
@@ -150,6 +159,8 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
   r.post('/ship', (req, res) => withProject(req, res, 'chat', async (p, s) => {
     const out = shipApp(p, String(req.body?.name ?? ''));
     if (!out.ok) throw new TurnError(409, out.error);
+    // The parent report, once the ship is saved (it runs in the background: Opus takes a minute).
+    setTimeout(() => void makeReport(s.kid.id, p.id, { finished: true, pass: s.pass }).catch((e) => console.error('[report]', e)), 100);
     return appLinks(s.kid.id, out.app, opts.httpsPort);
   }));
 

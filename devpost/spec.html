@@ -519,7 +519,8 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
     <ul>
       <li><b>Made automatically:</b> on Ship, and for an unfinished session when its pass ends or is ended and the project wasn't shipped.</li>
       <li><b>Input to the reporter:</b> the transcript (masked), flags, step timeline, change rounds, device and how they answered, time spent, pass length.</li>
-      <li><b>Output (JSON schema):</b> <code>{title, summary, ideasShareKid, ideasNote, flagsAssessment:[…], worthAChat, conversationStarters:[…], okLines:{personal, output, onTopic}}</code>. "Whose ideas" is labeled an <b>estimate</b>.</li>
+      <li><b>Output (JSON schema):</b> <code>{title, summary, appDescription, ideasShareKid, ideasNote, flags:[{index, headline, guideDid, kidReaction}], checks:{personal, output, onTopic}, needsLook, worthAChat, starters:[…], stageNotes:{…}}</code>. "Whose ideas" is labeled an <b>estimate</b>. The facts (time, rounds, device, flags, timeline, usage) come from the project; if the review can't run (for example the limit is reached), the report is still written with the facts only. <span class="pill verify">build revision</span></li>
+      <li><b>Test hook:</b> a <code>simulate-limit</code> file in the plugin data folder makes every journey call act as if the plan limit was hit, without spending any of it.</li>
       <li><b>Plan usage</b> (<code>server/usage.ts</code>):
         <ul>
           <li>Just before the session's first Claude call and just after the report, the server runs <code>claude -p "/usage"</code> (isolated) and reads the 5-hour and weekly %. The report shows the difference.</li>

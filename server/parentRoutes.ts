@@ -11,6 +11,9 @@ import { readUsage, type UsageReading } from './usage.js';
 import { homeAddresses } from './certs.js';
 import { activePasses, createPass, extendPass, endPass } from './passes.js';
 import { deleteApp, shelf } from './journey/apps.js';
+import { listReports, readReport } from './report/reporter.js';
+import { renderReport } from './report/template.js';
+import { dismissAlert, listAlerts } from './report/alerts.js';
 
 let usageCache: { reading: UsageReading; at: number } | null = null;
 let usageInFlight: Promise<UsageReading> | null = null;
@@ -110,6 +113,16 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
     const url = ips[0] ? `http://${ips[0]}:${opts.httpPort}/setup-tablet` : null;
     res.json({ url, addresses: ips, httpsPort: opts.httpsPort, certificateName: opts.caName, qr: url ? await QRCode.toDataURL(url, { margin: 1, width: 240 }) : null });
   });
+
+  // ---- reports and alerts (prd.md > The Parent Report, Limit Reached) ----
+  r.get('/reports', (_req, res) => { res.json(listReports()); });
+  r.get('/reports/:id/html', (req, res) => {
+    const report = readReport(String(req.params.id));
+    if (!report) { res.status(404).json({ error: 'Report not found.' }); return; }
+    res.set('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src data:; frame-ancestors 'self'").type('html').send(renderReport(report));
+  });
+  r.get('/alerts', (_req, res) => { res.json(listAlerts()); });
+  r.post('/alerts/:id/dismiss', (req, res) => { res.json({ ok: dismissAlert(String(req.params.id)) }); });
 
   // ---- each kid's apps (prd.md > My Apps: Kids & their apps → Manage) ----
   r.get('/apps', (_req, res) => {

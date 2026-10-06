@@ -17,6 +17,7 @@ import { parentRoutes } from './parentRoutes.js';
 import { kidRoutes } from './kidRoutes.js';
 import { journeyRoutes, shelfRoutes } from './journey/routes.js';
 import { APP_CSP, servedApp } from './journey/apps.js';
+import { watchPassesForReports } from './report/reporter.js';
 import { kidSession } from './passes.js';
 import { setupTabletPage } from './tabletSetupPage.js';
 
@@ -78,6 +79,7 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
 
   // ---- passes, the kid's session, live updates ----
   app.use('/api', kidRoutes());
+  watchPassesForReports(httpPort);
   app.use('/api/kid/journey', journeyRoutes({ httpsPort }));
   app.use('/api/kid/apps', shelfRoutes({ httpsPort }));
 

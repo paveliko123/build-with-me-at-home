@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, type ActivePass, type Kid, type Status } from '../lib/api';
 import { ActivePasses, GivePass } from './Passes';
+import { AllReports, AttentionCard, LatestReports, ReportView, type AlertItem, type ReportItem } from './Reports';
 import { KidForm } from './KidForm';
 import { PinPad } from './PinPad';
 
@@ -13,6 +14,13 @@ export function ParentHome({ onLock }: { onLock: () => void }) {
   const [passes, setPasses] = useState<ActivePass[]>([]);
   const [shown, setShown] = useState<string | null>(null);
   const [apps, setApps] = useState<Record<string, KidApp[]>>({});
+  const [reports, setReports] = useState<ReportItem[]>([]);
+  const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [view, setView] = useState<{ kind: 'home' } | { kind: 'reports' } | { kind: 'report'; id: string; from: 'home' | 'reports' }>({ kind: 'home' });
+  const loadReports = useCallback(() => {
+    api<ReportItem[]>('/api/parent/reports').then(setReports).catch(() => {});
+    api<AlertItem[]>('/api/parent/alerts').then(setAlerts).catch(() => {});
+  }, []);
   const loadApps = useCallback(() => api<Record<string, KidApp[]>>('/api/parent/apps').then(setApps).catch(() => {}), []);
   useEffect(() => { loadApps(); }, [loadApps]);
 
@@ -26,14 +34,18 @@ export function ParentHome({ onLock }: { onLock: () => void }) {
   useEffect(() => {
     loadPasses();
     const es = new EventSource('/api/events');
-    es.addEventListener('passes', () => loadPasses());
+    es.addEventListener('passes', () => { loadPasses(); loadReports(); loadApps(); });
     // The countdowns tick locally; this catches anything missed while the stream reconnects.
     const t = setInterval(loadPasses, 60_000);
     return () => { es.close(); clearInterval(t); };
-  }, [loadPasses]);
+  }, [loadPasses, loadReports, loadApps]);
+  useEffect(() => { loadReports(); }, [loadReports]);
 
   const lock = async () => { await api('/api/parent/lock', { body: {} }).catch(() => {}); onLock(); };
   const now = new Date();
+
+  if (view.kind === 'reports') return <AllReports reports={reports} onOpen={(id) => setView({ kind: 'report', id, from: 'reports' })} onBack={() => setView({ kind: 'home' })} />;
+  if (view.kind === 'report') return <ReportView id={view.id} onBack={() => setView(view.from === 'reports' ? { kind: 'reports' } : { kind: 'home' })} />;
 
   return (
     <main>
@@ -53,14 +65,8 @@ export function ParentHome({ onLock }: { onLock: () => void }) {
           <ActivePasses passes={passes} onShow={setShown} reload={loadPasses} />
         </div>
         <div className="stack">
-          <div className="card">
-            <h2>🔔 Needs your attention</h2>
-            <div className="empty">Nothing right now.</div>
-          </div>
-          <div className="card">
-            <h2>📄 Latest reports</h2>
-            <div className="empty">Reports appear after your kids finish an app.</div>
-          </div>
+          <AttentionCard alerts={alerts} reload={loadReports} onOpenReport={(id) => setView({ kind: 'report', id, from: 'home' })} />
+          <LatestReports reports={reports} onOpen={(id) => setView({ kind: 'report', id, from: 'home' })} onAll={() => setView({ kind: 'reports' })} />
           <div className="card">
             <h2>🧒 Kids &amp; their apps</h2>
             {kids.map((k) => (

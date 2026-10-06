@@ -5,7 +5,10 @@
 // plus the conversation so far as JSON, and a JSON schema for the reply.
 // (spec.md > Claude Runner; checklist.md > Revisions: one call per turn.)
 
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { oneShot, type Model, type RateLimitInfo, type TurnResult } from '../claude/runner.js';
+import { pluginDataDir } from '../paths.js';
 import { LEAK, LEAK_REPLY } from './prompt/safety.js';
 import { REPLY_SCHEMA } from './prompt/replySchema.js';
 import type { GuideReply } from './types.js';
@@ -73,10 +76,15 @@ function metaOf(label: string, model: Model, r: TurnResult): CallMeta {
   };
 }
 
+/** Test hook (checklist slice 7): a file named "simulate-limit" in the plugin data folder makes
+ *  every journey call act as if the plan limit was hit, without spending any of it. */
+export const simulatedLimit = () => existsSync(join(pluginDataDir(), 'simulate-limit'));
+
 const limited = (r: TurnResult) => r.rateLimit?.status === 'rejected' || /rate.?limit|usage limit|limit reached/i.test(r.error ?? '');
 
 async function call(label: string, role: 'guide' | 'check', system: string, prompt: string, schema: unknown, timeoutMs = GUIDE_TIMEOUT_MS, onRateLimit?: (i: RateLimitInfo) => void) {
   const model = ROLE_MODEL[role];
+  if (simulatedLimit()) throw new LimitError(Date.now() + 60 * 60_000);
   const r = await oneShot({ model, systemPrompt: system, prompt, jsonSchema: claudeSchema(schema), timeoutMs, onRateLimit });
   if (limited(r)) throw new LimitError(r.rateLimit?.resetsAt ? r.rateLimit.resetsAt * 1000 : undefined);
   return { r, meta: metaOf(label, model, r) };
@@ -127,6 +135,7 @@ const BUILD_TIMEOUT_MS = 12 * 60_000; // big apps can take several minutes to wr
 /** The builder (Opus) writes one complete HTML document, or edits in the EDIT FORMAT (plain text). */
 export async function callBuilder(system: string, prompt: string): Promise<{ text: string; meta: CallMeta }> {
   const model: Model = 'opus';
+  if (simulatedLimit()) throw new LimitError(Date.now() + 60 * 60_000);
   const r = await oneShot({ model, systemPrompt: system, prompt, timeoutMs: BUILD_TIMEOUT_MS, onRateLimit: rateLimitListener });
   if (limited(r)) throw new LimitError(r.rateLimit?.resetsAt ? r.rateLimit.resetsAt * 1000 : undefined);
   if (!r.ok) throw new GuideError(`the builder did not answer: ${(r.error ?? '').slice(0, 200)}`);

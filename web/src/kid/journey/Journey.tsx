@@ -73,6 +73,13 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
   const [techSummary, setTechSummary] = useState<string | undefined>(undefined);
   const [shipHtml, setShipHtml] = useState<string | null>(null);
   const [shelfOpen, setShelfOpen] = useState(false);
+  // prd.md > Limit Reached: a friendly screen when the parent's plan limit is hit; the work is saved.
+  const [limited, setLimited] = useState(false);
+  useEffect(() => {
+    const on = () => { stopSpeaking(); setLimited(true); };
+    window.addEventListener('bwm-limit', on);
+    return () => window.removeEventListener('bwm-limit', on);
+  }, []);
   const [error, setError] = useState<string | null>(null);
   const [lastText, setLastText] = useState<string | undefined>(undefined);
   const started = useRef(false);
@@ -222,6 +229,16 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
   return (
     <div style={themeStyle(theme)} className="bwm-journey min-h-screen bg-bg text-ink">
       {screen === 'loading' && <div className="flex min-h-screen items-center justify-center"><Thinking theme={theme} big /></div>}
+      {limited && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-bg px-4">
+          <div className="max-w-md text-center">
+            <div className="text-7xl" aria-hidden>🔋</div>
+            <h1 className="mt-3 text-3xl font-extrabold text-ink">Limit reached — ask your parent about it.</h1>
+            <p className="mt-3 text-lg text-muted">Your helper needs a rest. Everything is saved, and you'll carry on right where you stopped.</p>
+            <button onClick={() => setLimited(false)} className="mt-6 rounded-full bg-accent px-6 py-3 text-lg font-extrabold text-white">Try again</button>
+          </div>
+        </div>
+      )}
       {shelfOpen && <MyApps name={name} onClose={() => setShelfOpen(false)} />}
       {!shelfOpen && screen === 'welcome' && (
         <>

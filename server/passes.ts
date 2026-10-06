@@ -244,6 +244,11 @@ setInterval(() => {
 /** Test hook. */
 export function resetPassesForTests(): void { wrong.clear(); announced.clear(); }
 
+/** A pass by id (for reports). */
+export const readPass = (id: string): Pass | undefined => readPasses().find((p) => p.id === id);
+/** All passes, newest first (for reports). */
+export const allPasses = (): Pass[] => [...readPasses()].sort((a, b) => b.createdAt - a.createdAt);
+
 /** Where the kid is now ("Idea", "Design"…), shown on the parent's Active passes card. */
 export function setPassStep(id: string, step: string): void {
   let changed = false;

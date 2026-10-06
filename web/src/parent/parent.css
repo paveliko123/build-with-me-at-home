@@ -102,3 +102,16 @@
 .parent .countdown{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--warn-soft);color:var(--warn);border:2px solid var(--warn);border-radius:999px;padding:10px 20px;font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;box-shadow:0 6px 20px rgba(0,0,0,.12);z-index:20;white-space:nowrap}
 .parent .overlay{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;z-index:30}
 .parent .way{display:flex;gap:8px;align-items:baseline;margin:6px 0;line-height:1.6}
+
+/* reports and alerts (report-mockup.html) */
+.parent .alert{display:flex;gap:10px;padding:10px 12px;border-radius:10px;margin-bottom:8px;align-items:flex-start}
+.parent .alert.warn{background:var(--warn-soft)} .parent .alert.bad{background:var(--bad-soft)}
+.parent .alert span{color:var(--ink)}
+.parent .alert .ghost{padding:2px 8px}
+.parent .clickable{cursor:pointer}
+.parent .row.clickable:hover,.parent tr.clickable:hover td{background:var(--brand-soft)}
+.parent .tablewrap{overflow-x:auto}
+.parent table.reports{width:100%;border-collapse:collapse}
+.parent table.reports th,.parent table.reports td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.parent table.reports th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.parent .reportframe{width:100%;height:calc(100vh - 120px);border:1px solid var(--line);border-radius:14px;background:var(--bg)}

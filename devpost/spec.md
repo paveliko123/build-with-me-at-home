@@ -298,7 +298,7 @@ Implements persistence for every PRD feature. See **Data Model**.
 Implements `prd.md > The Parent Report`, `prd.md > Limit Reached`.
 - **Made automatically:** on Ship, and for an unfinished session when its pass ends or is ended and the project wasn't shipped.
 - **The input to the reporter:** the transcript (masked), flags, step timeline, change rounds, the device and how they answered, time spent, and the pass length.
-- **The output (JSON schema):** `{title, summary, ideasShareKid, ideasNote, flagsAssessment:[…], worthAChat, conversationStarters:[…], okLines:{personal, output, onTopic}}`. "Whose ideas" is labeled an **estimate**.
+- **The output (JSON schema):** `{title, summary, appDescription, ideasShareKid, ideasNote, flags:[{index, headline, guideDid, kidReaction}], checks:{personal, output, onTopic}, needsLook, worthAChat, starters:[…], stageNotes:{…}}`. "Whose ideas" is labeled an **estimate**. The facts (time, rounds, device, flags, timeline, usage) come from the project, not from Opus. If the review can't run (for example the limit is reached), the report is still written with the facts only (build revision, slice 7).
 - **Plan usage** (`server/usage.ts`):
   - Just before the session's first Claude call and just after the report, the server runs `claude -p "/usage"` (same isolation flags) and reads the 5-hour and weekly percentages.
   - The report shows the difference.
@@ -308,6 +308,7 @@ Implements `prd.md > The Parent Report`, `prd.md > Limit Reached`.
 - **Rendering:** `server/report/template.ts` builds a **self-contained HTML file** from `report-mockup.html`'s design. It's saved to `Reports\YYYY-MM-DD HHmm <Kid> - <App>.html`, with the data in `reports/<id>.json` for **All reports**.
 - **The app picture:** a themed tile with the app's emoji and name (see **What Was Simplified and Why**).
 - **Alerts** (`alerts.json`): flags and limit-reached events go to **Needs your attention** until the parent dismisses them.
+- **Test hook:** a file named `simulate-limit` in the plugin data folder makes every journey call act as if the plan limit was hit, without spending any of it (build revision, slice 7).
 
 ### Parent Screens
 Implements `prd.md > Screens and Layout` (parent side).
