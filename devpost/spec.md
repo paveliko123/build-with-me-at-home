@@ -91,7 +91,7 @@ PRD ref: `prd.md > The Core Journey`.
 | Live updates | **Server-Sent Events** (built into browsers) | Pushes countdowns, pass changes and build progress without extra libraries | [MDN: EventSource](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) |
 | Front end | **React 19 + Vite + Tailwind 4**, copied from Build With Me | Reuse the approved kid design | [react.dev](https://react.dev/), [vite.dev](https://vite.dev/) |
 | Claude | The parent's **Claude Code CLI**, `claude -p` with stream-json | The terms allow an unmodified Claude Code signed in with the user's own subscription | [Headless mode](https://code.claude.com/docs/en/headless), [CLI reference](https://code.claude.com/docs/en/cli-reference) |
-| Speech to text | **Whisper** through **Transformers.js** in Node (`@huggingface/transformers`), English model `whisper-base.en` to start | Runs locally; pure npm install; no Python. Accuracy on kids' voices to be measured | [Transformers.js](https://huggingface.co/docs/transformers.js) |
+| Speech to text | **Moonshine base** (MIT) through **Transformers.js** in Node (`@huggingface/transformers`); Whisper `base.en` selectable | Runs locally; pure npm install; no Python. E2: 16/16 words, about 1.2 s wait on the learner's laptop (Whisper about 2.7 s). Accuracy on kids' voices is checked on the tablet | [Transformers.js](https://huggingface.co/docs/transformers.js), [Moonshine](https://huggingface.co/onnx-community/moonshine-base-ONNX) |
 | Voice out | The browser's **speechSynthesis** with the device's own voices | No keys, works on laptop and tablet, stays local | [MDN: SpeechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis) |
 | QR codes | `qrcode` (already used in Build With Me) | Reuse | [npm: qrcode](https://www.npmjs.com/package/qrcode) |
 | Certificates | `@peculiar/x509` (or `node-forge`) to make the home certificate | Makes a certificate restricted to the home's addresses | [@peculiar/x509](https://github.com/PeculiarVentures/x509) |
@@ -263,7 +263,7 @@ Implements `prd.md > Safety`.
 ### Speech
 Implements `prd.md > Talking`.
 - **In the browser** (`web/src/lib/speech.ts`, rewritten): `getUserMedia` microphone, an AudioWorklet resampling to **16 kHz mono PCM**, sent in ~1-second chunks over `POST /api/speech/:utteranceId`. A quiet-detection step ends the utterance (longer pause for kids), and there's an "I'm done" button.
-- **On the server** (`server/speech.ts`): a Transformers.js `automatic-speech-recognition` pipeline with `whisper-base.en`, loaded once at startup from `${CLAUDE_PLUGIN_DATA}/models`. Chunks are transcribed as they arrive, and the final text is returned when the utterance ends. No audio is saved.
+- **On the server** (`server/speech.ts`): a Transformers.js `automatic-speech-recognition` pipeline with **Moonshine base**, loaded once at startup from `${CLAUDE_PLUGIN_DATA}/models`. Moonshine replaced Whisper after E2 (see `checklist.md > Revisions`). Chunks are transcribed as they arrive, and the final text is returned when the utterance ends. No audio is saved.
 - **Voice out:** Build With Me's `voice.ts`, using `speechSynthesis` with a voice chosen per theme from the device's voices and a slower rate for kids. The ⚙️ menu is kept. Neural2 is removed.
 - **No microphone, or the tablet isn't set up** (the page isn't secure): the talk button is replaced by the text box with a "tap 🎤 on your keyboard to talk" hint. The parent sees "Set up this tablet for talking" in **Kids & their apps**.
 

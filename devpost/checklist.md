@@ -40,7 +40,7 @@ Build mode: fast — pause only for significant decisions, the planned checkpoin
   Learner check: Open `devpost/e1-results.md` and read the plain-language summary: what Claude could and couldn't see, and how much of your 5-hour limit the test used.
   Commit: `Prove sealed-off Claude Code runner (E1)`
 
-- [ ] **2. Talking turns into text on this computer, including from a tablet**
+- [x] **2. Talking turns into text on this computer, including from a tablet**
   Becomes usable: A small test page, at `http://localhost:4747/talk-test` on the laptop and at `https://<laptop address>:4748/talk-test` on a tablet after the one-time certificate setup from `/setup-tablet`. You talk, and the words appear, transcribed by Whisper on the laptop, with the timing shown.
   Why now: Tablet talking is the second-riskiest unknown (E2). Certificates, the microphone on HTTPS and Whisper speed all need proving before the kid screens depend on them. If it fails, we switch to keyboard dictation now, not late.
   PRD ref: `prd.md > Talking`
@@ -255,3 +255,10 @@ Activity mode:
     - The runner adds `--safe-mode` and the CLAUDE.md, memory and git disable settings, plus `IS_DEMO`.
     - The work folder lives outside any git repo.
     - Every prompt gets a privacy rule, and every output is scrubbed of emails and user folders (`server/claude/guard.ts`).
+- **Speech-to-text uses Moonshine base instead of Whisper base** (same Transformers.js, same on-computer approach).
+  - What E2 found: on the learner's laptop, Whisper always processes a padded 30-second window, so a short sentence still took about 2.7 s, and more threads made it slower. In `scripts/whisper-bench.ts`, Moonshine base got the same 16/16 words in about 1.3 s.
+  - What changes: Whisper stays selectable with `BWM_SPEECH_MODEL`.
+- **The talk-test page has no pass check yet.** The parent gate arrives in slice 3 and passes in slice 4. The page is replaced by the real kid screens in slice 5.
+- **The tablet certificate works, but Android installs it only from inside Settings,** not by tapping the downloaded file.
+  - What E2 found: the learner confirmed no warnings and a working microphone after installing it from Settings. They found the steps "very not intuitive."
+  - What changes: the setup page now gives the exact Settings path, and a friendlier guided setup is being decided with the learner.

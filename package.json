@@ -11,11 +11,20 @@
   "scripts": {
     "e1": "tsx scripts/e1-isolation.ts",
     "typecheck": "tsc --noEmit",
-    "test:guard": "tsx scripts/guard-test.ts"
+    "test:guard": "tsx scripts/guard-test.ts",
+    "e2": "tsx scripts/e2-speech.ts",
+    "dev:server": "tsx server/main.ts"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "^24.13.3",
     "tsx": "^4.20.0",
     "typescript": "~6.0.2"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.0",
+    "@peculiar/x509": "^2.1.0",
+    "express": "^5.2.1",
+    "reflect-metadata": "^0.2.2"
   }
 }

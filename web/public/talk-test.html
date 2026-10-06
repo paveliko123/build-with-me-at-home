@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talk Test</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2430;--muted:#5d6475;--line:#e4ded3;--brand:#2f9e6e;--kid:#3a8ee2;--warn:#b7791f;--warn-soft:#fdf2dc}
+@media (prefers-color-scheme:dark){:root{--bg:#15171c;--card:#1f232b;--ink:#eceef3;--muted:#a3a9b8;--line:#333945;--brand:#4cc08d;--kid:#6aaef0;--warn:#e0a84a;--warn-soft:#3a3020}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:620px;margin:0 auto;padding:24px 16px}
+h1{font-size:26px;margin:0 0 4px}.muted{color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin:16px 0}
+button{font:inherit;font-weight:800;border:none;border-radius:999px;padding:18px 28px;cursor:pointer}
+#talk{background:var(--kid);color:#fff;font-size:22px;width:100%}
+#done{background:var(--card);color:var(--ink);border:2px solid var(--line);margin-top:10px;width:100%}
+#talk:disabled{opacity:.6}
+.meter{height:14px;background:var(--line);border-radius:999px;overflow:hidden;margin:14px 0}
+.meter i{display:block;height:100%;width:0;background:var(--brand);transition:width .08s}
+#text{font-size:24px;font-weight:700;min-height:1.5em}
+.warn{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:12px 14px;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:15px}td{padding:6px 4px;border-bottom:1px solid var(--line)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body><main>
+  <h1>🎤 Talk test</h1>
+  <p class="muted">Tap the button, say a sentence, then stop talking. Your words should appear. The audio is turned into text on the home computer and never saved.</p>
+  <div class="warn" id="nomic" hidden>This page can't use the microphone here. On a tablet, finish the one-time <a href="/setup-tablet">tablet setup</a> first. (You can still type with the keyboard's 🎤 button.)</div>
+  <div class="card">
+    <button id="talk">🎙️ Tap to talk</button>
+    <button id="done" hidden>I'm done</button>
+    <div class="meter"><i id="lvl"></i></div>
+    <div id="state" class="muted">Ready</div>
+    <p id="text"></p>
+  </div>
+  <div class="card"><b>Timing</b><table id="log"><tr><td class="muted">Each try shows: seconds spoken · wait after you stopped · words</td></tr></table></div>
+</main>
+<script type="module">
+import { micSupported, recordUtterance } from '/lib/recorder.js';
+const $ = (id) => document.getElementById(id);
+if (!micSupported()) { $('nomic').hidden = false; $('talk').disabled = true; }
+$('talk').onclick = async () => {
+  $('talk').disabled = true; $('text').textContent = '';
+  try {
+    const rec = await recordUtterance({
+      onLevel: (l) => ($('lvl').style.width = Math.round(l * 100) + '%'),
+      onState: (s) => { $('state').textContent = s === 'listening' ? 'Listening… stop talking when you are done' : 'Turning your words into text…'; $('done').hidden = s !== 'listening'; },
+    });
+    $('done').onclick = rec.done;
+    const r = await rec.result;
+    $('lvl').style.width = '0%';
+    $('text').textContent = r.text || '(I didn’t catch anything, try again)';
+    $('state').textContent = 'Ready';
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${(r.seconds ?? 0).toFixed(1)} s spoken</td><td><b>${(r.waitedMs / 1000).toFixed(1)} s wait</b> (model ${(r.transcribeMs / 1000).toFixed(1)} s)</td><td>${(r.text || '').replace(/</g, '&lt;')}</td>`;
+    $('log').appendChild(row);
+  } catch (e) {
+    $('state').textContent = 'Microphone problem: ' + e.message;
+  } finally { $('talk').disabled = false; $('done').hidden = true; }
+};
+</script>
+</body></html>
