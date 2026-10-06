@@ -48,7 +48,7 @@ export function findClaude(): string | null {
   const override = process.env.BWM_CLAUDE_PATH;
   if (override && existsSync(override)) return (cachedPath = override);
   const isWin = process.platform === 'win32';
-  const which = spawnSync(isWin ? 'where' : 'which', ['claude'], { encoding: 'utf8', env: cleanEnv() });
+  const which = spawnSync(isWin ? 'where' : 'which', ['claude'], { encoding: 'utf8', env: cleanEnv(), windowsHide: true });
   if (which.status === 0) {
     const lines = which.stdout.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
     // On Windows prefer the real .exe over npm .cmd shims (no shell needed to spawn it).

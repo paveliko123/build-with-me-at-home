@@ -43,7 +43,7 @@ export function cleanEnv(extra = {}) {
 export function findClaude() {
   if (process.env.BWM_CLAUDE_PATH && existsSync(process.env.BWM_CLAUDE_PATH)) return process.env.BWM_CLAUDE_PATH;
   const win = process.platform === 'win32';
-  const r = spawnSync(win ? 'where' : 'which', ['claude'], { encoding: 'utf8', env: cleanEnv() });
+  const r = spawnSync(win ? 'where' : 'which', ['claude'], { encoding: 'utf8', env: cleanEnv(), windowsHide: true });
   if (r.status === 0) {
     const lines = r.stdout.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
     const pick = lines.find((l) => l.toLowerCase().endsWith('.exe')) ?? lines[0];
