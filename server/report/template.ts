@@ -11,7 +11,7 @@ const mins = (m: number) => (m >= 60 ? `${Math.floor(m / 60)} hr${m % 60 ? ` ${m
 const pct = (x: number | null) => (x === null ? '—' : x < 1 ? '&lt;1%' : `${Math.round(x)}%`);
 const plus = (x: number | null) => (x !== null && x >= 1 ? `+${pct(x)}` : pct(x));
 
-const CSS = `:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2430;--muted:#5d6475;--line:#e4ded3;--brand:#2f9e6e;--brand-soft:#dff3e9;--kid:#3a8ee2;--kid-soft:#e1eefc;--teen:#8a5cd6;--teen-soft:#eee6fb;--warn:#b7791f;--warn-soft:#fdf2dc;--bad:#b34a4a;--bad-soft:#f9e2e2;--ok:#2f9e6e;--ok-soft:#dff3e9}
+const CSS = `:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2430;--muted:#5d6475;--line:#e4ded3;--brand:#2f9e6e;--brand-soft:#dff3e9;--kid:#185c9e;--kid-soft:#e1eefc;--teen:#6d3fc0;--teen-soft:#eee6fb;--warn:#8a5a12;--warn-soft:#fdf2dc;--bad:#9c3535;--bad-soft:#f9e2e2;--ok:#1e7a52;--ok-soft:#dff3e9}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15171c;--card:#1f232b;--ink:#eceef3;--muted:#a3a9b8;--line:#333945;--brand:#4cc08d;--brand-soft:#1b3329;--kid:#6aaef0;--kid-soft:#1d2c3e;--teen:#b08cf0;--teen-soft:#2c2340;--warn:#e0a84a;--warn-soft:#3a3020;--bad:#e07a7a;--bad-soft:#3a2222;--ok:#4cc08d;--ok-soft:#1b3329}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}

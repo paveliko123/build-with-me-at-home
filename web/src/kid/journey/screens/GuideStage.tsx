@@ -54,10 +54,27 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
     return () => stopSpeaking();
   }, [reply, busy, voiceOn, profile.theme, profile.ageGroup]);
 
-  // Keep the newest part of the conversation in view.
+  // Keep the newest part of the conversation in view, also after turning the device.
   useEffect(() => {
     keepNewestInView(scroller.current);
   }, [history.length, reply, busy]);
+  useEffect(() => {
+    const again = () => keepNewestInView(scroller.current);
+    window.addEventListener('orientationchange', again);
+    window.addEventListener('resize', again);
+    return () => { window.removeEventListener('orientationchange', again); window.removeEventListener('resize', again); };
+  }, []);
+  // Below the large layout the page scrolls and the answer bar is pinned to the bottom: the
+  // newest message scrolls to just above it (index.css, .bwm-convo).
+  const bar = useRef<HTMLDivElement>(null);
+  const main = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = bar.current, m = main.current;
+    if (!el || !m || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => m.style.setProperty('--bwm-bar', `${el.offsetHeight}px`));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const placeholder = reply?.cards?.length ? '…or type your own answer'
     : draft ? 'Say "looks good", or tell me what to change'
@@ -67,9 +84,9 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
   const chips: Pane[] = [...(visual ? ['picture' as const] : []), ...shownDocs];
 
   return (
-    <main className="mx-auto grid max-w-7xl gap-4 px-4 pb-4 lg:h-[calc(100vh-56px)] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+    <main ref={main} className="mx-auto grid max-w-7xl gap-4 px-4 pb-4 lg:h-[calc(100dvh-var(--bwm-top,56px))] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
       <section className="flex min-h-0 flex-col">
-        <div ref={scroller} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pb-2 pr-1" aria-label="Conversation">
+        <div ref={scroller} className="bwm-convo flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pb-2 pr-1" aria-label="Conversation">
           {history.map((line, i) => line.from === 'stage'
             ? <p key={i} className="my-1 self-center rounded-full bg-accent-soft px-4 py-1 text-sm font-bold text-ink">{line.text}</p>
             : (
@@ -116,13 +133,15 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
           )}
         </div>
 
-        {controls && <div className="relative z-20 flex flex-wrap items-center gap-2 pt-2">{controls}</div>}
-        {showReply && (
-          <div className="pt-2">
-            <AnswerBox inputMode={profile.inputMode} onSend={onSend} placeholder={placeholder}
-              listenToken={heard.reply === reply ? heard.n : 0} handsFree={voiceOn} silenceMs={pauseFor(profile.ageGroup)} />
-          </div>
-        )}
+        <div ref={bar} className="sticky bottom-0 z-20 -mx-4 bg-bg px-4 pb-[max(env(safe-area-inset-bottom),0.5rem)] lg:static lg:mx-0 lg:bg-transparent lg:px-0 lg:pb-0">
+          {controls && <div className="relative flex flex-wrap items-center gap-2 pt-2">{controls}</div>}
+          {showReply && (
+            <div className="pt-2">
+              <AnswerBox inputMode={profile.inputMode} onSend={onSend} placeholder={placeholder}
+                listenToken={heard.reply === reply ? heard.n : 0} handsFree={voiceOn} silenceMs={pauseFor(profile.ageGroup)} />
+            </div>
+          )}
+        </div>
       </section>
 
       <aside className="flex min-h-[420px] flex-col gap-2 lg:min-h-0">

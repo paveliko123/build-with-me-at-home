@@ -12,8 +12,8 @@ export function setupTabletPage(host: string, httpsPort: number, caName: string)
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Set Up for Talking</title>
 <style>
-:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2430;--muted:#5d6475;--line:#e4ded3;--brand:#2f9e6e;--brand-soft:#dff3e9;--warn:#b7791f;--warn-soft:#fdf2dc;--bad:#b34a4a;--bad-soft:#f9e2e2}
-@media (prefers-color-scheme:dark){:root{--bg:#15171c;--card:#1f232b;--ink:#eceef3;--muted:#a3a9b8;--line:#333945;--brand:#4cc08d;--brand-soft:#1b3329;--warn:#e0a84a;--warn-soft:#3a3020;--bad:#e07a7a;--bad-soft:#3a2222}}
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2430;--muted:#5d6475;--line:#e4ded3;--brand:#2f9e6e;--btn:#23855a;--on-btn:#fff;--brand-soft:#dff3e9;--warn:#b7791f;--warn-soft:#fdf2dc;--bad:#b34a4a;--bad-soft:#f9e2e2}
+@media (prefers-color-scheme:dark){:root{--bg:#15171c;--card:#1f232b;--ink:#eceef3;--muted:#a3a9b8;--line:#333945;--brand:#4cc08d;--btn:#4cc08d;--on-btn:#0f2a1e;--brand-soft:#1b3329;--warn:#e0a84a;--warn-soft:#3a3020;--bad:#e07a7a;--bad-soft:#3a2222}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
@@ -29,7 +29,7 @@ h1{font-size:24px;margin:0 0 4px}.muted{color:var(--muted)}
 .path i{color:var(--muted);font-style:normal}
 .tip{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:10px 12px;font-size:15px;font-weight:600;margin-top:10px}
 .nav{display:flex;gap:10px;margin-top:auto;padding-top:18px}
-button.go,a.go{flex:1;text-align:center;background:var(--brand);color:#fff;text-decoration:none;border:none;border-radius:14px;padding:14px 16px;font:inherit;font-weight:800;cursor:pointer}
+button.go,a.go{flex:1;text-align:center;background:var(--btn);color:var(--on-btn);text-decoration:none;border:none;border-radius:14px;padding:14px 16px;font:inherit;font-weight:800;cursor:pointer}
 button.back{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font:inherit;font-weight:700;cursor:pointer}
 .dots{display:flex;gap:6px;justify-content:center;margin:12px 0}
 .dots i{width:9px;height:9px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--brand)}

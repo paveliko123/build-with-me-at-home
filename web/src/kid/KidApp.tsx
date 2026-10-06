@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError, clock, timeOfDay, type KidSessionView, type PassPeek } from '../lib/api';
 import { useNow } from '../parent/Passes';
@@ -71,7 +72,12 @@ function Countdown({ endsAt, offset, onZero }: { endsAt: number; offset: number;
   const fired = useRef(false);
   useEffect(() => { if (left <= 0 && !fired.current) { fired.current = true; onZero(); } if (left > 0) fired.current = false; }, [left, onZero]);
   if (left > 10 * 60_000 || left <= 0) return null;
-  return <div className="bwm-countdown" role="timer" aria-live="off">⏰ {clock(left)} left</div>;
+  // In the screen's top bar when it has a spot for it (never over Send or the answer box);
+  // otherwise in the top corner.
+  const found = document.getElementById('bwm-countdown-slot');
+  const slot = found && found.offsetParent !== null ? found : null; // not a hidden screen's (My apps open)
+  const pill = <div className={`bwm-countdown${slot ? ' in-bar' : ''}`} role="timer" aria-live="off">⏰ {clock(left)} left</div>;
+  return slot ? createPortal(pill, slot) : pill;
 }
 
 export function CodeEntry({ onOpened }: { onOpened: () => void }) {

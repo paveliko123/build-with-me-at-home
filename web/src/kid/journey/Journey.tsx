@@ -68,6 +68,15 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
     try { localStorage.setItem('bwm-voice-speed', String(value)); } catch { /* storage unavailable */ }
   }
   const [busy, setBusy] = useState(false);
+  // The screens below fill the rest of the window: they size themselves from the top bar's real height.
+  const topBar = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = topBar.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => document.documentElement.style.setProperty('--bwm-top', `${el.offsetHeight}px`));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [screen, !!profile]);
   // Build and Ship: the newest app (after a refresh too), and the Tech plan's one-liner.
   const [resumeApp, setResumeApp] = useState<Resume | undefined>(undefined);
   const [techSummary, setTechSummary] = useState<string | undefined>(undefined);
@@ -242,13 +251,13 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
       {shelfOpen && <MyApps name={name} onClose={() => setShelfOpen(false)} />}
       {!shelfOpen && screen === 'welcome' && (
         <>
-          <div className="flex justify-end px-3 pt-3"><button onClick={() => setShelfOpen(true)} className="rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">📚 My apps</button></div>
+          <div className="flex items-center justify-end gap-2 px-3 pt-3"><span id="bwm-countdown-slot" className="mr-auto" /><button onClick={() => setShelfOpen(true)} className="rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">📚 My apps</button></div>
           <Welcome name={name} onChoose={mode => { setInputMode(mode); setScreen('profile'); }} />
         </>
       )}
       {!shelfOpen && screen === 'profile' && (
         <>
-          <ProgressBar stage="intro" />
+          <div className="flex items-center gap-2 pr-3"><div className="min-w-0 flex-1"><ProgressBar stage="intro" /></div><span id="bwm-countdown-slot" /></div>
           <ThemePick inputMode={inputMode} theme={theme} onThemeChange={setTheme} onDone={begin} busy={busy} />
           {error && <p className="pb-6 text-center font-bold text-ink">{error.replace(/^LIMIT:/, '')}</p>}
         </>
@@ -256,10 +265,11 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
       {/* The journey stays mounted under the shelf, so a build keeps going while it's open. */}
       {screen === 'guide' && profile && (
         <div className={shelfOpen ? 'hidden' : undefined}>
-          <div className="flex items-center gap-1 px-3">
+          <div ref={topBar} className="flex items-center gap-1 px-3">
             <button onClick={() => void startOver()}
               className="shrink-0 rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">＋ New app</button>
             <div className="min-w-0 flex-1"><ProgressBar stage={stage} /></div>
+            <span id="bwm-countdown-slot" className="shrink-0" />
             <button onClick={() => setShelfOpen(true)}
               className="shrink-0 rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">📚 My apps</button>
           </div>

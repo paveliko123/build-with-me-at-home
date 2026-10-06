@@ -348,8 +348,10 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
   const button = 'rounded-full bg-accent px-5 py-2 font-bold text-white disabled:opacity-40';
 
   return (
-    <main className="grid gap-4 px-4 pb-4 lg:h-[calc(100vh-56px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-      <aside className="order-2 flex min-h-[40vh] flex-col rounded-3xl border-2 border-line bg-surface lg:order-1 lg:min-h-0">
+    // One screen, no page scrolling: the app on top and the chat below on phones held upright;
+    // side by side from tablet width (iPad portrait, phones held sideways); the chat scrolls inside.
+    <main className="grid h-[calc(100dvh-var(--bwm-top,56px))] grid-rows-[minmax(0,55fr)_minmax(0,45fr)] gap-3 px-3 pb-3 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-4 lg:px-4 lg:pb-4">
+      <aside className="order-2 flex min-h-0 flex-col rounded-3xl border-2 border-line bg-surface md:order-1">
         {plan && (
           <ol className="flex flex-wrap gap-2 border-b-2 border-line p-3 text-sm" aria-label="Checklist progress">
             {plan.steps.map((step, i) => (
@@ -424,12 +426,12 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
         </div>
       </aside>
 
-      <section ref={preview} className="relative order-1 min-h-[60vh] lg:order-2 lg:min-h-0">
-        {html && <VisualPane title="Your app" html={html} onAppError={onAppError} className="h-full min-h-[60vh] lg:min-h-0" />}
+      <section ref={preview} className="relative order-1 min-h-0 md:order-2">
+        {html && <VisualPane title="Your app" html={html} onAppError={onAppError} className="h-full min-h-0" />}
         {!html && (
           <div className="absolute inset-0 flex items-center justify-center rounded-3xl border-2 border-line bg-surface/95">
             {choosingMode
-              ? <p className="px-6 text-center text-2xl font-extrabold text-ink">← Choose learn or fast mode to start building</p>
+              ? <p className="px-6 text-center text-2xl font-extrabold text-ink"><span className="md:hidden">↓</span><span className="hidden md:inline">←</span> Choose learn or fast mode to start building</p>
               : <WaitingAnimation theme={profile.theme} />}
           </div>
         )}

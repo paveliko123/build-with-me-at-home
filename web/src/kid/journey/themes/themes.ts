@@ -27,12 +27,12 @@ export const THEMES: Theme[] = [
   {
     id: 'robots', name: 'Robots', emoji: '🤖', motifs: ['⚙️', '🔩', '💡', '🔋'], animation: 'bounce',
     thinking: 'Beep boop, thinking…', building: 'Robots are bolting your app together…',
-    colors: { bg: '#ecfeff', surface: '#ffffff', surface2: '#cffafe', ink: '#083344', muted: '#0e7490', accent: '#0891b2', accentSoft: '#a5f3fc', line: '#67e8f9' },
+    colors: { bg: '#ecfeff', surface: '#ffffff', surface2: '#cffafe', ink: '#083344', muted: '#0e7490', accent: '#0e7490', accentSoft: '#a5f3fc', line: '#67e8f9' },
   },
   {
     id: 'cars', name: 'Cars', emoji: '🏎️', motifs: ['🏁', '🛞', '⛽', '🚦'], animation: 'drive',
     thinking: 'Revving up an answer…', building: 'Racing to build your app…',
-    colors: { bg: '#fff7ed', surface: '#ffffff', surface2: '#ffedd5', ink: '#431407', muted: '#9a3412', accent: '#ea580c', accentSoft: '#fed7aa', line: '#fdba74' },
+    colors: { bg: '#fff7ed', surface: '#ffffff', surface2: '#ffedd5', ink: '#431407', muted: '#9a3412', accent: '#c2410c', accentSoft: '#fed7aa', line: '#fdba74' },
   },
   {
     id: 'space', name: 'Space', emoji: '🚀', motifs: ['🪐', '⭐', '🌙', '☄️'], animation: 'orbit',
@@ -47,12 +47,12 @@ export const THEMES: Theme[] = [
   {
     id: 'music', name: 'Music', emoji: '🎧', motifs: ['🎵', '🎸', '🥁', '🎹'], animation: 'bounce',
     thinking: 'Finding the right notes…', building: 'Mixing your app track by track…',
-    colors: { bg: '#fffbeb', surface: '#ffffff', surface2: '#fef3c7', ink: '#3b2205', muted: '#92400e', accent: '#d97706', accentSoft: '#fde68a', line: '#fcd34d' },
+    colors: { bg: '#fffbeb', surface: '#ffffff', surface2: '#fef3c7', ink: '#3b2205', muted: '#92400e', accent: '#b45309', accentSoft: '#fde68a', line: '#fcd34d' },
   },
   {
     id: 'sports', name: 'Sports', emoji: '⚽', motifs: ['🏀', '🏆', '⏱️', '🎾'], animation: 'bounce',
     thinking: 'Huddling up on that…', building: 'Your app is in training…',
-    colors: { bg: '#f0fdf4', surface: '#ffffff', surface2: '#dcfce7', ink: '#052e16', muted: '#166534', accent: '#16a34a', accentSoft: '#bbf7d0', line: '#86efac' },
+    colors: { bg: '#f0fdf4', surface: '#ffffff', surface2: '#dcfce7', ink: '#052e16', muted: '#166534', accent: '#15803d', accentSoft: '#bbf7d0', line: '#86efac' },
   },
   {
     id: 'nature', name: 'Nature', emoji: '🌿', motifs: ['🌻', '🦋', '🍃', '🌲'], animation: 'twinkle',
