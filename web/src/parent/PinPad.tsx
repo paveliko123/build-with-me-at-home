@@ -35,8 +35,9 @@ export const RESPONSIBILITY = (
     <b>You're responsible for how your kids use this.</b>
     <br />
     <span className="muted">
-      Build With Me runs on <em>your</em> Claude account. Your kids can only use it with a pass you give them, for as long as you choose.
-      You'll get a report after every app they make. Stay nearby, especially with younger kids.
+      Build With Me runs on <em>your</em> Claude account. Anthropic's terms say Claude users must be 18 or older, so letting your kids use it is your decision.
+      They can only use it with a pass you give them, for as long as you choose. You'll get a report after every app they make.
+      The safety check and reports help you supervise; they don't replace you. Stay nearby, especially with younger kids.
     </span>
   </>
 );

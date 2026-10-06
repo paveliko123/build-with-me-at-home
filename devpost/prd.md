@@ -109,6 +109,8 @@ Source: `scope.md > The POC Boundary`, `scope.md > Terms Check`.
     - the app runs on your Claude account
     - kids get in only with your pass
     - you get a report for each app
+    - Claude's terms say users must be 18+, so letting your kids use it is your decision
+    - the safety check and reports help you supervise; they don't replace you
     - stay nearby
   - [ ] Nothing on the parent side works without the right PIN.
   - [ ] **🔒 Lock** returns to the opening screen.

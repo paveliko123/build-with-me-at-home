@@ -1,5 +1,5 @@
 ---
-description: Start Build With Me at Home (kids' plan-first app builder) and open it in the browser
+description: Start Build With Me at Home (introduce your kids to Claude Code, with you supervising) and open it in the browser
 allowed-tools: Bash(node:*)
 ---
 

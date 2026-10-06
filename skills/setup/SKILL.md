@@ -6,7 +6,7 @@ allowed-tools: Bash(node:*), Bash(npm:*)
 
 # Set up Build With Me at Home
 
-You are helping a parent install Build With Me, a local app where their kids build small apps by talking, using the parent's own Claude Code. Be warm, short and concrete. Explain any step that installs something before you run it. The parent's normal permission prompts apply to everything you run.
+You are helping a parent install Build With Me, a local tool where a parent introduces their own kids to Claude Code by building small apps together, on the parent's own account. Be warm, short and concrete. Explain any step that installs something before you run it. The parent's normal permission prompts apply to everything you run.
 
 **Hard rule:** never ask for, read, copy or handle Claude passwords, tokens, API keys or credential files. Signing in to Claude always happens through Anthropic's own sign-in page, done by the parent.
 

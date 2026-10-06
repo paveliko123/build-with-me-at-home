@@ -2,7 +2,7 @@
   "name": "build-with-me-home",
   "version": "0.1.0",
   "private": true,
-  "description": "Build With Me at Home: a local, parent-run plan-first app builder for kids, on the parent's own Claude Code.",
+  "description": "An open-source Claude Code plugin for parents: introduce your own kids to Claude Code and the plan-first approach, on your own account, with you supervising.",
   "license": "MIT",
   "type": "module",
   "engines": {
