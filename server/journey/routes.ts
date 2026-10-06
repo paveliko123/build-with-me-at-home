@@ -87,6 +87,7 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
     if (!before) { res.status(409).json({ error: 'no-project' }); return; }
     const p = copy(before);
     if (s.pass.device) p.device = s.pass.device;
+    if (lock && !before.usageStart) noteUsageStart(before, true); // started before plan usage was measured
     const run = async () => {
       try {
         const out = await work(p, s);

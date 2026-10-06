@@ -29,7 +29,7 @@ export interface Project {
   pendingChanges?: string[];
   versions?: { n: number; mode: 'full' | 'edit' | 'repair'; note: string; at: number }[];
   device?: string; // where the kid used it last (from the pass)
-  usageStart?: { at: number; fiveHourPct?: number; weeklyPct?: number }; // /usage before the first call
+  usageStart?: { at: number; fiveHourPct?: number; weeklyPct?: number; late?: boolean }; // /usage before the first call (late: taken on a later turn)
   reports?: { id: string; at: number; finished: boolean }[];
 }
 

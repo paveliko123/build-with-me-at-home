@@ -2,12 +2,12 @@
 // review of the whole conversation, made when an app ships, or when a pass ends on an unfinished
 // project. The facts (time, rounds, device, flags, timeline, plan usage) come from the project;
 // Opus writes the paragraph, the app description, the ideas estimate, what happened at each flag,
-// the safety lines, "worth a chat?" and the conversation starters. Saved as reports/<id>.json
+// the safety lines, "worth a chat?" and the conversation starters. Saved as report-data/<id>.json
 // (for All reports) and as a self-contained HTML file in Reports\ that opens without the app.
 
 import { randomBytes } from 'node:crypto';
-import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { existsSync, mkdirSync, readdirSync, renameSync, rmdirSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { oneShot } from '../claude/runner.js';
 import { dataPath, readFamily, readJson, writeJson } from '../store.js';
 import { allPasses, isLive, passEvents, readPass, type Pass } from '../passes.js';
@@ -16,6 +16,7 @@ import { claudeSchema } from '../journey/claude.js';
 import { changeProject, readProject, currentProject, type Project } from '../journey/project.js';
 import { shelf } from '../journey/apps.js';
 import { addAlert } from './alerts.js';
+import { addSample, ownShare, pctPerCost } from './calibration.js';
 import { renderReport } from './template.js';
 
 export type Badge = 'none' | 'handled' | 'look';
@@ -26,7 +27,7 @@ export interface ReportData {
   activeMinutes: number; passMinutes: number | null; rounds: number; device: string; answered: 'talking' | 'typing';
   stoppedAt?: string;
   app: { name: string; path: string; url: string; emoji: string; description: string } | null;
-  usage: { kind: 'plan'; fiveHourPct: number | null; weeklyPct: number | null; sharedWith: string[] } | { kind: 'tokens'; tokens: number; costUsd: number; reason: string };
+  usage: UsageInfo | LegacyUsage;
   flags: { at: number; stage: string; verdict: string; category: string; text: string; headline: string; guideDid: string; kidReaction: string }[];
   checks: { personal: { ok: boolean; text: string }; output: { ok: boolean; text: string }; onTopic: { ok: boolean; text: string } };
   badge: Badge; title: string; summary: string; ideasShareKid: number | null; ideasNote: string; worthAChat: string; starters: string[];
@@ -34,7 +35,28 @@ export interface ReportData {
   transcript: ReportLine[];
   writer: 'opus' | 'facts-only';
 }
+/** Plan usage in a report. own: this app's share of the 5-hour limit, worked out from its own calls
+ *  (calibration.ts), so the parent's own Claude use isn't in it. account: the change in /usage
+ *  for the whole account while the app was made (from: since when; late: the reading was taken on
+ *  a later turn, so it misses the start). otherPct: how much more the account went up than the
+ *  app used (the parent's own use, or another kid). */
+export interface UsageInfo {
+  own: number | null;
+  account: { fiveHourPct: number | null; weeklyPct: number | null; from: number; late: boolean } | null;
+  otherPct: number | null;
+  others: string[];
+  tokens: number;
+  calibratedFrom: number;
+  note?: string;
+}
+/** Reports written before UsageInfo (slice 7). */
+export type LegacyUsage = { kind: 'plan'; fiveHourPct: number | null; weeklyPct: number | null; sharedWith: string[] } | { kind: 'tokens'; tokens: number; costUsd: number; reason: string };
+
 export interface ReportSummary { id: string; kidId: string; kidName: string; group: 'kid' | 'teen'; createdAt: number; startedAt: number; endedAt: number; finished: boolean; title: string; what: string; badge: Badge; flags: number; appPath: string | null; fiveHourPct: number | null; file: string }
+
+// The report data (JSON for All reports). The readable HTML files go in Reports\ (another name:
+// folder names ignore case on Windows and macOS).
+const DATA = 'report-data';
 
 const STEP: Record<string, string> = { start: 'Start', idea: 'Idea', design: 'Design', tech: 'Tech plan', build: 'Build', ship: 'Ship' };
 let appPort = 4747;
@@ -69,37 +91,91 @@ function activeMinutes(times: number[]): number {
 
 // ---------- plan usage: /usage before and after, split when sessions overlapped ----------
 
-/** Reads /usage once at the start of a project (before its first Claude call), in the background. */
-export function noteUsageStart(p: Project): void {
+/** Reads /usage once at the start of a project (before its first Claude call), in the background.
+ *  late: a project that has none yet (started before this was measured, or /usage couldn't be read
+ *  then) gets one on its next turn, so the rest of it is measured. */
+const reading = new Set<string>();
+export function noteUsageStart(p: Project, late = false): void {
+  if (p.usageStart || reading.has(p.id)) return;
+  reading.add(p.id);
   void readUsage().then((u) => {
     if (!u.ok) return;
-    changeProject(p.kidId, p.id, (fresh) => { fresh.usageStart ??= { at: u.at, fiveHourPct: u.fiveHourPct, weeklyPct: u.weeklyPct }; });
-  }).catch(() => {});
+    changeProject(p.kidId, p.id, (fresh) => { fresh.usageStart ??= { at: u.at, fiveHourPct: u.fiveHourPct, weeklyPct: u.weeklyPct, ...(late ? { late: true } : {}) }; });
+  }).catch(() => {}).finally(() => reading.delete(p.id));
 }
 
 function tokensOf(p: Project) { return p.usage.inputTokens + p.usage.outputTokens + p.usage.cacheReadTokens + p.usage.cacheWriteTokens; }
 
-async function usageFor(p: Project, from: number, to: number): Promise<ReportData['usage']> {
-  const fallback = (reason: string): ReportData['usage'] => ({ kind: 'tokens', tokens: tokensOf(p), costUsd: p.usage.costUsd, reason });
-  if (!p.usageStart) return fallback('The plan usage reading at the start was not available.');
-  const end = await readUsage().catch(() => null);
-  if (!end?.ok) return fallback('Claude Code\'s plan usage could not be read.');
-  const d5 = end.fiveHourPct !== undefined && p.usageStart.fiveHourPct !== undefined && end.fiveHourPct >= p.usageStart.fiveHourPct ? end.fiveHourPct - p.usageStart.fiveHourPct : null;
-  const dw = end.weeklyPct !== undefined && p.usageStart.weeklyPct !== undefined && end.weeklyPct >= p.usageStart.weeklyPct ? end.weeklyPct - p.usageStart.weeklyPct : null;
-  if (d5 === null && dw === null) return fallback('The 5-hour window reset during the session, so the difference can\'t be measured.');
-  // Other kids busy at the same time: split by each project's share of the tokens.
-  const family = readFamily();
-  const others: { name: string; tokens: number }[] = [];
-  for (const k of family.kids) {
+async function usageFor(p: Project, from: number, to: number): Promise<UsageInfo> {
+  const others = new Set<string>();
+  for (const k of readFamily().kids) {
     for (const o of projectsOf(k.id)) {
-      if (o.id === p.id) continue;
-      if (o.messages.some((m) => m.at >= from && m.at <= to)) others.push({ name: k.nickname, tokens: tokensOf(o) });
+      if (o.id !== p.id && o.messages.some((m) => m.at >= from && m.at <= to)) others.add(k.nickname);
     }
   }
-  const mine = tokensOf(p);
-  const share = others.length && mine > 0 ? mine / (mine + others.reduce((n, o) => n + o.tokens, 0)) : 1;
-  const round = (x: number | null) => (x === null ? null : Math.round(x * share * 10) / 10);
-  return { kind: 'plan', fiveHourPct: round(d5), weeklyPct: round(dw), sharedWith: [...new Set(others.map((o) => o.name))] };
+  const own = ownShare(p.usage.costUsd);
+  const base: UsageInfo = { own, account: null, otherPct: null, others: [...others], tokens: tokensOf(p), calibratedFrom: pctPerCost()?.count ?? 0 };
+  if (!p.usageStart) return { ...base, note: 'No plan usage reading was taken when this app started (it began before Build With Me measured it).' };
+  const end = await readUsage().catch(() => null);
+  if (!end?.ok) return { ...base, note: 'Claude Code\'s plan usage could not be read.' };
+  const d5 = end.fiveHourPct !== undefined && p.usageStart.fiveHourPct !== undefined && end.fiveHourPct >= p.usageStart.fiveHourPct ? end.fiveHourPct - p.usageStart.fiveHourPct : null;
+  const dw = end.weeklyPct !== undefined && p.usageStart.weeklyPct !== undefined && end.weeklyPct >= p.usageStart.weeklyPct ? end.weeklyPct - p.usageStart.weeklyPct : null;
+  if (d5 === null && dw === null) return { ...base, note: 'The 5-hour window reset during the session, so the change can\'t be measured.' };
+  const late = !!p.usageStart.late;
+  // A clean measurement (from the very start, no other kid busy) teaches the rate for next time.
+  if (!late && !others.size && d5 !== null) addSample({ pct: d5, cost: p.usage.costUsd, source: 'report' });
+  // Whole percents: only a difference of 2 or more means something.
+  const otherPct = own !== null && d5 !== null && !late && d5 - own >= 2 ? Math.round(d5 - own) : null;
+  return { ...base, account: { fiveHourPct: d5, weeklyPct: dw, from: p.usageStart.at, late }, otherPct };
+}
+
+/** A report's usage in today's shape (reports written in slice 7 had another one). */
+export function usageInfo(u: UsageInfo | LegacyUsage, r: { startedAt: number }): UsageInfo {
+  if (!('kind' in u)) return u;
+  const calibratedFrom = pctPerCost()?.count ?? 0;
+  if (u.kind === 'tokens') return { own: ownShare(u.costUsd), account: null, otherPct: null, others: [], tokens: u.tokens, calibratedFrom, note: u.reason.replace('The plan usage reading at the start was not available.', 'No plan usage reading was taken when this app started (it began before Build With Me measured it).') };
+  return { own: null, account: { fiveHourPct: u.fiveHourPct, weeklyPct: u.weeklyPct, from: r.startedAt, late: false }, otherPct: null, others: u.sharedWith, tokens: 0, calibratedFrom };
+}
+
+/** The headline % for lists: the app's own share when known, else the account's change. */
+export const headlinePct = (u: UsageInfo) => u.own ?? (u.account && !u.account.late ? u.account.fiveHourPct : null);
+
+/** Report data used to live in reports\, which on Windows and macOS (names ignore case) is the
+ *  same folder as the parent's readable Reports\: move it out, once. */
+function moveReportData(): void {
+  const old = dataPath('reports');
+  const move = (from: string, to: string) => {
+    let names: string[] = [];
+    try { names = readdirSync(from).filter((f) => f.endsWith('.json')); } catch { return; }
+    if (!names.length) return;
+    mkdirSync(to, { recursive: true });
+    for (const n of names) renameSync(join(from, n), join(to, n));
+  };
+  move(join(old, 'index'), dataPath(`${DATA}/index`));
+  move(old, dataPath(DATA));
+  try { rmdirSync(join(old, 'index')); } catch { /* not there, or not empty */ }
+  try { if (!readdirSync(old).length) rmdirSync(old); } catch { /* the Reports folder keeps its HTML files */ }
+}
+
+/** Reports from before this change get today's usage (the app's own share) in the Parent area,
+ *  the Reports folder and All reports. Runs once at start; does nothing for up-to-date reports. */
+function upgradeReports(): void {
+  moveReportData();
+  let ids: string[] = [];
+  try { ids = readdirSync(dataPath(DATA)).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5)); } catch { return; }
+  for (const id of ids) {
+    const data = readReport(id);
+    if (!data || !('kind' in data.usage)) continue;
+    data.usage = usageInfo(data.usage, data);
+    writeJson(`${DATA}/${id}.json`, data);
+    const index = readJson<(ReportSummary & { description: string }) | null>(`${DATA}/index/${id}.json`, null);
+    if (index) {
+      writeJson(`${DATA}/index/${id}.json`, { ...index, fiveHourPct: headlinePct(data.usage) });
+      const file = dataPath(`Reports/${index.file}`);
+      if (existsSync(file)) writeFileSync(file, renderReport(data), 'utf8');
+    }
+    console.log(JSON.stringify({ event: 'report-upgraded', id }));
+  }
 }
 
 function projectsOf(kidId: string): Project[] {
@@ -228,7 +304,7 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
     };
 
     // Save: the data for All reports, and a self-contained HTML file in Reports\.
-    writeJson(`reports/${data.id}.json`, data);
+    writeJson(`${DATA}/${data.id}.json`, data);
     const stamp = new Date(data.createdAt);
     const pad = (n: number) => String(n).padStart(2, '0');
     const safe = (s: string) => s.replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim().slice(0, 60);
@@ -239,15 +315,15 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
     const summary: ReportSummary = {
       id: data.id, kidId, kidName: kid.nickname, group: kid.group, createdAt: data.createdAt, startedAt, endedAt, finished: opts.finished,
       title: data.title, what: shelfApp ? `<b>${shelfApp.name}</b>` : `(not finished)`, badge, flags: flags.length, appPath: data.app?.path ?? null,
-      fiveHourPct: usage.kind === 'plan' ? usage.fiveHourPct : null, file: fileName,
+      fiveHourPct: headlinePct(usage), file: fileName,
     };
-    writeJson(`reports/index/${data.id}.json`, { ...summary, what: shelfApp?.name ?? '(not finished)', description: data.app?.description || ai?.appDescription || '' });
+    writeJson(`${DATA}/index/${data.id}.json`, { ...summary, what: shelfApp?.name ?? '(not finished)', description: data.app?.description || ai?.appDescription || '' });
     changeProject(kidId, projectId, (fresh) => { (fresh.reports ??= []).push({ id: data.id, at: data.createdAt, finished: opts.finished }); });
     if (flags.length) {
       addAlert({ kind: 'flag', kidId, kidName: kid.nickname, reportId: data.id, text: `${flags.length === 1 ? '1 flag' : `${flags.length} flags`}${badge === 'look' ? ', needs a look' : ', handled'}: ${flags[0].headline}${flags.length > 1 ? ' and more' : ''}.` });
     }
     passEvents.emit('changed'); // Latest reports refreshes
-    console.log(JSON.stringify({ event: 'report', id: data.id, kid: kid.nickname, finished: opts.finished, writer: data.writer, usage: usage.kind }));
+    console.log(JSON.stringify({ event: 'report', id: data.id, kid: kid.nickname, finished: opts.finished, writer: data.writer, usage: usage.own !== null ? 'own' : usage.account ? 'account' : 'tokens' }));
     return summary;
   } finally {
     writing.delete(key);
@@ -260,6 +336,7 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
  *  kid did something during that pass. A later ship gets its own full report. */
 export function watchPassesForReports(port: number): void {
   appPort = port;
+  try { upgradeReports(); } catch (e) { console.error('[report] upgrade', e); }
   passEvents.on('pass', (passId: string) => {
     const pass = readPass(passId);
     if (!pass || isLive(pass) || !pass.usedAt) return;
@@ -272,15 +349,15 @@ export function watchPassesForReports(port: number): void {
 }
 
 export function listReports(): (ReportSummary & { description: string })[] {
-  const dir = dataPath('reports/index');
+  const dir = dataPath(`${DATA}/index`);
   try {
     return readdirSync(dir).filter((f) => f.endsWith('.json'))
-      .map((f) => readJson<ReportSummary & { description: string }>(`reports/index/${f}`, null as any)).filter(Boolean)
+      .map((f) => readJson<ReportSummary & { description: string }>(`${DATA}/index/${f}`, null as any)).filter(Boolean)
       .sort((a, b) => b.createdAt - a.createdAt);
   } catch { return []; }
 }
 
 export function readReport(id: string): ReportData | null {
-  return /^[\w-]{6,40}$/.test(id) ? readJson<ReportData | null>(`reports/${id}.json`, null) : null;
+  return /^[\w-]{6,40}$/.test(id) ? readJson<ReportData | null>(`${DATA}/${id}.json`, null) : null;
 }
 

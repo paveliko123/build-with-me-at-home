@@ -301,11 +301,14 @@ Implements `prd.md > The Parent Report`, `prd.md > Limit Reached`.
 - **The output (JSON schema):** `{title, summary, appDescription, ideasShareKid, ideasNote, flags:[{index, headline, guideDid, kidReaction}], checks:{personal, output, onTopic}, needsLook, worthAChat, starters:[…], stageNotes:{…}}`. "Whose ideas" is labeled an **estimate**. The facts (time, rounds, device, flags, timeline, usage) come from the project, not from Opus. If the review can't run (for example the limit is reached), the report is still written with the facts only (build revision, slice 7).
 - **Plan usage** (`server/usage.ts`):
   - Just before the session's first Claude call and just after the report, the server runs `claude -p "/usage"` (same isolation flags) and reads the 5-hour and weekly percentages.
-  - The report shows the difference.
-  - If two kids' sessions overlapped, the report says "shared with Leo's session" and splits the difference by each session's token share.
-  - **If `/usage` can't be read** (E1 decides), the report falls back to Claude Code's token and cost estimate.
+  - The report shows two numbers (build revision, after slice 8):
+    - **This app's own share** (an estimate). It's the app's own Claude calls (Claude Code's per-call cost estimate, which the parent's own use never appears in) times a rate: % of the 5-hour limit per unit of that estimate. The rate is learned on this family's plan from E3 runs and from reports measured cleanly from the start with no other kid busy, leaving out readings that ran high (`server/report/calibration.ts`, `usage-calibration.json` in the family folder). It needs about 2 units of measured use first.
+    - **The whole account's change** in `/usage` (5-hour and weekly, whole percents) while the app was made. If it went up 2 or more points more than the app's own share, the report says how much was other use (another kid's session, or the parent's own Claude use).
+  - A project with no start reading (started before this was measured, or `/usage` couldn't be read) gets one on its next turn, and the account change says "since <time>".
+  - **If neither is available,** the report shows Claude Code's token count. No dollar amounts are shown to the parent.
+  - Reports written earlier are upgraded once at start.
   - The parent home's status strip uses the latest `/usage` reading, refreshed when parent home opens (at most once a minute).
-- **Rendering:** `server/report/template.ts` builds a **self-contained HTML file** from `report-mockup.html`'s design. It's saved to `Reports\YYYY-MM-DD HHmm <Kid> - <App>.html`, with the data in `reports/<id>.json` for **All reports**.
+- **Rendering:** `server/report/template.ts` builds a **self-contained HTML file** from `report-mockup.html`'s design. It's saved to `Reports\YYYY-MM-DD HHmm <Kid> - <App>.html`, with the data in `report-data/<id>.json` for **All reports** (not `reports\`: folder names ignore case on Windows and macOS, so that was the same folder as `Reports\`).
 - **The app picture:** a themed tile with the app's emoji and name (see **What Was Simplified and Why**).
 - **Alerts** (`alerts.json`): flags and limit-reached events go to **Needs your attention** until the parent dismisses them.
 - **Test hook:** a file named `simulate-limit` in the plugin data folder makes every journey call act as if the plan limit was hit, without spending any of it (build revision, slice 7).
@@ -348,7 +351,8 @@ Everything lives in **`<home>\Build With Me`**, unless noted:
 | `kids/<kidId>/projects/<projectId>/project.json` | Stage, theme, transcript (masked), plans, change list, flags, timeline, usage readings, token and cost totals | Every turn, step change, build or flag | **Resume point:** the next pass picks up here |
 | `kids/<kidId>/projects/<projectId>/versions/vN.html` | Each built version | Each build | Kept; the last working version is shown |
 | `kids/<kidId>/apps/<slug>/index.html` and `kids/<kidId>/apps.json` | Shipped apps and the shelf index | Ship; parent delete | Kept until deleted |
-| `reports/<reportId>.json` | Report data for All reports | Report written | Kept |
+| `report-data/<reportId>.json` and `report-data/index/` | Report data for All reports | Report written | Kept |
+| `usage-calibration.json` | The learned rate for "this app's own share" (up to 30 measurements) | E3; each cleanly measured report | Kept |
 | `Reports/<date> <Kid> - <App>.html` | The readable report file | Report written | Kept; opens without the app |
 | `alerts.json` | Needs your attention items | Flag, limit, dismiss | Kept until dismissed |
 | `Start Build With Me.cmd` / `.command` and `.app-location` | Stable start file and pointer | Every launch | Kept |
@@ -446,7 +450,7 @@ No other network calls. Kids' apps get a CSP that blocks network access.
   - **The app picture in reports and on the shelf is a themed emoji tile,** instead of a real screenshot. A screenshot would need a headless browser (another big download). The fuller version would add Playwright to setup.
   - **Idea and Design pictures:** Build With Me's mock-ups stay. There's no image service, because the PRD has no keys.
 - **Device names come from the browser** ("iPad," "Windows laptop"), instead of names the parent types in. That's enough to tell devices apart in Active passes.
-- **The plan usage per app is a before-and-after difference of `/usage`,** split by token share when sessions overlap, instead of exact per-app accounting, which Claude Code doesn't expose.
+- **The plan usage per app is an estimate from the app's own calls at a learned rate,** shown next to the whole account's before-and-after change in `/usage`, because `/usage` is one number for the whole account and Claude Code doesn't expose per-app plan accounting.
 - **One English Whisper model,** instead of a language picker. The PRD didn't ask for other languages. It's swappable in settings later.
 - **Lockout and sessions are in memory:** a restart clears the wrong-PIN counter, which is acceptable for a home app.
 - **The release build is committed** (`app/dist`), instead of building on each family's computer. That trades repo size for a no-build install.

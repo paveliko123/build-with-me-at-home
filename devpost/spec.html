@@ -523,12 +523,17 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
       <li><b>Test hook:</b> a <code>simulate-limit</code> file in the plugin data folder makes every journey call act as if the plan limit was hit, without spending any of it.</li>
       <li><b>Plan usage</b> (<code>server/usage.ts</code>):
         <ul>
-          <li>Just before the session's first Claude call and just after the report, the server runs <code>claude -p "/usage"</code> (isolated) and reads the 5-hour and weekly %. The report shows the difference.</li>
-          <li>If two kids overlapped, it says "shared with Leo's session" and splits by token share.</li>
-          <li><b>If <code>/usage</code> can't be read</b> <span class="pill verify">E1</span>: tokens and cost estimate instead.</li>
+          <li>Just before the session's first Claude call and just after the report, the server runs <code>claude -p "/usage"</code> (isolated) and reads the 5-hour and weekly %.</li>
+          <li>The report shows two numbers (build revision, after slice 8):
+            <ul>
+              <li><b>This app's own share</b> (an estimate): the app's own Claude calls (Claude Code's per-call cost estimate, which your own use never appears in) times a rate learned on your plan from E3 and from cleanly measured reports, leaving out readings that ran high (<code>server/report/calibration.ts</code>, <code>usage-calibration.json</code>). It needs about 2 units of measured use first.</li>
+              <li><b>The whole account's change</b> in <code>/usage</code> while the app was made. If it went up 2 or more points more than the app's share, the report says how much was other use (another kid, or your own Claude use).</li>
+            </ul></li>
+          <li>A project with no start reading gets one on its next turn ("since &lt;time&gt;").</li>
+          <li><b>If neither is available:</b> Claude Code's token count. No dollar amounts are shown. Earlier reports are upgraded once at start.</li>
           <li>The parent home status strip uses the latest reading, refreshed when parent home opens (at most once a minute).</li>
         </ul></li>
-      <li><b>Rendering:</b> <code>server/report/template.ts</code> builds a <b>self-contained HTML file</b> in the report mockup's design, saved to <code>Reports\YYYY-MM-DD HHmm &lt;Kid&gt; - &lt;App&gt;.html</code>, with data in <code>reports/&lt;id&gt;.json</code>.</li>
+      <li><b>Rendering:</b> <code>server/report/template.ts</code> builds a <b>self-contained HTML file</b> in the report mockup's design, saved to <code>Reports\YYYY-MM-DD HHmm &lt;Kid&gt; - &lt;App&gt;.html</code>, with data in <code>report-data/&lt;id&gt;.json</code> (not <code>reports\</code>: folder names ignore case on Windows and macOS, so that was the same folder as <code>Reports\</code>).</li>
       <li><b>The app picture:</b> a themed emoji tile (see <a href="#simple">Simplified</a>).</li>
       <li><b>Alerts</b> (<code>alerts.json</code>): flags and limit-reached go to <b>Needs your attention</b> until dismissed.</li>
     </ul>
@@ -600,7 +605,8 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
         <tr><td><code>kids/&lt;kid&gt;/projects/&lt;id&gt;/project.json</code></td><td>Stage, theme, transcript (masked), plans, change list, flags, timeline, usage readings, token and cost totals</td><td>Every turn, step, build, flag</td><td><b>Resume point:</b> the next pass picks up here</td></tr>
         <tr><td><code>…/versions/vN.html</code></td><td>Each built version</td><td>Each build</td><td>Kept; the last working version shown</td></tr>
         <tr><td><code>kids/&lt;kid&gt;/apps/&lt;slug&gt;/index.html</code> + <code>apps.json</code></td><td>Shipped apps and the shelf index</td><td>Ship; parent delete</td><td>Kept until deleted</td></tr>
-        <tr><td><code>reports/&lt;id&gt;.json</code></td><td>Report data for All reports</td><td>Report written</td><td>Kept</td></tr>
+        <tr><td><code>report-data/&lt;id&gt;.json</code> and <code>report-data/index/</code></td><td>Report data for All reports</td><td>Report written</td><td>Kept</td></tr>
+        <tr><td><code>usage-calibration.json</code></td><td>The learned rate for "this app's own share" (up to 30 measurements)</td><td>E3; each cleanly measured report</td><td>Kept</td></tr>
         <tr><td><code>Reports/&lt;date&gt; &lt;Kid&gt; - &lt;App&gt;.html</code></td><td>The readable report file</td><td>Report written</td><td>Kept; opens without the app</td></tr>
         <tr><td><code>alerts.json</code></td><td>Needs your attention items</td><td>Flag, limit, dismiss</td><td>Kept until dismissed</td></tr>
         <tr><td><code>Start Build With Me.cmd/.command</code> + <code>.app-location</code></td><td>Stable start file and pointer</td><td>Every launch</td><td>Kept</td></tr>
@@ -704,7 +710,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
         <li><b>Idea and Design pictures:</b> Build With Me's mock-ups stay, with no image service, since the PRD has no keys.</li>
       </ul></li>
     <li><b>Device names come from the browser</b> ("iPad," "Windows laptop"), not names you type. Enough to tell devices apart in Active passes.</li>
-    <li><b>Per-app plan usage is a before-and-after difference of <code>/usage</code>,</b> split by token share when sessions overlap. Claude Code doesn't expose exact per-app accounting.</li>
+    <li><b>Per-app plan usage is an estimate from the app's own calls at a learned rate,</b> shown next to the whole account's change in <code>/usage</code>, because <code>/usage</code> is one number for the whole account and Claude Code doesn't expose per-app plan accounting.</li>
     <li><b>One English Whisper model,</b> not a language picker. Swappable later.</li>
     <li><b>Lockout and sessions are in memory:</b> a restart clears the wrong-PIN counter. Fine for a home app.</li>
     <li><b>The release build is committed</b> (<code>app/dist</code>), so families never build anything, at the cost of repo size.</li>
@@ -802,7 +808,7 @@ const steps=[
  {t:'A guide turn',hops:[['kid','Talks. The browser records and streams 16 kHz audio to the server.'],['server','Whisper turns it into text on the laptop; obvious personal details are masked.'],['claude','At the same time: the guide (Sonnet) gets the turn, and the checker (a Sonnet fork of the guide\'s call) judges the kid\'s words.'],['server','If the checker objects: discard the reply, gentle redirect, save a flag. Then the checker reads the guide\'s reply.'],['kid','The reply appears and the browser speaks it with a device voice.'],['files','Every turn, plan and flag saved in project.json, so nothing is lost if the pass ends.']]},
  {t:'Build',hops:[['claude','The builder (Opus) gets its instructions plus the Idea and Design plans and returns one self-contained HTML file.'],['files','Saved as versions/vN.html.'],['kid','The ⅔ pane shows it in a sandboxed frame. Change rounds repeat this.']]},
  {t:'Ship',hops:[['kid','Names the app.'],['files','Copied to kids/maya/apps/space-cat-feeder/index.html + apps.json.'],['kid','Served at /apps/maya/space-cat-feeder, with its QR code.']]},
- {t:'Report',hops:[['claude','The reporter (Opus) gets the transcript, flags, timeline and usage numbers, and returns the report content as JSON.'],['server','Fills the report template.'],['files','Reports\\2026-10-06 Maya - Space Cat Feeder.html + reports/<id>.json'],['parent','Parent home shows it; Needs your attention too if there are flags.']]},
+ {t:'Report',hops:[['claude','The reporter (Opus) gets the transcript, flags, timeline and usage numbers, and returns the report content as JSON.'],['server','Fills the report template.'],['files','Reports\\2026-10-06 Maya - Space Cat Feeder.html + report-data/<id>.json'],['parent','Parent home shows it; Needs your attention too if there are flags.']]},
  {t:'Time',hops:[['server','Keeps each pass\'s end time and pushes updates to every open screen (SSE).'],['kid','At 10 minutes left the countdown appears.'],['parent','+30 min on the laptop updates the kid\'s countdown immediately.'],['kid','At zero: Time\'s up. A running build finishes and saves.']]},
 ];
 const st=document.getElementById('stepper'),pn=document.getElementById('panel');let cur=0;

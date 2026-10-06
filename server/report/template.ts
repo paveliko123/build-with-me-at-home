@@ -2,13 +2,14 @@
 // like devpost/report-mockup.html ("One report"). No outside files: it opens from the Reports
 // folder even when Build With Me isn't running (only the app link needs it running).
 
-import type { ReportData } from './reporter.js';
+import { usageInfo, type ReportData } from './reporter.js';
 
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 const time = (t: number) => new Date(t).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(' ', ' ').toLowerCase();
 const day = (t: number) => new Date(t).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const mins = (m: number) => (m >= 60 ? `${Math.floor(m / 60)} hr${m % 60 ? ` ${m % 60} min` : ''}` : `${m} min`);
 const pct = (x: number | null) => (x === null ? '—' : x < 1 ? '&lt;1%' : `${Math.round(x)}%`);
+const plus = (x: number | null) => (x !== null && x >= 1 ? `+${pct(x)}` : pct(x));
 
 const CSS = `:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2430;--muted:#5d6475;--line:#e4ded3;--brand:#2f9e6e;--brand-soft:#dff3e9;--kid:#3a8ee2;--kid-soft:#e1eefc;--teen:#8a5cd6;--teen-soft:#eee6fb;--warn:#b7791f;--warn-soft:#fdf2dc;--bad:#b34a4a;--bad-soft:#f9e2e2;--ok:#2f9e6e;--ok-soft:#dff3e9}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15171c;--card:#1f232b;--ink:#eceef3;--muted:#a3a9b8;--line:#333945;--brand:#4cc08d;--brand-soft:#1b3329;--kid:#6aaef0;--kid-soft:#1d2c3e;--teen:#b08cf0;--teen-soft:#2c2340;--warn:#e0a84a;--warn-soft:#3a3020;--bad:#e07a7a;--bad-soft:#3a2222;--ok:#4cc08d;--ok-soft:#1b3329}}
@@ -51,12 +52,20 @@ export function renderReport(r: ReportData): string {
   const badge = r.badge === 'none' ? '<span class="pill ok">No flags</span>'
     : r.badge === 'look' ? '<span class="pill bad">Needs a look</span>'
     : `<span class="pill warn">${r.flags.length === 1 ? '1 flag' : `${r.flags.length} flags`} · handled by the guide</span>`;
-  const usageFacts = r.usage.kind === 'plan'
-    ? `<div class="fact"><b>${pct(r.usage.fiveHourPct)}</b><span>of your 5-hour limit</span></div><div class="fact"><b>${pct(r.usage.weeklyPct)}</b><span>of your weekly limit</span></div>`
-    : `<div class="fact"><b>${Math.round(r.usage.tokens / 1000)}k tokens</b><span>Claude Code's estimate: $${r.usage.costUsd.toFixed(2)} at API prices</span></div>`;
-  const usageNote = r.usage.kind === 'plan'
-    ? `Plan usage is the change in Claude Code's /usage from the start of this app to its report${r.usage.sharedWith.length ? `, shared with ${esc(r.usage.sharedWith.join(' and '))}'s session (split by each session's share of the work)` : ''}. Anything else on your account at the same time counts too.`
-    : `Plan usage isn't available: ${esc(r.usage.reason)} Showing Claude Code's token count and cost estimate instead.`;
+  const u = usageInfo(r.usage, r);
+  const a = u.account;
+  const since = a?.late ? `since ${time(a.from)}` : 'while it was made';
+  const usageFacts = [
+    u.own !== null ? `<div class="fact"><b>≈${pct(u.own)}</b><span>of your 5-hour limit: this app's own use (estimate)</span></div>` : '',
+    a ? `<div class="fact"><b>${plus(a.fiveHourPct)} · ${plus(a.weeklyPct)}</b><span>your whole account ${since}, 5-hour · weekly</span></div>` : '',
+    u.own === null && !a ? `<div class="fact"><b>${Math.round(u.tokens / 1000)}k tokens</b><span>Claude Code's count for this app</span></div>` : '',
+  ].join('');
+  const usageNote = [
+    u.own !== null ? `This app's share is worked out from Claude Code's count of the app's own calls, at a rate learned from ${u.calibratedFrom} earlier measurement${u.calibratedFrom === 1 ? '' : 's'} on your plan, so your own Claude use isn't in it.` : '',
+    a ? `The account change comes from Claude Code's /usage (whole percents) and includes everything on your account ${since}${a.late ? ' (this app started before Build With Me measured plan usage, so the start is missing)' : ''}.` : '',
+    u.otherPct !== null ? `About ${u.otherPct}% of that was other use at the same time: ${u.others.length ? `${esc(u.others.join(' and '))}'s session, or ` : ''}your own Claude use.` : u.others.length && a ? `${esc(u.others.join(' and '))} used Build With Me at the same time.` : '',
+    u.note && !a ? `${esc(u.note)}${u.own === null ? ' Showing Claude Code\'s token count instead; the app\'s own share appears once Build With Me has learned the rate on your plan.' : ''}` : '',
+  ].filter(Boolean).join(' ');
   const shown = r.app
     ? `<div class="app"><div class="shot"><span><span class="e">${esc(r.app.emoji)}</span>${esc(r.app.name)}</span></div><div><h3>${esc(r.app.name)}</h3><p class="muted" style="margin:0 0 8px">${esc(r.app.description)}</p><p style="margin:0"><a href="${esc(r.app.url)}" target="_blank" rel="noopener">Open the app ↗</a> &nbsp;·&nbsp; <span class="muted">works on this computer and on home Wi-Fi while Build With Me is running</span></p></div></div>`
     : `<p style="margin:0">Not finished: stopped at <b>${esc(r.stoppedAt ?? '')}</b>. It's saved, and ${esc(r.kidName)} picks up there with the next pass.</p>`;

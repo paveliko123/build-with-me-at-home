@@ -48,6 +48,10 @@ async function main() {
   await parent.call('/api/parent/unlock', { pin: '4321' });
   const kids = (await parent.call('/api/parent/kids')).body as { id: string; nickname: string }[];
   const maya = kids.find((k) => k.nickname === 'Maya')!, leo = kids.find((k) => k.nickname === 'Leo')!;
+  // The rate for "this app's own share", as E3 left it on the learner's plan (calibration.ts).
+  writeFileSync(join(FAMILY, 'usage-calibration.json'), JSON.stringify([
+    { at: started, pct: 3, cost: 0.90, source: 'e3' }, { at: started, pct: 2, cost: 1.18, source: 'e3' }, { at: started, pct: 2, cost: 1.54, source: 'e3' },
+  ]));
   const u0 = await readUsage();
   add('plan usage is readable for the "before" reading', u0.ok, `5-hour ${u0.fiveHourPct}% · weekly ${u0.weeklyPct}%`);
 
@@ -104,15 +108,17 @@ async function main() {
   add('shipping makes a report (Latest / All reports)', !!rep && rep.kidName === 'Maya' && rep.finished && rep.what === 'Biscuit Feeder', rep ? `${rep.title} · ${Math.round((Date.now() - started) / 1000)} s so far` : 'none');
   const files = existsSync(join(FAMILY, 'Reports')) ? readdirSync(join(FAMILY, 'Reports')) : [];
   const html = files[0] ? readFileSync(join(FAMILY, 'Reports', files[0]), 'utf8') : '';
-  add('a report file is written to the Reports folder', /^\d{4}-\d\d-\d\d \d{4} Maya - Biscuit Feeder\.html$/.test(files[0] ?? ''), files[0] ?? 'none');
+  add('a report file is written to the Reports folder (and nothing else is in it)', files.length === 1 && /^\d{4}-\d\d-\d\d \d{4} Maya - Biscuit Feeder\.html$/.test(files[0] ?? ''), files.join(', ') || 'none');
   const sections = ['In one paragraph', 'The app', 'Safety', 'Whose ideas?', 'How it went', 'Talk about it together', 'Full conversation'];
   const missing = sections.filter((h) => !html.includes(h));
   add('the HTML has every mockup section', !missing.length && html.includes('rounds of changes') && html.includes('how Maya answered'), missing.length ? `missing: ${missing.join(', ')}` : sections.join(' · '));
   add('it opens standalone (no scripts, no outside files)', !/<script|<link|src="http|@import/i.test(html) && html.includes('<style>'), `${Math.round(html.length / 1024)} KB, only the app link points at the running app`);
-  // Maya's project had a "before" reading, so her report shows the plan % (escaped "<1%" when tiny).
-  const five = html.match(/<b>((?:&lt;)?\d+%)<\/b><span>of your 5-hour limit/)?.[1];
-  const week = html.match(/<b>((?:&lt;)?\d+%)<\/b><span>of your weekly limit/)?.[1];
-  add('the plan usage % is shown (5-hour and weekly)', !!five && !!week, `${five?.replace('&lt;', '<')} of the 5-hour limit · ${week?.replace('&lt;', '<')} of the weekly limit`);
+  // Maya's project had a "before" reading: her report shows the app's own share (from its own
+  // calls) and the whole account's change, and never a dollar amount.
+  const own = html.match(/<b>≈((?:&lt;)?[\d.]+%)<\/b><span>of your 5-hour limit: this app's own use/)?.[1];
+  const account = html.match(/<b>\+?((?:&lt;)?[\d.]+%) · \+?((?:&lt;)?[\d.]+%)<\/b><span>your whole account while it was made/);
+  add("the app's own share and the account's change are shown", !!own && !!account, `≈${own?.replace('&lt;', '<')} own · account +${account?.[1].replace('&lt;', '<')} (5-hour) +${account?.[2].replace('&lt;', '<')} (weekly)`);
+  add('no dollar amounts in the report', !html.includes('$'), html.includes('$') ? html.slice(Math.max(0, html.indexOf('$') - 60), html.indexOf('$') + 20) : 'none');
   add('the flagged session → "1 flag · handled" badge', rep?.badge === 'handled' && rep.flags === 1 && html.includes('1 flag · handled'), `badge ${rep?.badge}, flags ${rep?.flags}`);
   const alerts = (await parent.call('/api/parent/alerts')).body;
   const flagAlert = alerts.find((a: any) => a.kind === 'flag' && a.reportId === rep?.id);
@@ -147,7 +153,18 @@ async function main() {
   const unfinished = reports.find((x: any) => x.kidName === 'Leo');
   add('an ended, unshipped pass → a "(not finished)" report', !!unfinished && !unfinished.finished && unfinished.what === '(not finished)', unfinished ? `${unfinished.title}` : 'none');
   const leoHtml = unfinished ? String((await parent.call(`/api/parent/reports/${unfinished.id}/html`)).body) : '';
-  add('…saying where it stopped, with the token fallback when /usage has no start reading', leoHtml.includes('stopped at <b>Idea</b>') && leoHtml.includes("Claude Code's token count"), leoHtml.match(/stopped at <b>[^<]+<\/b>/)?.[0] ?? 'no');
+  add("…saying where it stopped; with no start reading it still shows the app's own share", leoHtml.includes('stopped at <b>Idea</b>') && leoHtml.includes("this app's own use") && leoHtml.includes('began before Build With Me measured it') && !leoHtml.includes('$'), leoHtml.match(/stopped at <b>[^<]+<\/b>/)?.[0] ?? 'no');
+
+  // ---------- usage shapes the server doesn't make here (rendered directly) ----------
+  const { renderReport } = await import('../server/report/template.js');
+  const base = JSON.parse(readFileSync(join(FAMILY, 'report-data', `${rep?.id}.json`), 'utf8'));
+  const legacy = renderReport({ ...base, usage: { kind: 'tokens', tokens: 367942, costUsd: 1.53, reason: 'The plan usage reading at the start was not available.' } });
+  add('a report from before this change shows the own share, without dollars', legacy.includes("this app's own use") && !legacy.includes('$'), legacy.match(/<b>≈[^<]+<\/b>/)?.[0] ?? 'no own share');
+  const tokensOnly = renderReport({ ...base, usage: { own: null, account: null, otherPct: null, others: [], tokens: 367942, calibratedFrom: 0, note: "Claude Code's plan usage could not be read." } });
+  add('not calibrated and no reading → tokens only, without dollars', tokensOnly.includes('368k tokens') && !tokensOnly.includes('$'), tokensOnly.match(/<b>\d+k tokens<\/b><span>[^<]+/)?.[0] ?? 'no');
+  const late = renderReport({ ...base, usage: { own: 2.1, account: { fiveHourPct: 5, weeklyPct: 1, from: base.startedAt + 3_600_000, late: true }, otherPct: null, others: [], tokens: 1, calibratedFrom: 3 } });
+  const busy = renderReport({ ...base, usage: { own: 2.1, account: { fiveHourPct: 6, weeklyPct: 1, from: base.startedAt, late: false }, otherPct: 4, others: [], tokens: 1, calibratedFrom: 3 } });
+  add('a late reading says "since <time>"; extra account use is called out', /your whole account since \d/.test(late) && busy.includes('About 4% of that was other use at the same time: your own Claude use.'), 'late + busy rendered');
 
   // ---------- simulated limit ----------
   const lp2 = await passFor(leo.id);
