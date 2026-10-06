@@ -9,6 +9,7 @@ import { listKids, addKid, editKid, removeKid, cleanKidInput } from './kids.js';
 import { findClaude } from './claude/runner.js';
 import { readUsage, type UsageReading } from './usage.js';
 import { homeAddresses } from './certs.js';
+import { activePasses, createPass, extendPass, endPass } from './passes.js';
 
 let usageCache: { reading: UsageReading; at: number } | null = null;
 let usageInFlight: Promise<UsageReading> | null = null;
@@ -107,6 +108,41 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
     const ips = homeAddresses();
     const url = ips[0] ? `http://${ips[0]}:${opts.httpPort}/setup-tablet` : null;
     res.json({ url, addresses: ips, httpsPort: opts.httpsPort, certificateName: opts.caName, qr: url ? await QRCode.toDataURL(url, { margin: 1, width: 240 }) : null });
+  });
+
+  // ---- passes (prd.md > Passes) ----
+  // How a pass is opened: QR → https://<home address>/p/<code>; laptops type the code at
+  // https://<home address>; "open on this laptop" → http://localhost/p/<code>.
+  const withLinks = async <P extends { code?: string }>(p: P) => {
+    if (!p.code) return p;
+    const ip = homeAddresses()[0];
+    const qrUrl = ip ? `https://${ip}:${opts.httpsPort}/p/${p.code}` : null;
+    return {
+      ...p, qrUrl, typeAt: ip ? `https://${ip}:${opts.httpsPort}` : null,
+      laptopUrl: `http://localhost:${opts.httpPort}/p/${p.code}`,
+      qr: qrUrl ? await QRCode.toDataURL(qrUrl, { margin: 1, width: 240 }) : null,
+    };
+  };
+  r.get('/passes', async (_req, res) => { res.json(await Promise.all(activePasses().map(withLinks))); });
+  r.post('/passes', async (req, res) => {
+    const { kidId, minutes, replace } = req.body ?? {};
+    const out = createPass(String(kidId ?? ''), Number(minutes), replace === true);
+    if (!out.ok) {
+      const msg = { 'no-kid': 'Pick a kid first.', 'bad-minutes': 'Pick a time between 1 minute and 24 hours.', 'kid-has-pass': 'This kid already has a pass.' }[out.error];
+      res.status(out.error === 'kid-has-pass' ? 409 : 400).json({ error: msg, code: out.error, endsAt: 'pass' in out ? out.pass.endsAt : undefined });
+      return;
+    }
+    const view = activePasses().find((p) => p.id === out.pass.id);
+    res.json(await withLinks(view!));
+  });
+  r.post('/passes/:id/extend', (req, res) => {
+    const p = extendPass(req.params.id, Number(req.body?.minutes));
+    if (!p) { res.status(404).json({ error: 'That pass has already ended.' }); return; }
+    res.json({ ok: true, endsAt: p.endsAt });
+  });
+  r.post('/passes/:id/end', (req, res) => {
+    if (!endPass(req.params.id)) { res.status(404).json({ error: 'That pass has already ended.' }); return; }
+    res.json({ ok: true });
   });
 
   return r;

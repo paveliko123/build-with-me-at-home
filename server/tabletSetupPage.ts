@@ -135,7 +135,7 @@ async function check() {
   try {
     const r = await fetch(SECURE + '/api/health', { cache: 'no-store' });
     if (!r.ok) throw new Error();
-    res.innerHTML = '<div class="result ok">✅ All set! This device can talk to Build With Me. Your kid can now scan their pass.</div><p><a class="go" style="display:block" href="' + SECURE + '/talk-test">Try talking</a></p>';
+    res.innerHTML = '<div class="result ok">✅ All set! This device can talk to Build With Me. Your kid can now open their pass here.</div>';
   } catch {
     const android = 'Most often the certificate was installed as the wrong type (it must be “CA certificate”), or the browser wasn’t fully closed (the last step).';
     const hint = {

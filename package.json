@@ -19,7 +19,8 @@
     "build:server": "esbuild server/main.ts --bundle --platform=node --format=esm --target=node22 --packages=external --outfile=app/dist/server/main.mjs",
     "build": "npm run build:web && npm run build:server && node scripts/stamp-build.mjs",
     "start": "node app/dist/server/main.mjs",
-    "verify:3": "tsx scripts/verify-3.ts"
+    "verify:3": "tsx scripts/verify-3.ts",
+    "verify:4": "tsx scripts/verify-4.ts"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

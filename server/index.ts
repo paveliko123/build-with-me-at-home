@@ -14,6 +14,8 @@ import { loadOrCreateAuthority, issueServerCert, mobileConfig, authorityName, ty
 import { addChunk, finishUtterance, loadSpeech } from './speech.js';
 import { isLoopback } from './auth.js';
 import { parentRoutes } from './parentRoutes.js';
+import { kidRoutes } from './kidRoutes.js';
+import { kidSession } from './passes.js';
 import { setupTabletPage } from './tabletSetupPage.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -70,18 +72,25 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
   // ---- parent ----
   app.use('/api/parent', parentRoutes({ httpPort, httpsPort, caName: authorityName(authority) }));
 
-  // ---- speech (gated by passes from slice 4) ----
-  app.post('/api/speech/:id', express.raw({ type: 'application/octet-stream', limit: '1mb' }), (req, res) => {
-    if (!/^[A-Za-z0-9_-]{6,64}$/.test(req.params.id) || !Buffer.isBuffer(req.body)) { res.status(400).json({ error: 'bad request' }); return; }
-    res.json(addChunk(req.params.id, req.body));
+  // ---- passes, the kid's session, live updates ----
+  app.use('/api', kidRoutes());
+
+  // ---- speech: a kid with a live pass, or the laptop itself ----
+  const mayTalk = (req: Request, res: Response, next: NextFunction) => {
+    if (isLoopback(req) || kidSession(req)?.live) return next();
+    res.status(401).json({ error: 'no-pass' });
+  };
+  app.post('/api/speech/:id', mayTalk, express.raw({ type: 'application/octet-stream', limit: '1mb' }), (req, res) => {
+    if (!/^[A-Za-z0-9_-]{6,64}$/.test(String(req.params.id)) || !Buffer.isBuffer(req.body)) { res.status(400).json({ error: 'bad request' }); return; }
+    res.json(addChunk(String(req.params.id), req.body));
   });
-  app.post('/api/speech/:id/end', async (req, res) => {
-    try { res.json(await finishUtterance(req.params.id)); }
+  app.post('/api/speech/:id/end', mayTalk, async (req, res) => {
+    try { res.json(await finishUtterance(String(req.params.id))); }
     catch (e) { res.status(500).json({ error: 'speech failed', detail: (e as Error).message }); }
   });
 
   // ---- front end ----
-  app.get('/talk-test', (_req, res) => { sendFrom(res, existsSync(join(WEB_DIR, 'talk-test.html')) ? WEB_DIR : PUBLIC_DIR, 'talk-test.html'); });
+  app.get('/talk-test', mayTalk, (_req, res) => { sendFrom(res, existsSync(join(WEB_DIR, 'talk-test.html')) ? WEB_DIR : PUBLIC_DIR, 'talk-test.html'); });
   app.use(express.static(WEB_DIR, { index: false }));
   app.use(express.static(PUBLIC_DIR, { index: false }));
   app.use((req, res, next) => {

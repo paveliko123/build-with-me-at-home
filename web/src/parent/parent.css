@@ -71,3 +71,33 @@
 .parent .qr{width:200px;height:200px;background:#fff;border-radius:12px;padding:8px}
 .parent .explain{margin:6px 0 14px;padding-left:20px;font-size:14px;line-height:1.5}
 .parent .explain li{margin:4px 0}
+
+/* passes (parent-mockup.html: Give a pass, Active passes) */
+.parent .label{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin:0 0 8px}
+.parent .kidpick{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.parent .kidbtn{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:10px 14px;font:inherit;cursor:pointer;text-align:left;min-width:120px}
+.parent .kidbtn[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft)}
+.parent .kidbtn .em{font-size:24px;display:block}
+.parent .dur{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.parent .dur button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 13px;font:inherit;cursor:pointer}
+.parent .dur button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.parent .dur input{width:72px;padding:6px 8px}
+.parent .qrbox{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:14px;padding:14px;border-radius:12px;background:var(--brand-soft)}
+.parent .qrbox .qr{width:150px;height:150px;padding:6px}
+.parent .typed{font:800 22px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.08em;background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:2px 8px;display:inline-block}
+.parent .passrow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.parent .passrow:last-child{border-bottom:none}
+.parent .passrow .time{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.parent .passrow .time.low{color:var(--warn)}
+.parent .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+
+/* kid screens (slice 4 placeholders; the ported journey screens arrive in slice 5) */
+.parent .kidwrap{max-width:520px;margin:0 auto;padding:40px 16px;text-align:center}
+.parent .kidwrap h1{font-size:28px}
+.parent .bigemoji{font-size:64px;line-height:1.1}
+.parent .kidcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 20px;margin-top:18px}
+.parent .bigbtn{background:var(--brand);color:#fff;border:none;border-radius:16px;padding:16px 28px;font:inherit;font-size:20px;font-weight:800;cursor:pointer;margin-top:14px}
+.parent .bigbtn:disabled{opacity:.5}
+.parent .codein{font:800 26px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.12em;text-align:center;width:100%;max-width:260px;padding:12px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);text-transform:uppercase}
+.parent .countdown{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--warn-soft);color:var(--warn);border:2px solid var(--warn);border-radius:999px;padding:10px 20px;font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;box-shadow:0 6px 20px rgba(0,0,0,.12);z-index:20;white-space:nowrap}
+.parent .overlay{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;z-index:30}

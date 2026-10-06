@@ -196,7 +196,9 @@ Implements `prd.md > Kids`.
 ### Passes
 Implements `prd.md > Passes`.
 - **Each pass:** `{id, kidId, code, typedCode, createdAt, endsAt, usedAt, device, endedAt}`. The code is 128 random bits (base64url).
-- **Opening it:** `GET /p/:code`. If the code is unused and unexpired, the server stores `usedAt` and the device (a friendly label from the browser's user agent, e.g. "iPad," "Windows laptop") and sets the pass cookie (a different random token, `HttpOnly`, expiring at `endsAt`). Otherwise it shows "already used" or "expired."
+- **Opening it:** `/p/:code` shows whose pass it is (`GET /api/pass/peek/:code`, which doesn't use it up, so a link preview can't spend a pass). The kid taps **Start**, which calls `POST /api/pass/open {code}`. If the code is unused and unexpired, the server stores `usedAt` and the device (a friendly label from the browser's user agent, e.g. "iPad," "Windows laptop") and sets the pass cookie: a different random token, stored only as a hash, `HttpOnly`, `SameSite=Lax`, lasting a day past the end so the kid sees Time's up. Otherwise it shows "already used" or "expired." The same device opening it again just goes back in.
+- **Open on this laptop:** the same, on `http://localhost`. It also **locks the parent area** in that browser, so a kid is never one tab away from it.
+- **Only at home:** opening a pass and every kid request must come from the laptop or a private home address.
 - **Typed code (laptops, Chromebooks):** each pass also has `typedCode`, 8 characters from an alphabet without look-alikes (no 0/O, 1/I/L), shown as `K7QM-3XPA` (about 40 bits). The kid types it on the no-pass screen, which calls `POST /api/pass/redeem {code}`. It runs the same open logic as `/p/:code`, so either one uses up the pass. 5 wrong codes from one address → a 60-second wait. Only live, unused passes match.
 - **Extend and end:** `POST /api/parent/passes/:id/extend {minutes}` and `/end`. Each sends an SSE `pass` event to that kid's screens.
 - **Rules:** one live pass per kid. Creating a new one for a kid with a live pass asks "end the old one?"

@@ -88,7 +88,7 @@ Build mode: fast — pause only for significant decisions, the planned checkpoin
   Learner check: In Claude Code, load the plugin and type `/build-with-me`. Go through setup, create a PIN, add your kids, lock, then unlock. Does the parent home feel like the mockup? Try the desktop shortcut.
   Commit: `Plugin install, first-run setup and parent gate`
 
-- [ ] **4. Give a kid a one-use, timed pass**
+- [x] **4. Give a kid a one-use, timed pass**
   Becomes usable:
   - In the parent home, pick a kid and a duration (presets or custom) and create a pass. A QR code appears.
   - Scanning it on the tablet (or "open on this laptop", or typing its short code on a kid's laptop or Chromebook) lands that kid on their Welcome screen, with their name and age group.
@@ -280,3 +280,6 @@ Activity mode:
   - What changes: one certificate per family, in `.home-certificate/`, reusing the oldest one already on the computer. New ones carry a date in their name. The wizard names it and says "Not secure" is expected there. The parent's tablet screen explains what, why and how in plain bullets, including the browser's "doesn't support a secure connection" warning.
 - **Kids' own laptops and Chromebooks can join, not only tablets** (learner decision).
   - What changes: the setup wizard adds Windows, Mac and Chromebook steps, with auto-detection and the dictation shortcut as a fallback. Slice 4 adds a short typed pass code next to the QR code, because laptops can't scan. School-managed Chromebooks usually block certificates, so they fall back to dictation.
+- **Opening a pass takes one tap, and opening it on the laptop locks the parent area** (slice 4, internal).
+  - What the build found: a link that uses itself up on load can be spent by a link preview or a browser prefetch, and a kid on the laptop would be one tab away from the unlocked parent area.
+  - What changes: `/p/<code>` shows whose pass it is with a **Start** button. "Open on this laptop" ends the parent session in that browser. Passes and kid requests only work from the laptop or the home network.

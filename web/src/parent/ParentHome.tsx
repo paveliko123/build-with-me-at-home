@@ -1,20 +1,33 @@
 import { useCallback, useEffect, useState } from 'react';
-import { api, type Kid, type Status } from '../lib/api';
+import { api, type ActivePass, type Kid, type Status } from '../lib/api';
+import { ActivePasses, GivePass } from './Passes';
 import { KidForm } from './KidForm';
 import { PinPad } from './PinPad';
 
 // prd.md > Screens and Layout (parent home), laid out like devpost/parent-mockup.html.
-// Passes (slice 4) and reports (slice 7) plug into the cards marked below.
+// Reports (slice 7) plug into the cards marked below. Passes update live over SSE.
 export function ParentHome({ onLock }: { onLock: () => void }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [kids, setKids] = useState<Kid[]>([]);
   const [modal, setModal] = useState<'kids' | 'tablet' | 'settings' | null>(null);
+  const [passes, setPasses] = useState<ActivePass[]>([]);
+  const [shown, setShown] = useState<string | null>(null);
 
   const loadKids = useCallback(() => api<Kid[]>('/api/parent/kids').then(setKids).catch(() => onLock()), [onLock]);
   useEffect(() => {
     loadKids();
     api<Status>('/api/parent/status').then(setStatus).catch(() => setStatus({ claude: { found: false, signedIn: false } }));
   }, [loadKids]);
+
+  const loadPasses = useCallback(() => api<ActivePass[]>('/api/parent/passes').then(setPasses).catch(() => onLock()), [onLock]);
+  useEffect(() => {
+    loadPasses();
+    const es = new EventSource('/api/events');
+    es.addEventListener('passes', () => loadPasses());
+    // The countdowns tick locally; this catches anything missed while the stream reconnects.
+    const t = setInterval(loadPasses, 60_000);
+    return () => { es.close(); clearInterval(t); };
+  }, [loadPasses]);
 
   const lock = async () => { await api('/api/parent/lock', { body: {} }).catch(() => {}); onLock(); };
   const now = new Date();
@@ -33,14 +46,8 @@ export function ParentHome({ onLock }: { onLock: () => void }) {
 
       <div className="grid">
         <div className="stack">
-          <div className="card">
-            <h2>🎟️ Give a pass</h2>
-            <div className="soon">Passes arrive in the next build step. You'll pick a kid and how long, then a one-use QR code appears.</div>
-          </div>
-          <div className="card">
-            <h2>⏱️ Active passes</h2>
-            <div className="empty">No active passes.</div>
-          </div>
+          <GivePass kids={kids} passes={passes} shown={shown} setShown={setShown} onAddKid={() => setModal('kids')} reload={loadPasses} />
+          <ActivePasses passes={passes} onShow={setShown} reload={loadPasses} />
         </div>
         <div className="stack">
           <div className="card">
