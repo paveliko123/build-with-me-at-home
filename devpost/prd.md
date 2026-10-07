@@ -212,6 +212,8 @@ Source: `scope.md > The POC Boundary` (three safety layers). Everything runs on 
    - [ ] An unsuitable request (for example, "make the cat explode with blood") gets a gentle redirect to a kid-friendly alternative. It's never built and never scolded.
    - [ ] The guide never asks for personal details. If one is offered (a full name, school or address), the guide kindly says it doesn't need it, and it doesn't appear in the guide's replies, the plans or the app.
    - [ ] Every redirect and every personal detail becomes a **flag** for the report.
+   - [ ] A sign the kid may be hurting or unsafe gets a warm "tell a trusted grown-up" reply, and the parent gets an alert under **Needs your attention** at once, not only in the report. *(README review)*
+   - [ ] Kids' apps can't load or send anything over the internet or open a website, in the previews too. *(README review)*
 3. **The parent report** (below) is the backstop.
 
 ### Limit Reached

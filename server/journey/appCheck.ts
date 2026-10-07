@@ -21,6 +21,10 @@ const FORBIDDEN: { pattern: RegExp; reason: string }[] = [
   { pattern: /\.src\s*=\s*["'`](https?:)?\/\//i, reason: 'loads something from the internet' },
   { pattern: /url\(\s*["']?(https?:)?\/\//i, reason: 'loads a picture or font from the internet (CSS url())' },
   { pattern: /\bimport\s*(\(\s*|[^;'"`]*\bfrom\s*)["'`](https?:)?\/\//i, reason: 'imports code from the internet' },
+  // Learner request: no way out to a website (the screens' frame rules block it too; this
+  // catches it before the kid ever taps a link that does nothing).
+  { pattern: /<a\b[^>]*\bhref\s*=\s*["']?(https?:)?\/\//i, reason: 'links to a website' },
+  { pattern: /\bwindow\.open\s*\(|\blocation(\.href)?\s*=\s*["'`](https?:)?\/\/|\blocation\.(assign|replace)\s*\(\s*["'`](https?:)?\/\//i, reason: 'opens a website' },
 ];
 
 /** Strip Markdown fences or stray text around the document. */

@@ -263,6 +263,7 @@ Implements `prd.md > Safety`.
   - **Unsuitable output:** the reply is regenerated once, and then a safe fallback line is used.
   - Every non-ok verdict appends a **flag** `{time, step, kidSaid, guideDid, kind}` to the project.
 - **Layer 3, the report:** described under **Reporter and Reports**.
+- **README review:** a `wellbeing` verdict also adds a `wellbeing` alert at once (`flag()` in `server/journey/safetyCheck.ts` → `addAlert`), shown in red on the parent home with the masked words. Kids' apps can't open a website: `appCheck.ts` catches website links, `window.open` and `location` changes to a website before a version ships, and the kid and parent screens are served with `Content-Security-Policy: frame-src 'self'`, so a preview frame can't be navigated to a website (checked in Chrome); the shelf's app page already had `frame-src 'none'`.
 - **Builder output:** the builder's HTML text also goes through one checker pass before it's shown, including words drawn in pictures (SVG text). The hard rules also catch an app that reaches the internet from code (a script, picture, CSS `url()` or `import` from a web address), which the app's page rules block anyway (security audit B1, B2).
 
 ### Speech

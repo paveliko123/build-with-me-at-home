@@ -769,7 +769,11 @@ var FORBIDDEN = [
   { pattern: /createElement\(\s*["'`]script/i, reason: "adds a script from code" },
   { pattern: /\.src\s*=\s*["'`](https?:)?\/\//i, reason: "loads something from the internet" },
   { pattern: /url\(\s*["']?(https?:)?\/\//i, reason: "loads a picture or font from the internet (CSS url())" },
-  { pattern: /\bimport\s*(\(\s*|[^;'"`]*\bfrom\s*)["'`](https?:)?\/\//i, reason: "imports code from the internet" }
+  { pattern: /\bimport\s*(\(\s*|[^;'"`]*\bfrom\s*)["'`](https?:)?\/\//i, reason: "imports code from the internet" },
+  // Learner request: no way out to a website (the screens' frame rules block it too; this
+  // catches it before the kid ever taps a link that does nothing).
+  { pattern: /<a\b[^>]*\bhref\s*=\s*["']?(https?:)?\/\//i, reason: "links to a website" },
+  { pattern: /\bwindow\.open\s*\(|\blocation(\.href)?\s*=\s*["'`](https?:)?\/\/|\blocation\.(assign|replace)\s*\(\s*["'`](https?:)?\/\//i, reason: "opens a website" }
 ];
 function extractHtml(raw) {
   let text = raw.trim();
@@ -1427,6 +1431,32 @@ Even the simplest idea should look like a polished app from an app store, not a 
 - Everyday apps: friendly empty states with a small drawing, clear feedback after every action (a highlight, a small message, an animation), and tidy, well-aligned layouts.
 - Polish never breaks the rules above or what the documents ask for: every requested behavior works exactly, the app stays fast, and it still fits the screen rules.`;
 
+// server/report/alerts.ts
+import { randomBytes as randomBytes4 } from "node:crypto";
+var FILE2 = "alerts.json";
+function listAlerts() {
+  return readJson(FILE2, { alerts: [] }).alerts.filter((a) => !a.dismissed).sort((a, b) => b.at - a.at);
+}
+function addAlert(a) {
+  updateJson(FILE2, { alerts: [] }, (f) => {
+    if (a.kind === "limit" && f.alerts.some((x) => x.kind === "limit" && x.kidId === a.kidId && x.text === a.text && !x.dismissed && Date.now() - x.at < 30 * 6e4)) return;
+    f.alerts.push({ ...a, id: randomBytes4(6).toString("base64url"), at: Date.now() });
+    f.alerts = f.alerts.slice(-200);
+  });
+  passEvents.emit("changed");
+}
+function dismissAlert(id) {
+  let found = false;
+  updateJson(FILE2, { alerts: [] }, (f) => {
+    const x = f.alerts.find((y) => y.id === id);
+    if (x) {
+      x.dismissed = true;
+      found = true;
+    }
+  });
+  return found;
+}
+
 // server/journey/safetyCheck.ts
 var SCHEMA = {
   type: "object",
@@ -1474,10 +1504,15 @@ ${text.slice(0, 6e3)}
 function flag(project, direction, result, maskedText) {
   project.flags.push({ at: Date.now(), stage: project.stage, direction, verdict: result.verdict, category: result.category ?? "", text: maskedText.slice(0, 2e3) });
   console.warn(JSON.stringify({ event: "flag", project: project.id, direction, verdict: result.verdict, category: result.category }));
+  if (result.verdict === "wellbeing") {
+    const name = readFamily().kids.find((k) => k.id === project.kidId)?.nickname ?? "Your kid";
+    const said = maskedText.replace(/\s+/g, " ").trim();
+    addAlert({ kind: "wellbeing", kidId: project.kidId, kidName: name, text: `${name} just said something that may mean they're hurting or unsafe${said ? `: "${said.slice(0, 160)}${said.length > 160 ? "\u2026" : ""}"` : ""}. The guide told them to talk to a trusted grown-up. Please check in with them now.` });
+  }
 }
 
 // server/journey/project.ts
-import { randomBytes as randomBytes4 } from "node:crypto";
+import { randomBytes as randomBytes5 } from "node:crypto";
 var projectFile = (kidId, id) => `kids/${kidId}/projects/${id}/project.json`;
 var currentFile = (kidId) => `kids/${kidId}/current.json`;
 var SAFE_ID = /^[A-Za-z0-9_-]{6,40}$/;
@@ -1488,7 +1523,7 @@ function createProject(kidId, profile, stage) {
   const now = Date.now();
   const p = {
     version: 1,
-    id: randomBytes4(9).toString("base64url"),
+    id: randomBytes5(9).toString("base64url"),
     kidId,
     profile,
     stage,
@@ -6661,32 +6696,6 @@ import { randomBytes as randomBytes6 } from "node:crypto";
 import { existsSync as existsSync9, mkdirSync as mkdirSync8, readdirSync as readdirSync3, renameSync as renameSync2, rmdirSync, writeFileSync as writeFileSync6 } from "node:fs";
 import { dirname as dirname5, join as join9 } from "node:path";
 
-// server/report/alerts.ts
-import { randomBytes as randomBytes5 } from "node:crypto";
-var FILE2 = "alerts.json";
-function listAlerts() {
-  return readJson(FILE2, { alerts: [] }).alerts.filter((a) => !a.dismissed).sort((a, b) => b.at - a.at);
-}
-function addAlert(a) {
-  updateJson(FILE2, { alerts: [] }, (f) => {
-    if (a.kind === "limit" && f.alerts.some((x) => x.kind === "limit" && x.kidId === a.kidId && x.text === a.text && !x.dismissed && Date.now() - x.at < 30 * 6e4)) return;
-    f.alerts.push({ ...a, id: randomBytes5(6).toString("base64url"), at: Date.now() });
-    f.alerts = f.alerts.slice(-200);
-  });
-  passEvents.emit("changed");
-}
-function dismissAlert(id) {
-  let found = false;
-  updateJson(FILE2, { alerts: [] }, (f) => {
-    const x = f.alerts.find((y) => y.id === id);
-    if (x) {
-      x.dismissed = true;
-      found = true;
-    }
-  });
-  return found;
-}
-
 // server/report/calibration.ts
 var FILE3 = "usage-calibration.json";
 var MIN_COST = 2;
@@ -8092,8 +8101,10 @@ async function startServer(opts = {}) {
   app.use(express4.static(PUBLIC_DIR, { index: false }));
   app.use((req, res, next) => {
     if (req.method !== "GET" || req.path.startsWith("/api/")) return next();
-    if (existsSync10(join10(WEB_DIR, "index.html"))) sendFrom(res, WEB_DIR, "index.html");
-    else res.status(503).type("text").send("The screens are not built yet. Run: npm run build:web");
+    if (existsSync10(join10(WEB_DIR, "index.html"))) {
+      res.set("Content-Security-Policy", "frame-src 'self'");
+      sendFrom(res, WEB_DIR, "index.html");
+    } else res.status(503).type("text").send("The screens are not built yet. Run: npm run build:web");
   });
   app.use((err, req, res, _next) => {
     console.error(`[error] ${req.method} ${req.path}:`, err?.stack ?? err);

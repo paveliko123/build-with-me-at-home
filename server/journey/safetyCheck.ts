@@ -5,6 +5,8 @@
 // guide still runs under the strict safety layer.
 import { callCheck, LimitError, type CallMeta, type ForkFrom } from './claude.js';
 import type { Project } from './project.js';
+import { addAlert } from '../report/alerts.js';
+import { readFamily } from '../store.js';
 import type { AgeGroup } from './types.js';
 
 export type Verdict = 'ok' | 'unsuitable' | 'personal' | 'wellbeing';
@@ -68,4 +70,11 @@ export async function callSafetyCheck(text: string, direction: Direction, ageGro
 export function flag(project: Project, direction: Direction, result: SafetyResult, maskedText: string) {
   project.flags.push({ at: Date.now(), stage: project.stage, direction, verdict: result.verdict, category: result.category ?? '', text: maskedText.slice(0, 2000) });
   console.warn(JSON.stringify({ event: 'flag', project: project.id, direction, verdict: result.verdict, category: result.category }));
+  // A kid who may be hurting or unsafe: the parent hears at once, not only in the report at the
+  // end of the pass (learner request). The kid already got the "tell a trusted grown-up" reply.
+  if (result.verdict === 'wellbeing') {
+    const name = readFamily().kids.find((k) => k.id === project.kidId)?.nickname ?? 'Your kid';
+    const said = maskedText.replace(/\s+/g, ' ').trim();
+    addAlert({ kind: 'wellbeing', kidId: project.kidId, kidName: name, text: `${name} just said something that may mean they're hurting or unsafe${said ? `: "${said.slice(0, 160)}${said.length > 160 ? '…' : ''}"` : ''}. The guide told them to talk to a trusted grown-up. Please check in with them now.` });
+  }
 }

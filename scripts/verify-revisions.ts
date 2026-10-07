@@ -270,6 +270,28 @@ async function main() {
     prog.setPhase('look1', 'checking');
     const atCheck = prog.getProgress('look1')!.steps.every((s: any) => s.done);
     add('the look step ticks when the styles are done, and every step once the code is checked', !lookBefore && afterStyle.join() === 'true,false' && atCheck, `before </style>: ${lookBefore} · after: ${afterStyle.join(', ')} · checking: ${atCheck}`);
+    // Learner: a wellbeing concern reaches the parent at once, not only with the report.
+    const { flag } = await import('../server/journey/safetyCheck.js');
+    const { listAlerts } = await import('../server/report/alerts.js');
+    const before0 = listAlerts().filter((a: any) => a.kind === 'wellbeing').length;
+    const fakeP: any = { id: 'wb-test', kidId: maya.id, stage: 'idea', flags: [] };
+    flag(fakeP, 'input', { verdict: 'unsuitable', category: 'violence' }, 'a mean game');
+    flag(fakeP, 'input', { verdict: 'wellbeing', category: 'self-harm' }, 'nobody likes me, I want to disappear');
+    const wb = listAlerts().filter((a: any) => a.kind === 'wellbeing');
+    add('a wellbeing concern alerts the parent at once (an ordinary flag waits for the report)', wb.length === before0 + 1 && wb[0].kidName === 'Maya' && /check in with them now/.test(wb[0].text), wb[0]?.text.slice(0, 90) ?? 'no alert');
+    r = await parent.call('/api/parent/alerts');
+    add('the parent home gets the wellbeing alert', JSON.stringify(r.body).includes('"kind":"wellbeing"'), `status ${r.status}`);
+
+    // Learner: no way out to a website from a kid's app.
+    const { checkApp } = await import('../server/journey/appCheck.js');
+    const page = (body: string) => `<!doctype html><html><head><title>t</title></head><body>${body}</body></html>`;
+    const linkOut = checkApp(page('<a href="https://example.com">play more</a>'));
+    const openOut = checkApp(page('<script>function go(){window.open("https://example.com")}</script>'));
+    const fine = checkApp(page('<a href="#top">Top</a><button onclick="location.reload()">Again</button>'));
+    add('a website link or window.open in an app is caught before it ships; in-page links are fine', linkOut.some((x) => /website/.test(x)) && openOut.some((x) => /website/.test(x)) && fine.length === 0, `link: ${linkOut.join('; ')} · open: ${openOut.join('; ')} · fine: ${fine.length}`);
+    const shellCsp = (await fetch(`${base}/kid`)).headers.get('content-security-policy') ?? '';
+    add('the kid and parent screens let frames show only this app\'s own pages', shellCsp === "frame-src 'self'", shellCsp || 'no policy');
+
     // Learner: a change built in round 1 came back on the list in round 2.
     const { builtChanges } = await import('../server/journey/changes.js');
     const doneList = builtChanges({ versions: [{ n: 1, mode: 'full', note: 'first build' }, { n: 2, mode: 'edit', note: '1. Add a dozen more shapes, like levels\n2. Make the dots bigger' }] } as any);

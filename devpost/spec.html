@@ -473,6 +473,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
           <li>Every non-ok verdict appends a <b>flag</b> <code>{time, step, kidSaid, guideDid, kind}</code>.</li>
         </ul></li>
       <li><b>Layer 3, the report:</b> see <a href="#c-report">Reporter and Reports</a>.</li>
+      <li><b>README review:</b> a <code>wellbeing</code> verdict also adds a <code>wellbeing</code> alert at once (<code>flag()</code> in <code>server/journey/safetyCheck.ts</code> → <code>addAlert</code>), shown in red on the parent home with the masked words. Kids' apps can't open a website: <code>appCheck.ts</code> catches website links, <code>window.open</code> and <code>location</code> changes to a website before a version ships, and the kid and parent screens are served with <code>Content-Security-Policy: frame-src 'self'</code>, so a preview frame can't be navigated to a website (checked in Chrome); the shelf's app page already had <code>frame-src 'none'</code>.</li>
       <li><b>Builder output:</b> the app's HTML text also goes through one checker pass before it's shown, including words drawn in pictures (SVG text). The hard rules also catch an app that reaches the internet from code (a script, picture, CSS <code>url()</code> or <code>import</code> from a web address), which the app's page rules block anyway <span class="pill verify">security audit B1, B2</span>.</li>
     </ul>
     <div class="files">server/safety.ts · server/journey/personal.ts · server/journey/prompt/safety.ts</div>

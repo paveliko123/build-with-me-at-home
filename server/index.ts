@@ -137,7 +137,10 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
   app.use(express.static(PUBLIC_DIR, { index: false }));
   app.use((req, res, next) => {
     if (req.method !== 'GET' || req.path.startsWith('/api/')) return next();
-    if (existsSync(join(WEB_DIR, 'index.html'))) sendFrom(res, WEB_DIR, 'index.html');
+    // Frames on the kid and parent screens (app previews, pictures, reports) may show only this
+    // app's own pages: a website link in a kid's app can't open the website inside the preview
+    // (learner request; the shelf's app page has the same rule in APP_CSP).
+    if (existsSync(join(WEB_DIR, 'index.html'))) { res.set('Content-Security-Policy', "frame-src 'self'"); sendFrom(res, WEB_DIR, 'index.html'); }
     else res.status(503).type('text').send('The screens are not built yet. Run: npm run build:web');
   });
 

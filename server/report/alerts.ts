@@ -8,7 +8,7 @@ import { passEvents } from '../passes.js';
 export interface Alert {
   id: string;
   at: number;
-  kind: 'flag' | 'limit';
+  kind: 'flag' | 'limit' | 'wellbeing'; // wellbeing: at once, during the pass (not with the report)
   kidId: string;
   kidName: string;
   text: string;

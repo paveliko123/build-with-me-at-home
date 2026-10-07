@@ -43,8 +43,9 @@ Kids (under 13) get short questions and picture cards. Teens (13–17) see and a
 <a id="what-you-need"></a>
 ## 🧰 What you need
 
+- 🎫 **A paid Claude membership that includes Claude Code**, such as Claude Pro or Max, in your own name (you, the parent, are the account holder; Anthropic requires 18+). Build With Me uses your plan's limits: there's nothing extra to buy, and no API key. With a subscription, the Parent area also shows your 5-hour and weekly limits.
 - 💻 **Windows or Mac.** Built and tested on Windows 11; the Mac steps are the same but less tested.
-- 🤖 **The Claude Code command-line tool (`claude`)**, signed in, on a plan that includes Claude Code. The Code tab in the Claude desktop app isn't enough on its own; setup offers Anthropic's official installer if `claude` is missing.
+- 🤖 **The Claude Code command-line tool (`claude`)**, signed in to that membership. The Code tab in the Claude desktop app isn't enough on its own; setup offers Anthropic's official installer if `claude` is missing.
 - 🟩 **Node.js 22 or newer.** Setup offers to install it if it's missing.
 - 📶 For tablets: the tablet and the laptop on the same home Wi-Fi.
 
@@ -143,7 +144,7 @@ Several layers work together. None of them is perfect on its own, which is why y
 | 🧭 | **A guide made for kids** | The guide says it's an AI, not a person. It follows strict safety rules in every message, adjusts to the kid's age group, never asks for personal details, and redirects kindly instead of scolding. |
 | 🔍 | **Every message checked, both ways** | A separate Claude safety check reads **what the kid says** (before the guide's answer is shown), **what the guide is about to say**, and **the words in every app** before it's shown or shared. |
 | 🙈 | **Personal details hidden** | Obvious details (a full name, home address, school, phone number or email) are masked the moment they're typed or said, before anything is saved or sent; the safety check catches ones the masking missed. |
-| 🧱 | **Apps sealed off** | Kids' apps run in a locked-down frame: they can't load anything from the internet or send anything out, can't ask for passwords or payments, and can't reach the rest of your computer. |
+| 🧱 | **Apps sealed off** | Kids' apps run in a locked-down frame: they can't load anything from the internet, send anything out or open a website, can't ask for passwords or payments, and can't reach the rest of your computer. |
 | 🔐 | **Your Claude kept separate** | The kids' Claude sessions run sealed off from your own Claude Code: they can't see your settings, memory, projects or files. |
 
 **What happens when the check finds something:**
@@ -152,9 +153,9 @@ Several layers work together. None of them is perfect on its own, which is why y
 |---|---|---|
 | 🚫 **Something unsuitable** (violence, weapons, adult or scary themes, drugs, hate or bullying, scams, tricks to break the rules) | A kind "let's make something else instead!" It's never answered and never built. | A flag in the report |
 | 🙈 **A personal detail** | The detail is hidden, and the guide gently says it isn't needed here. | A flag in the report |
-| 💛 **A sign they may be hurting or unsafe** | A warm message to tell a trusted grown-up right away. | 🔴 **Needs a look** in the report, and an alert under **Needs your attention** |
+| 💛 **A sign they may be hurting or unsafe** | A warm message to tell a trusted grown-up right away. | 💛 **An alert on your home screen at once** (under **Needs your attention**), and 🔴 **Needs a look** in the report |
 
-Reports (and their alerts) are written when the kid ships the app or the pass ends.
+Reports are written when the kid ships the app or the pass ends; a wellbeing alert doesn't wait for that.
 
 Cartoon battles, silly monsters, superheroes, space lasers and everyday "I'm bored" are fine: the check is built to be fair to kids, not jumpy.
 
