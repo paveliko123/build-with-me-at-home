@@ -6,10 +6,7 @@
 
 **A Claude Code plugin for parents: your kids plan and build their own small apps with a friendly AI guide, on your computer and your Claude account, with you supervising.**
 
-![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757)
-![Windows | Mac](https://img.shields.io/badge/runs%20on-Windows%20%7C%20Mac-3a8ee2)
-![Stays on your computer](https://img.shields.io/badge/data-stays%20on%20your%20computer-2f9e6e)
-![License: MIT](https://img.shields.io/badge/license-MIT-8a5cd6)
+![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757) ![Windows | Mac](https://img.shields.io/badge/runs%20on-Windows%20%7C%20Mac-3a8ee2) ![Stays on your computer](https://img.shields.io/badge/data-stays%20on%20your%20computer-2f9e6e) ![License: MIT](https://img.shields.io/badge/license-MIT-8a5cd6)
 
 </div>
 
