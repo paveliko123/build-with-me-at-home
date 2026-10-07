@@ -240,15 +240,15 @@ Feedback and fixes (final review, started 2026-10-07):
 
 ## Code Tour and App Map
 
-- [ ] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
-- [ ] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
+- [x] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
+- [x] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
 - [x] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
 Activity and evidence: map generated from commit 55e8013; paths and symbols checked against the source; rendered in the browser pane (no sideways scroll). Learning link: the profile's goal, the pros, cons and limits of running a local copy (the map's "Local versus hosted" section, each point tied to code).
-Route and stops:
-Edit outcome:
-Reflection:
-Activity mode:
+Route and stops: reference route only (the map's three stops); the learner skipped the tour.
+Edit outcome: not done (tour skipped).
+Reflection: answered (kept in the private learner profile).
+Activity mode: brief recap through the app map (not hands-on).
 
 ## Revisions
 
