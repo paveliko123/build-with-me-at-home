@@ -11,7 +11,7 @@ import express, { Router, type Request, type Response } from 'express';
 import QRCode from 'qrcode';
 import { requireKid, setPassStep, type KidSession } from '../passes.js';
 import { homeAddresses } from '../certs.js';
-import { guideTurn, TurnError } from './guideTurn.js';
+import { guideTurn, ideasMode, TurnError } from './guideTurn.js';
 import { LimitError } from './claude.js';
 import { buildApp, latestVersion, type BuildMode } from './build.js';
 import { changeTurn } from './changes.js';
@@ -67,7 +67,7 @@ export function snapshot(p: Project) {
   const techSummary = techLast ? (JSON.parse(techLast.text) as GuideReply).techSummary : undefined;
   const latest = latestVersion(p);
   return {
-    projectId: p.id, profile, stage, reply, lastExchange, doc, techSummary,
+    projectId: p.id, profile, stage, reply, lastExchange, doc, techSummary, ideasMode: ideasMode(p),
     docs: Object.values(p.docs).filter((d) => !!d).map((d) => ({ kind: d!.kind, markdown: d!.markdown, status: d!.status })),
     shipped: !!p.shipped,
     checklist: null,
@@ -143,7 +143,10 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
 
   // One conversation turn (text empty = the guide opens the current stage; in Build, the
   // waiting chat).
-  r.post('/turn', (req, res) => withProject(req, res, 'chat', (p) => guideTurn(p, typeof req.body?.text === 'string' ? req.body.text : undefined, { ideaId: typeof req.body?.ideaId === 'string' ? req.body.ideaId : undefined })));
+  r.post('/turn', (req, res) => withProject(req, res, 'chat', async (p) => ({
+    ...(await guideTurn(p, typeof req.body?.text === 'string' ? req.body.text : undefined, { ideaId: typeof req.body?.ideaId === 'string' ? req.body.ideaId : undefined, askIdeas: req.body?.askIdeas === true })),
+    ideasMode: ideasMode(p),
+  })));
 
   // The teaching progress view while the app builds (buildProgress.ts): milestones, not code.
   r.get('/progress', (req, res) => {

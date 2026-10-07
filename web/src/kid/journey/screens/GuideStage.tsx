@@ -11,7 +11,7 @@ import Thinking from '../components/Thinking';
 import VisualPane from '../components/VisualPane';
 import { replySpeech, speak, stopSpeaking } from '../lib/voice';
 import { pauseFor } from '../lib/speech';
-import type { DocKind, GuideReply, Profile, StageDoc } from '../types';
+import type { DocKind, GuideReply, IdeasMode, Profile, StageDoc } from '../types';
 import { keepNewestInView } from '../lib/scroll';
 import IdeaPicker from '../components/IdeaPicker';
 import { getIdeas, type IdeaCard } from '../lib/api';
@@ -41,13 +41,16 @@ interface Props {
   error: string | null;
   onSend: (text: string) => void;
   onRetry: () => void;
-  ideasOn?: boolean; // the Idea stage: "💡 Show me ideas" is there (family trial)
-  onIdea?: (idea: IdeaCard) => void;
+  // "💡 Show me ideas" (family trial), at every guide stage: app ideas from the idea library while
+  // the Idea stage is looking for the app, otherwise ideas for the current question (the guide).
+  ideasMode: IdeasMode;
+  onIdea: (idea: IdeaCard) => void;
+  onAskIdeas: (text?: string) => void;
   voiceOn: boolean; // read replies aloud, then listen (talk mode)
   controls?: React.ReactNode; // type/talk switch, voice settings and toggle (above the answer box)
 }
 
-export default function GuideStage({ profile, reply, history, visual, docs, pane, onPane, busy, error, onSend, onRetry, ideasOn = false, onIdea, voiceOn, controls }: Props) {
+export default function GuideStage({ profile, reply, history, visual, docs, pane, onPane, busy, error, onSend, onRetry, ideasMode, onIdea, onAskIdeas, voiceOn, controls }: Props) {
   const young = profile.experience <= 1;
   const showReply = reply && !busy;
   const shownDocs = profile.experience >= 2 ? DOC_ORDER.filter(k => docs[k]) : [];
@@ -84,10 +87,13 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
     return () => ro.disconnect();
   }, []);
 
-  // "💡 Show me ideas" (family trial): very light. The button is always there at the Idea stage; a
-  // stuck answer ("I don't know", "idk", "help"…) opens the ideas at once instead of asking
-  // again; and after about 20 seconds with no answer the button glows (in talk mode the guide
-  // also asks gently). Ideas come from the idea library: no Claude call.
+  // "💡 Show me ideas" (family trial): very light. The button is there from the first question
+  // (not while a plan waits for a 👍); a stuck answer ("I don't know", "idk", "help"…) gets ideas
+  // at once; and after about 20 seconds with no answer the button glows (in talk mode the guide
+  // also asks gently). App ideas come from the idea library (no Claude call); ideas for any other
+  // question come from the guide as answer cards.
+  const ideasOn = !draft;
+  const library = ideasMode === 'library';
   const [ideas, setIdeas] = useState<IdeaCard[] | null | false>(false); // false: closed, null: loading
   const seenIdeas = useRef<string[]>([]);
   const [glow, setGlow] = useState(false);
@@ -106,22 +112,27 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
   const restartQuiet = () => {
     window.clearTimeout(quietTimer.current);
     setGlow(false);
-    if (!ideasOn || busy || ideas !== false) return;
+    if (!ideasOn || busy || ideas !== false || !!reply?.cards?.length) return;
     quietTimer.current = window.setTimeout(() => {
       setGlow(true);
       if (voiceOn && !nudged) { setNudged(true); speak('Want some ideas? Tap the light bulb!', profile.theme, profile.ageGroup ?? 'adult'); }
     }, QUIET_MS);
   };
   useEffect(() => { restartQuiet(); return () => window.clearTimeout(quietTimer.current); }, [reply, busy, ideasOn, ideas === false]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (!ideasOn) setIdeas(false); }, [ideasOn]);
+  useEffect(() => { if (!ideasOn || !library) setIdeas(false); }, [ideasOn, library]);
+  const askIdeas = (text?: string) => {
+    setGlow(false);
+    if (library) void showIdeas();
+    else { stopSpeaking(); onAskIdeas(text); }
+  };
   // The idea cards scroll into view when they open (they sit under the question card).
   useEffect(() => { if (ideas) keepNewestInView(scroller.current); }, [ideas]);
   const send = (text: string) => {
-    if (ideasOn && STUCK.test(text)) { void showIdeas(); return; }
+    if (ideasOn && STUCK.test(text)) { askIdeas(library ? undefined : text); return; }
     setIdeas(false);
     onSend(text);
   };
-  const pickIdea = (idea: IdeaCard) => { setIdeas(false); stopSpeaking(); onIdea?.(idea); };
+  const pickIdea = (idea: IdeaCard) => { setIdeas(false); stopSpeaking(); onIdea(idea); };
   const ownIdea = () => {
     setIdeas(false);
     const box = bar.current?.querySelector<HTMLTextAreaElement | HTMLInputElement>('textarea, input[type=text]');
@@ -148,13 +159,14 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
   const current: Pane = pane !== 'picture' && shownDocs.includes(pane) ? pane
     : visual || !shownDocs.length ? 'picture' : shownDocs[shownDocs.length - 1];
   const chips: Pane[] = [...(visual ? ['picture' as const] : []), ...shownDocs];
+  const side = !!visual || shownDocs.length > 0;
 
   return (
-    <main ref={main} className="mx-auto grid max-w-7xl gap-4 px-4 pb-4 lg:h-[calc(100dvh-var(--bwm-top,56px))] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+    <main ref={main} className={`mx-auto grid gap-4 px-4 pb-4 pt-3 lg:h-[calc(100dvh-var(--bwm-top,56px))] ${side ? 'max-w-7xl lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]' : 'max-w-4xl'}`}>
       <section className="flex min-h-0 flex-col">
         <div ref={scroller} className="bwm-convo flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pb-2 pr-1" aria-label="Conversation">
           {history.map((line, i) => line.from === 'stage'
-            ? <p key={i} className="my-1 self-center rounded-full bg-accent-soft px-4 py-1 text-sm font-bold text-ink">{line.text}</p>
+            ? <p key={i} className="my-2 flex items-center gap-3 text-sm font-bold text-muted"><span aria-hidden className="h-0.5 flex-1 rounded bg-line" />{line.text}<span aria-hidden className="h-0.5 flex-1 rounded bg-line" /></p>
             : (
               <div key={i} className={`max-w-[85%] rounded-3xl px-4 py-2.5 ${line.from === 'me'
                 ? `self-end rounded-br-md bg-accent font-semibold text-white ${young ? 'text-lg' : ''}`
@@ -178,10 +190,10 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
                   <button onClick={() => { onPane('picture'); window.setTimeout(() => document.getElementById('bwm-aside')?.scrollIntoView({ block: 'start' }), 50); }}
                     className="mt-4 min-h-11 rounded-full border-2 border-accent bg-surface px-5 font-bold text-ink lg:hidden">🖼️ See the picture</button>
                 )}
-                {ideasOn && ideas === false && onIdea && (
+                {ideasOn && ideas === false && reply.question && (
                   young
-                    ? <button onClick={() => void showIdeas()} className={`mt-4 min-h-12 rounded-full bg-accent px-6 text-lg font-extrabold text-white shadow ${glow ? 'bwm-glow' : ''}`}>💡 Show me ideas</button>
-                    : <button onClick={() => void showIdeas()} className={`mt-4 min-h-11 rounded-full border-2 border-accent bg-surface px-4 font-bold text-ink ${glow ? 'bwm-glow' : ''}`}>💡 Need inspiration?</button>
+                    ? <button onClick={() => askIdeas()} className={`mt-4 min-h-12 rounded-full bg-accent px-6 text-lg font-extrabold text-white shadow ${glow ? 'bwm-glow' : ''}`}>{reply.cards?.length && !library ? '🔀 Other ideas' : '💡 Show me ideas'}</button>
+                    : <button onClick={() => askIdeas()} className={`mt-4 min-h-11 rounded-full border-2 border-accent bg-surface px-4 font-bold text-ink ${glow ? 'bwm-glow' : ''}`}>{reply.cards?.length && !library ? '🔀 Other ideas' : '💡 Need inspiration?'}</button>
                 )}
                 {glow && voiceOn && ideas === false && <p className="mt-2 font-bold text-muted">Want some ideas? Tap the light bulb!</p>}
               </>
@@ -196,7 +208,7 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
               ))}
           </div>
 
-          {ideasOn && ideas !== false && <IdeaPicker ideas={ideas} young={young} onPick={pickIdea} onMore={() => void showIdeas()} onOwn={ownIdea} />}
+          {ideasOn && library && ideas !== false && <IdeaPicker ideas={ideas} young={young} onPick={pickIdea} onMore={() => void showIdeas()} onOwn={ownIdea} />}
           {showReply && reply.cards && reply.cards.length > 0 && (
             <div className="grid gap-3 sm:grid-cols-2">
               {reply.cards.map(card => (
@@ -222,9 +234,9 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
         </div>
       </section>
 
-      {/* UI review K6: on phones and portrait tablets the empty picture box sat under the answer
-          box; it now appears only once there's a picture or a plan to show. */}
-      <aside id="bwm-aside" className={`${!visual && !shownDocs.length ? 'hidden lg:flex' : 'flex'} min-h-[420px] flex-col gap-2 lg:min-h-0`}>
+      {/* UI review K6 and the family trial: the picture pane appears only once there's a picture
+          or a plan to show (an empty box sat under the answer box, and took half the screen). */}
+      {side && <aside id="bwm-aside" className="flex min-h-[420px] flex-col gap-2 lg:min-h-0">
         {chips.length > 1 && (
           <div className="flex flex-wrap gap-2" role="tablist" aria-label="What to show">
             {chips.map(p => (
@@ -240,8 +252,8 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
               onApprove={() => onSend('Looks good!')} onChange={askChange} />
           : visual
             ? <VisualPane title="Picture of the idea" html={visual} fit className="min-h-[420px] flex-1" />
-            : <div className="flex min-h-[420px] flex-1 items-center justify-center rounded-3xl border-2 border-dashed border-line px-6 text-center text-lg text-muted">Pictures of your idea will show up here</div>}
-      </aside>
+            : null}
+      </aside>}
     </main>
   );
 }

@@ -49,7 +49,11 @@ export interface GuideTurnResult {
   stageChanged: boolean;
   planReady?: boolean; // Build stage: the experienced end's checklist is approved
   checklist?: string; // ...and here it is
+  ideasMode?: IdeasMode;
 }
+
+/** "💡 Show me ideas": app ideas from the idea library, or ideas for the current question. */
+export type IdeasMode = 'library' | 'question';
 
 // getSession: what the screen needs to resume after a refresh.
 export interface SessionSnapshot {
@@ -67,4 +71,5 @@ export interface SessionSnapshot {
   pendingChanges: string[]; // the change list waiting to be built
   appEmojis?: string[]; // emojis that fit the app (the icon choice at Ship)
   techSummary?: string; // the Tech plan's one-line "Here's how I'll build it!"
+  ideasMode?: IdeasMode;
 }

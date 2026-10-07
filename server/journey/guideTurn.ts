@@ -126,7 +126,7 @@ export function cleanMarkdown(markdown: string): string {
     .trim();
 }
 
-function cleanReply(reply: GuideReply, profile: Profile, probeFirst: boolean, unsure = true): GuideReply {
+function cleanReply(reply: GuideReply, profile: Profile, probeFirst: boolean, unsure = true, askedIdeas = false): GuideReply {
   const clean: GuideReply = {
     say: String(reply.say ?? '').slice(0, MAX_TEXT),
     stageComplete: reply.stageComplete === true,
@@ -147,8 +147,9 @@ function cleanReply(reply: GuideReply, profile: Profile, probeFirst: boolean, un
   }
   // prd.md > Idea: the first idea question is open-ended; cards only come after.
   // So-so level: cards are an optional helper, only when the person seems unsure.
-  if (!probeFirst && (profile.experience <= 1 || (profile.experience === 2 && unsure)) && Array.isArray(reply.cards) && reply.cards.length) {
-    clean.cards = reply.cards.slice(0, profile.experience === 2 ? 2 : 4).map(c => ({
+  // "💡 Show me ideas" asked for them: cards at every level.
+  if ((askedIdeas || (!probeFirst && (profile.experience <= 1 || (profile.experience === 2 && unsure)))) && Array.isArray(reply.cards) && reply.cards.length) {
+    clean.cards = reply.cards.slice(0, askedIdeas ? 4 : profile.experience === 2 ? 2 : 4).map(c => ({
       emoji: String(c.emoji ?? '').slice(0, 16),
       label: String(c.label ?? '').slice(0, 80),
       ...(c.detail ? { detail: String(c.detail).slice(0, 200) } : {}),
@@ -192,7 +193,18 @@ export class TurnError extends Error {
 }
 
 /** One turn. The project is changed in place; the caller saves it (also after an error). */
-export async function guideTurn(project: Project, rawText?: string, opts: { ideaId?: string } = {}): Promise<GuideTurnResult> {
+/** Which "💡 Show me ideas" fits now: app ideas from the idea library while the Idea stage is still
+ *  looking for the app (nothing answered yet, nothing picked), otherwise ideas for the guide's
+ *  current question (family trial: after picking Dot to Dot, asking for secret-picture ideas
+ *  showed new apps). */
+export function ideasMode(p: Project): 'library' | 'question' {
+  if (p.stage !== 'idea' || p.ideaSource) return 'question';
+  return thread(p, 'idea').some(m => m.role === 'user' && !m.text.startsWith('[app]')) ? 'question' : 'library';
+}
+
+const ASK_IDEAS = (question: string) => `[app] The person tapped "💡 Show me ideas": they're not sure how to answer your last question${question ? ` ("${question}")` : ''}. Give 3 short, clearly different ideas for THAT question as answer cards (emoji, a few words, a short detail), fitting what they already chose, their theme and their age; one can be a little surprising. Ask the same question again, a bit more simply if you can. Don't move on, don't finish the stage, don't write the document, and don't suggest a different app.`;
+
+export async function guideTurn(project: Project, rawText?: string, opts: { ideaId?: string; askIdeas?: boolean } = {}): Promise<GuideTurnResult> {
   // "💡 Show me ideas": a picked idea is the kid's answer, and the guide gets its details (ideas.ts).
   const idea = opts.ideaId && project.stage === 'idea' ? ideaById(opts.ideaId) : undefined;
   const typed = idea ? `Let's make "${idea.title}"! ${idea.pitch}`
@@ -219,6 +231,13 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
     if (messages.length === 0) newMessages.push({ role: 'user', text: stageKickoff(stage, waiting) });
     else if (waiting && !text) newMessages.push({ role: 'user', text: '[app] The app is being built again (a new step or a change). Say one short friendly line about it and ask one new question (ideas for later).' });
     if (text) newMessages.push({ role: 'user', text });
+    // "💡 Show me ideas" for the current question (not the app list): ideas as answer cards.
+    const askIdeas = !!opts.askIdeas && messages.length > 0 && !waiting;
+    if (askIdeas) {
+      const last = [...messages].reverse().find(m => m.role === 'model');
+      const q = last ? String((JSON.parse(last.text) as GuideReply).question ?? '') : '';
+      newMessages.push({ role: 'user', text: ASK_IDEAS(q) });
+    }
     if (idea) {
       newMessages.push({ role: 'user', text: ideaNote(idea, ageGroupOf(session.profile)) });
       session.ideaSource = { id: idea.id, title: idea.title, at: Date.now() };
@@ -253,7 +272,7 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
     // Never right after "I don't know": that's when the person needs ideas, not a finished plan.
     const answers = messages.filter(m => m.role === 'user').length + (text ? 1 : 0) - 1;
     const wrapAfter = waiting || personApproved ? Infinity : session.profile.experience <= 1 ? (stage === 'start' ? 2 : 4) : session.profile.experience === 2 ? 6 : 10;
-    const nudge = answers >= wrapAfter && !dontKnow
+    const nudge = answers >= wrapAfter && !dontKnow && !askIdeas
       ? [{ role: 'user' as const, text: '[app] The person has answered enough for this stage. Unless something essential is truly missing, finish the stage in THIS reply: include the complete document in "doc" and set "stageComplete": true. Use only what the person actually chose; never invent their ideas. (Idea stage: if you haven\'t yet recapped the idea in one line and heard them agree, do that recap with "Sound good?" instead.)' }]
       : [];
     // Long chats send only the opening and the latest 40 messages.
@@ -307,7 +326,7 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
       raw = again.reply;
       metas.push(...again.meta);
     }
-    let reply = cleanReply(raw, session.profile, probeFirst, !!text && isUnsure(text));
+    let reply = cleanReply(raw, session.profile, probeFirst, !!text && isUnsure(text), askIdeas);
     // The guide judged the draft approved and the person asked for no change: that's an
     // approval too (live testing: four natural approvals in a row were refused).
     if (!personApproved && needsPerson && stored?.status === 'draft' && reviewAsked && !!text && reply.stageComplete && !isChangeRequest(text)) personApproved = true;
@@ -316,6 +335,8 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
 
     // Ask once more (rare) when the reply would leave the person stuck or decide for them.
     const problem = waiting || personApproved || blocked ? null
+      : askIdeas && (!reply.cards?.length || reply.stageComplete)
+        ? '[app] The person asked for ideas: send the reply again with 3 answer cards for your current question, the same question, and "stageComplete": false.'
       : cardsAllowed && (dontKnow || (session.profile.experience === 2 && !!text && isUnsure(text))) && (stage === 'idea' || stage === 'design') && (reply.stageComplete || !reply.cards?.length)
         ? "[app] The person just said they don't know or sounded unsure. Don't finish the stage and don't decide for them: offer 2 answer cards that point in clearly different directions, and ask which one they like."
         : session.profile.experience >= 3 && asksSuggestion && jumpsToDraft && stored?.status !== 'draft'
@@ -331,14 +352,14 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
       try {
         const retry = await callGuide(systemInstruction, [...contents, { role: 'model', text: JSON.stringify(raw) }, { role: 'user', text: problem }]);
         raw = retry.reply;
-        reply = cleanReply(raw, session.profile, probeFirst, !!text && isUnsure(text));
+        reply = cleanReply(raw, session.profile, probeFirst, !!text && isUnsure(text), askIdeas);
         metas.push(...retry.meta);
       } catch (err) {
         if (!(err instanceof GuideError)) throw err; // keep the first reply
         metas.push(...((err as any).metas ?? []));
       }
     }
-    if (waiting) { reply.stageComplete = false; delete reply.doc; }
+    if (waiting || askIdeas) { reply.stageComplete = false; delete reply.doc; }
     // prd.md > The Kid's Journey: the very first reply says the helper is an AI, not a person.
     if (stage === 'start' && messages.length === 0 && !/\bAI\b/.test(reply.say)) reply.say = `${AI_DISCLOSURE[ageGroupOf(session.profile) === 'kid' ? 'kid' : 'teen']} ${reply.say}`.trim();
     // Asked to change a draft, the guide sometimes sent the same document: a change to a

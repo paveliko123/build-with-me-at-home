@@ -221,6 +221,21 @@ async function main() {
     add('the kid screen gets three idea cards (emoji, title, pitch) instantly, and new ones on "More ideas"', r.status === 200 && r.body.ideas.length === 3 && r.body.ideas.every((i: any) => i.emoji && i.title && i.pitch && !i.buildNotes) && overlap === 0, r.body.ideas.map((i: any) => `${i.emoji} ${i.title}`).join(' · '));
     const reportIdea = renderReport({ ...base0, ideaSource: 'The Lost Ducklings' } as any);
     add('the parent report says the kid started from an idea-list idea', reportIdea.includes('started from an idea from the idea list') && reportIdea.includes('The Lost Ducklings'), 'in "Whose ideas?"');
+    // Polish round: "Show me ideas" at every step. App ideas only while the Idea stage is still
+    // looking for the app; after that (Dot to Dot, then "secret pictures?") ideas for the question.
+    const { ideasMode } = await import('../server/journey/guideTurn.js');
+    const msg = (role: string, text: string, seq: number) => ({ thread: 'idea', role, text, seq, at: seq });
+    const opening = [msg('user', '[app] The person has just arrived at the Idea stage. Begin.', 0), msg('model', '{"say":"Hi","question":"What app?","stageComplete":false}', 1)];
+    const modes = [
+      ideasMode({ stage: 'idea', messages: opening } as any),
+      ideasMode({ stage: 'idea', messages: [...opening, msg('user', 'a unicorn game', 2)] } as any),
+      ideasMode({ stage: 'idea', messages: opening, ideaSource: { id: 'classic-dot-to-dot', title: 'Dot to Dot', at: 1 } } as any),
+      ideasMode({ stage: 'start', messages: [] } as any),
+      ideasMode({ stage: 'design', messages: [] } as any),
+    ];
+    add('"Show me ideas" shows app ideas only before the app is chosen, then ideas for the question', modes.join(',') === 'library,question,question,question,question', modes.join(', '));
+    r = await kid.call('/api/kid/journey');
+    add('the kid screen learns which ideas fit when it picks up again', r.body.project?.ideasMode === 'question', `${r.body.project?.stage}: ${r.body.project?.ideasMode}`);
 
     // ---------- batch 5: the teaching progress view while building ----------
     const prog = await import('../server/journey/buildProgress.js');

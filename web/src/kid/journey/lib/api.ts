@@ -12,8 +12,9 @@ export async function startJourney(choice: { theme: Profile['theme']; inputMode:
   return api<SessionSnapshot>('/api/kid/journey/start', { body: choice });
 }
 
-export async function guideTurn(text?: string, ideaId?: string) {
-  return api<GuideTurnResult>('/api/kid/journey/turn', { body: ideaId ? { ideaId } : text === undefined ? {} : { text } });
+export async function guideTurn(text?: string, ideaId?: string, askIdeas = false) {
+  const body = ideaId ? { ideaId } : { ...(text === undefined ? {} : { text }), ...(askIdeas ? { askIdeas } : {}) };
+  return api<GuideTurnResult>('/api/kid/journey/turn', { body });
 }
 
 /** The teaching progress view while the app builds (server/journey/buildProgress.ts). */

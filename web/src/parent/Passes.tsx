@@ -63,7 +63,7 @@ export function GivePass({ kids, passes, shown, setShown, onAddKid, reload }: {
             <span className="em">{k.emoji}</span><b>{k.nickname}</b> <span className={`pill ${k.group === 'teen' ? 't' : 'k'}`}>{k.group === 'teen' ? 'Teen' : 'Kid'}</span>
           </button>
         ))}
-        <button className="kidbtn" style={{ borderStyle: 'dashed' }} onClick={onAddKid}><span className="em">＋</span><span className="muted">Add a kid</span></button>
+        <button className="kidbtn addkid" style={{ borderStyle: 'dashed' }} onClick={onAddKid} aria-label="Add a kid" title="Add a kid"><span className="em">＋</span></button>
       </div>
       <p className="label">For how long?</p>
       <div className="dur">

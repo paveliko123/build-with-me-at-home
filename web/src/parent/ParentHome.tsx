@@ -52,15 +52,15 @@ export function ParentHome({ onLock }: { onLock: () => void }) {
     <main>
       <div className="top">
         <div><h1>Hi! 👋</h1><span className="muted">Parent area · {now.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}</span></div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        {/* Family trial: the status sits in the header row, so the page fits one laptop screen. */}
+        <StatusStrip status={status} />
+        <div className="topacts" style={{ display: 'flex', gap: 8 }}>
           <button className="ghost" onClick={() => setModal('settings')}>⚙️ Settings</button>
           <button className="ghost" onClick={lock}>🔒 Lock</button>
         </div>
       </div>
 
-      <StatusStrip status={status} />
-
-      <div className="grid">
+      <div className="grid home">
         <div className="stack">
           <GivePass kids={kids} passes={passes} shown={shown} setShown={setShown} onAddKid={() => setModal('kids')} reload={loadPasses} />
           <ActivePasses passes={passes} onShow={setShown} reload={loadPasses} />
@@ -68,6 +68,8 @@ export function ParentHome({ onLock }: { onLock: () => void }) {
         <div className="stack">
           <AttentionCard alerts={alerts} reload={loadReports} onOpenReport={(id) => setView({ kind: 'report', id, from: 'home' })} />
           <LatestReports reports={reports} onOpen={(id) => setView({ kind: 'report', id, from: 'home' })} onAll={() => setView({ kind: 'reports' })} />
+        </div>
+        <div className="stack">
           <div className="card">
             <h2>🧒 Kids &amp; their apps</h2>
             {kids.map((k) => (

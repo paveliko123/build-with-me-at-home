@@ -16,12 +16,12 @@ import { getJourney, guideTurn, limitMessage, newApp, passEnded, setInputMode as
 import { speechSupported } from './lib/speech';
 import { defaultSpeed, deviceVoices, setVoiceName, setVoiceSpeed, SPEEDS, stopSpeaking, voiceSupported } from './lib/voice';
 import { DEFAULT_THEME, themeStyle } from './themes/themes';
-import type { DocKind, GuideReply, GuideTurnResult, Profile as ProfileT, SessionSnapshot, Stage, StageDoc, ThemeId } from './types';
+import type { DocKind, GuideReply, GuideTurnResult, IdeasMode, Profile as ProfileT, SessionSnapshot, Stage, StageDoc, ThemeId } from './types';
 import '@fontsource-variable/nunito';
 
 type Screen = 'loading' | 'welcome' | 'profile' | 'guide';
 const GUIDE_STAGES: Stage[] = ['start', 'idea', 'design', 'tech'];
-const STAGE_LABELS: Partial<Record<Stage, string>> = { start: '1 · 👋 Start', idea: '2 · 💡 Idea', design: '3 · 🎨 Design', tech: '4 · 🛠️ Tech plan', build: '5 · 🏗️ Build' };
+const STAGE_LABELS: Partial<Record<Stage, string>> = { start: 'Step 1 · 👋 Start', idea: 'Step 2 · 💡 Idea', design: 'Step 3 · 🎨 Design', tech: 'Step 4 · 🛠️ Tech plan', build: 'Step 5 · 🏗️ Build' };
 const SPEED_LABELS = ['🐢 Slow', 'Normal', 'Fast', 'Faster', '🐇 Fastest'];
 
 /** The guide's reply as one chat line once the person has answered it. */
@@ -41,6 +41,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
   const [visual, setVisual] = useState<string | null>(null);
   const [docs, setDocs] = useState<Partial<Record<DocKind, StageDoc>>>({});
   const [pane, setPane] = useState<Pane>('picture');
+  const [ideasMode, setIdeasMode] = useState<IdeasMode>('question');
   // Voice: on by default for kids who chose to talk; the toggle pauses it.
   const [voiceOn, setVoiceOn] = useState(false);
   const [voiceMenu, setVoiceMenu] = useState(false);
@@ -113,9 +114,10 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
     if (s.doc) setPane(s.doc.kind);
     if (s.app) setResumeApp({ html: s.app.html, version: s.app.version, stepsBuilt: 0, pendingChanges: s.pendingChanges });
     setTechSummary(s.techSummary);
+    setIdeasMode(s.ideasMode ?? 'question');
     if (s.reply?.visualHtml) setVisual(s.reply.visualHtml);
     if (s.lastExchange) setHistory([...(s.lastExchange.question ? [{ from: 'guide' as const, text: s.lastExchange.question }] : []), { from: 'me', text: s.lastExchange.answer }]);
-    else setHistory([{ from: 'stage', text: STAGE_LABELS[s.stage] ?? s.stage }]);
+    else setHistory([]);
     setScreen('guide');
     // A stage that never got its opening reply (closed mid-handover): open it now.
     if (!s.reply && GUIDE_STAGES.includes(s.stage)) void turn(undefined, s.profile);
@@ -136,20 +138,21 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
     if (r.reply.techSummary) setTechSummary(r.reply.techSummary);
     if (r.reply.appEmojis?.length) setAppEmojis(r.reply.appEmojis);
     setStage(r.stage);
+    if (r.ideasMode) setIdeasMode(r.ideasMode);
     if (r.reply.visualHtml) { setVisual(r.reply.visualHtml); setPane('picture'); }
     const doc = r.reply.doc;
     if (doc) { setDocs(d => ({ ...d, [doc.kind]: doc })); setPane(doc.kind); }
   }
 
-  async function turn(text?: string, who: ProfileT | null = profile, retry = false, idea?: IdeaCard) {
+  async function turn(text?: string, who: ProfileT | null = profile, retry = false, idea?: IdeaCard, askIdeas = false) {
     setBusy(true);
     setError(null);
     setLastText(text);
     // Echo the answer (card picks included) under the question it answers.
-    const echo = idea ? `${idea.emoji} ${idea.title}` : text;
+    const echo = idea ? `${idea.emoji} ${idea.title}` : askIdeas && !text ? '💡 Show me ideas' : text;
     if (echo && !retry) setHistory(h => [...h, ...(reply ? [{ from: 'guide' as const, text: guideLine(reply) }] : []), { from: 'me', text: echo }]);
     try {
-      let result = await guideTurn(idea ? undefined : text, idea?.id);
+      let result = await guideTurn(idea ? undefined : text, idea?.id, askIdeas);
       settle(result);
       // A finished stage hands over to the next one, which the guide opens itself.
       while (result.stageChanged && GUIDE_STAGES.includes(result.stage)) {
@@ -176,7 +179,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
       setVoiceOn(s.profile.inputMode === 'talk');
       voiceRef.current = s.profile.inputMode === 'talk';
       setStage(s.stage);
-      setHistory([{ from: 'stage', text: STAGE_LABELS[s.stage] ?? s.stage }]);
+      setHistory([]);
       setScreen('guide');
       await turn(undefined, s.profile);
     } catch (err) {
@@ -274,7 +277,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
       )}
       {!shelfOpen && screen === 'profile' && (
         <>
-          <div className="flex items-center gap-2 pr-3"><div className="min-w-0 flex-1"><ProgressBar stage="intro" /></div><span id="bwm-countdown-slot" /></div>
+          <header className="flex items-center gap-2 border-b-2 border-line bg-surface pr-3"><div className="min-w-0 flex-1"><ProgressBar stage="intro" /></div><span id="bwm-countdown-slot" /></header>
           <ThemePick inputMode={inputMode} theme={theme} onThemeChange={setTheme} onDone={begin} busy={busy} />
           {error && <p role="alert" className="pb-6 text-center font-bold text-ink">{error.replace(/^LIMIT:/, '')}</p>}
         </>
@@ -282,14 +285,15 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
       {/* The journey stays mounted under the shelf, so a build keeps going while it's open. */}
       {screen === 'guide' && profile && (
         <div className={shelfOpen ? 'hidden' : undefined}>
-          <div ref={topBar} className="flex items-center gap-1 px-3">
+          {/* Family trial: the steps sit in their own header band, apart from the chat. */}
+          <header ref={topBar} className="flex items-center gap-1 border-b-2 border-line bg-surface px-3 py-1.5">
             <button onClick={startOver}
               className="min-h-11 shrink-0 rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">＋ New app</button>
             <div className="min-w-0 flex-1"><ProgressBar stage={stage} /></div>
             <span id="bwm-countdown-slot" className="shrink-0" />
             <button onClick={() => setShelfOpen(true)}
               className="min-h-11 shrink-0 rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">📚 My apps</button>
-          </div>
+          </header>
           {askNew && (
             <KidDialog title="Start a new app?"
               text={profile.ageGroup === 'kid' ? "This app isn't finished yet. It stays saved, but you won't come back to it here." : "This app isn't shipped yet. It stays saved, but you won't come back to it here."}
@@ -297,7 +301,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
           )}
           {GUIDE_STAGES.includes(stage) && (
             <GuideStage profile={profile} reply={reply} history={history} visual={visual} docs={docs} pane={pane} onPane={setPane}
-              controls={controls} busy={busy} error={error} ideasOn={stage === 'idea'} onIdea={idea => turn(undefined, profile, false, idea)} onSend={text => (error && /^\W*(try (it |that )?again|again|retry)\b/i.test(text) ? turn(lastText, profile, true) : turn(text))} onRetry={() => turn(lastText, profile, true)} voiceOn={voiceOn} />
+              controls={controls} busy={busy} error={error} ideasMode={ideasMode} onIdea={idea => turn(undefined, profile, false, idea)} onAskIdeas={text => turn(text, profile, false, undefined, true)} onSend={text => (error && /^\W*(try (it |that )?again|again|retry)\b/i.test(text) ? turn(lastText, profile, true) : turn(text))} onRetry={() => turn(lastText, profile, true)} voiceOn={voiceOn} />
           )}
           {/* The Build screen stays mounted (hidden) on the Ship screen, so "Keep building" returns to the same chat. */}
           {(stage === 'build' || (stage === 'ship' && !!shipHtml)) && (

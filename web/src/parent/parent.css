@@ -50,6 +50,12 @@
 
 /* opening / PIN */
 .parent .pinwrap{max-width:440px;margin:30px auto;text-align:center}
+.parent .pinwrap.split{max-width:960px;min-height:100vh;margin:0 auto;padding:24px 20px;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:56px;align-items:center}
+.parent .pinwrap.split .brandside{text-align:left}
+.parent .pinwrap.split .brandside h1{font-size:30px;margin-top:4px}
+.parent .pinwrap.split .resp{margin-top:18px;font-size:15px;padding:16px 18px}
+@media (max-width:820px){.parent .pinwrap.split{grid-template-columns:1fr;gap:8px;min-height:0;max-width:440px}.parent .pinwrap.split .brandside{text-align:center}.parent .pinwrap.split .brandside h1{font-size:24px}}
+@media (max-height:760px){.parent .pad button{height:52px}.parent .dots{margin:12px 0}}
 .parent .logo{font-size:44px}
 .parent .resp{margin:16px 0 4px;font-size:14px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .parent .dots{display:flex;gap:12px;justify-content:center;margin:18px 0}
@@ -68,6 +74,29 @@
 .parent .meter i.mid{background:var(--warn)} .parent .meter i.high{background:var(--bad)}
 .parent .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
 @media (max-width:820px){.parent .grid{grid-template-columns:1fr}}
+/* Family trial: the parent area fits one laptop screen. Three columns on a laptop (passes |
+   attention and reports | kids), two on a tablet, one on a phone; tighter cards. */
+.parent main:has(.grid.home){max-width:1280px;padding:16px 16px 24px}
+.parent .grid.home{grid-template-columns:1.1fr .9fr;grid-template-areas:"a b" "a c"}
+.parent .grid.home>:nth-child(1){grid-area:a}.parent .grid.home>:nth-child(2){grid-area:b}.parent .grid.home>:nth-child(3){grid-area:c}
+@media (min-width:1180px){.parent .grid.home{grid-template-columns:1.5fr 1fr .8fr;grid-template-areas:"a b c"}}
+@media (max-width:820px){.parent .grid.home{grid-template-columns:1fr;grid-template-areas:"a" "b" "c"}}
+.parent main:has(.grid.home) .card{padding:14px 18px}
+.parent main:has(.grid.home) .top{margin-bottom:10px}
+.parent main:has(.grid.home) .top{flex-wrap:nowrap;align-items:stretch}
+.parent main:has(.grid.home) .top>div:first-child,.parent main:has(.grid.home) .topacts{align-self:center;flex-shrink:0}
+.parent main:has(.grid.home) .top .status{flex:1;margin:0;max-width:820px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.parent main:has(.grid.home) .status .card{padding:8px 14px}
+.parent main:has(.grid.home) .status .meter{margin:4px 0 2px}
+@media (max-width:1000px){.parent main:has(.grid.home) .top{flex-wrap:wrap}.parent main:has(.grid.home) .top .status{order:3;flex-basis:100%;max-width:none}}
+@media (max-width:560px){.parent main:has(.grid.home) .top .status{grid-template-columns:1fr}}
+.parent .grid.home .kidpick{gap:8px;margin-bottom:10px}
+.parent .grid.home .kidbtn{padding:8px 10px}
+.parent .grid.home .dur{margin-bottom:12px;gap:6px}
+.parent .grid.home .dur button{padding:6px 12px}
+.parent .grid.home .label{margin-bottom:6px}
+.parent .kidpick .kidbtn{display:flex;align-items:center;gap:8px;min-width:0}
+.parent .kidpick .kidbtn .em{display:inline;font-size:22px}
 .parent .stack{display:grid;gap:14px;align-content:start}
 .parent .row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);align-items:center}
 .parent .row:last-child{border-bottom:none}
@@ -139,3 +168,8 @@
 .parent table.reports th,.parent table.reports td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 .parent table.reports th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
 .parent .reportframe{width:100%;min-height:400px;border:0;background:transparent;display:block}
+/* Family trial: the new pass sits beside its QR code in the passes column. */
+.parent .grid.home .qrbox .qr.big{width:170px;height:170px;flex-shrink:0}
+.parent .grid.home .qrbox>div:not(.top){min-width:200px!important;flex:1}
+.parent .grid.home .qrbox{align-items:flex-start}
+.parent .kidpick .kidbtn.addkid{justify-content:center;min-width:52px}
