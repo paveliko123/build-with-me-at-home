@@ -47,8 +47,8 @@ Fixed and checked by `npm run verify:security` (23/23, no Claude calls), with sl
 | C6b | Fixed | Report log lines name a kid by id. |
 | C7a | Fixed | The server and launcher refuse a family folder inside OneDrive, iCloud, Dropbox or Google Drive; the launcher prints which family folder it uses. |
 | I1 | Fixed | The `--safe-mode` comment no longer overclaims. |
-| C9a | Slice 9 | The username and home IP in `devpost/e1-results.md` and `e2-results.md`, and in git history (rewriting it needs the owner's go-ahead). `scripts/guard-test.ts` is already neutral, and this report masks them. |
-| C9b | Slice 9 | README, LICENSE, SECURITY.md, privacy section and the 18+ note. |
+| C9a | Fixed | The username and home IP were replaced in the two result files and in all 40 commits of git history, before the first push (the owner agreed; a backup bundle was kept). |
+| C9b | Fixed | README (with a privacy section and the 18+ note), LICENSE, SECURITY.md; the setup skill says the 18+ note too. |
 | A4, C1, C2, C4, C5b, C7b, C7c, C8, I2, I3, I5, I7, I8 | Open | Low/Info hardening, kept on the list. |
 
 ---
