@@ -173,7 +173,11 @@ In a terminal:
 claude plugin uninstall build-with-me@build-with-me-home
 ```
 
-This removes the app. Your family's folder (see [Privacy](#privacy)) stays, so nothing your kids made is lost by accident; delete the folder yourself to remove everything. You can also delete the desktop shortcut.
+This removes the app. Your family's folder (see [Privacy](#privacy)) stays, so nothing your kids made is lost by accident. To remove everything:
+
+1. 🗑️ Delete the family folder (`C:\Users\<you>\Build With Me` or `~/Build With Me`). It includes the kids' work, the reports and the home certificate for tablets (in the hidden `.home-certificate` folder inside it).
+2. 📱 On each tablet you set up for talking, remove the certificate named **Build With Me Home (…)** from its security settings.
+3. 🖱️ Delete the **Build With Me** shortcut on the desktop.
 
 ---
 
@@ -235,8 +239,8 @@ After every app, Claude Opus reads the whole conversation and writes you a repor
 <a id="privacy"></a>
 ## 🔒 Privacy: what's stored and what leaves your computer
 
-- 🏠 **Everything is stored on your computer**, in your family's folder: `C:\Users\<you>\Build With Me` on Windows, `~/Build With Me` on a Mac. It holds the kids' profiles, their conversations and plans, their apps and the reports. Build With Me refuses to use a cloud-synced folder (like OneDrive) for it.
-- 🧩 **App files** (the program, the home certificate for tablets, the speech model, a log) live in Claude Code's plugin data folder.
+- 🏠 **Everything is stored on your computer**, in your family's folder: `C:\Users\<you>\Build With Me` on Windows, `~/Build With Me` on a Mac. It holds the kids' profiles, their conversations and plans, their apps and the reports, plus the home certificate for tablets (a hidden `.home-certificate` folder, kept here so tablets keep working after updates) and a few small files the desktop shortcut uses. Build With Me refuses to use a cloud-synced folder (like OneDrive) for it.
+- 🧩 **App files** (the program, its packages, the speech model, a log) live in Claude Code's plugin data folder.
 - 📤 **What leaves your computer:** the kids' conversations and plans go to Anthropic through *your* Claude Code, the same way your own Claude Code use does, to run the guide, build the apps, check safety and write your reports. Nothing else is sent anywhere, and **nothing at all is sent to the developer of this plugin**: no accounts, no analytics, no tracking, no crash reports.
 - 📥 **Downloads:** the app's packages (from npm) and the speech model (from Hugging Face), once each, during setup (the model also at the first start, if setup skipped it). Nothing about you or your kids is sent with them.
 - 🎤 **Talking stays local:** speech-to-text runs on this computer; the guide's voice is your device's built-in voice.
