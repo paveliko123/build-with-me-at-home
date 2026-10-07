@@ -40,12 +40,12 @@ Source: `scope.md > The Core Loop`, `scope.md > What "Working" Looks Like`.
    - the responsibility note
    - create the PIN
    - add the kids
-2. **Opening screen,** top to bottom:
+2. **Opening screen,** on one screen without scrolling (on a laptop the note sits beside the PIN pad; on a phone they stack): *(polish round)*
    - the app name
    - the "You're responsible" note
    - the PIN pad
    - **Enter**
-3. **Parent home:**
+3. **Parent home,** fitting one laptop screen: the status in the header row, then three columns (passes · attention and reports · kids); two on a tablet, one on a phone. *(polish round)*
    - **status strip:**
      - Claude Code signed in, and the plan
      - the **5-hour limit** with % used and the reset time
@@ -62,10 +62,11 @@ Source: `scope.md > The Core Loop`, `scope.md > What "Working" Looks Like`.
 **Kid side (laptop or tablet).** Build With Me's screens, kept as they are:
 1. **Welcome:** "your helper is an AI, not a person," talk or type.
 2. **Theme:** large picture buttons.
-3. **Guide conversation** (Intro to Tech plan):
+3. **Guide conversation** (Start to Tech plan):
+   - the step bar: six numbered steps (Start, Idea, Design, Tech plan, Build, Ship) in their own header band, finished ones with a ✓ *(polish round)*
    - a large question card
    - answer cards
-   - a picture or mock-up area
+   - a picture or mock-up area, which appears once there's a picture or a plan; until then the chat uses the full width *(polish round)*
    - the talk button and answer box
    - for teens, the plan to approve
 4. **Build:** about ⅔ app, ⅓ chat.
@@ -161,12 +162,12 @@ Source: `scope.md > The POC Boundary` ("the existing design and flow"). This is 
   - [ ] The kid chooses talking or typing.
 - **Theme:**
   - [ ] The theme is the only choice. It sets the helper's look and voice.
-- **Intro and Start:**
+- **Start:**
   - [ ] Kids get at most two easy questions.
   - [ ] Teens hear in one or two sentences that we plan first, then build.
 - **Idea:**
   - [ ] "I don't know" gets 1–2 opposite-end idea cards with pictures (kids).
-  - [ ] **💡 Show me ideas** (kids; "Need inspiration?" for teens) shows three ideas from the idea library at once, matched to the age group and the theme's mood, with **✨ Something else** and **🔀 More ideas**. A stuck answer ("I don't know", "idk", "help") opens them right away; after about 20 seconds of quiet the button glows, and in talk mode the guide asks gently. Picking one starts the customizing: the guide asks its "make it yours" questions. *(revision round)*
+  - [ ] **💡 Show me ideas** (kids; "Need inspiration?" for teens) is there from the very first question, at every guide step. While the kid is still choosing what app to make, it shows three ideas from the idea library at once, matched to the age group and the theme's mood, with **✨ Something else** and **🔀 More ideas**; picking one starts the customizing: the guide asks its "make it yours" questions. After that (and at Start, Design and Tech plan) the guide gives three ideas for the current question as answer cards (after Dot to Dot, "What are the secret pictures?" gets a unicorn, a castle, a rainbow), with **🔀 Other ideas**. A stuck answer ("I don't know", "idk", "help") gets the same ideas right away; after about 20 seconds of quiet the button glows, and in talk mode the guide asks gently. *(revision round, polish round)*
   - [ ] A too-big idea gets a friendly pushback and a smaller version.
   - [ ] Teens approve the idea plan, shown as a short plan card under "Your plan is ready: have a look. Happy with it?" with **👍 Looks good** and **✏️ Change something** (the whole plan folds underneath; no Markdown). *(revision round)*
 - **Design:**

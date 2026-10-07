@@ -149,3 +149,12 @@ Measured with JS in emulated viewports (scrollWidth, element rectangles, tap siz
 ## Revision round: done
 
 Built and checked in six batches (commits "Revision round, batch 1–6"): everything in the family trial notes above, and in the review O1–O4, K1–K15, P1–P10, A1–A13 (A11's compact status strip left as is) and R1–R9. Still for a real device: the items under "Needs a real device", the talk-mode glow and gentle question, and the mic in a quiet room.
+
+## Polish round: done
+
+From the learner's notes after trying the revision round (commit "Polish round: clearer steps, ideas from the first question, one-screen parent area"):
+- The step bar: no Intro pill, its own header band, ✓ on finished steps; the chat's step dividers are thin lines and the first one is gone.
+- 💡 Show me ideas and the 20-second glow from the first question. App ideas only while the app is being chosen; after that, ideas for the current question from the guide (the Dot to Dot bug).
+- The picture pane appears only when there's a picture or a plan; until then the chat and the idea cards use the full width.
+- The PIN screen and the parent home fit one laptop screen (with more than one active pass, or a new pass's QR code, the parent home may still scroll a little).
+- Still for a real device: the guide's real ideas for a question (checked only with a pretend reply).

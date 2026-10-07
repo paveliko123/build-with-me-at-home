@@ -360,6 +360,17 @@ Implements the `(revision round)` checks in `prd.md > The Kid's Journey`, `My Ap
 - **Smaller fixes:** "New app" asks nothing after shipping and otherwise shows an in-app dialog (`KidDialog.tsx`); opened apps have a "← Back" bar; the kid's simple screens use the kid's theme; the parent area uses questions in the card instead of browser popups; the first run checks Claude Code first (`GET /api/parent/claude-check`, only before a PIN exists); and the rest of `devpost/ui-review.md`.
 - **Checks:** `npm run verify:revisions` (30 checks, no Claude calls).
 
+### Polish Round
+Implements the `(polish round)` checks in `prd.md > Screens and Layout` and `The Kid's Journey`, from the learner's notes after trying the revision round.
+- **Show me ideas at every step** (`ideasMode` and `askIdeas` in `server/journey/guideTurn.ts`):
+  - `ideasMode(project)` is `library` only at the Idea stage while nothing has been answered or picked there yet; otherwise `question`. The kid screen gets it with every turn and when it picks up again.
+  - In `question` mode the button (or a stuck answer) sends `POST /turn {askIdeas: true}` (with the kid's words, if any). The guide gets an `[app]` note with its last question: 3 clearly different ideas for that question as answer cards, the same question again, no moving on. Cards are allowed at every level for this reply; a reply without cards is asked once more. The learner found the bug: after picking Dot to Dot, asking for secret-picture ideas showed new apps.
+  - The button is at every guide step from the first question (not while a teen's plan waits for 👍); it reads "🔀 Other ideas" when answer cards are already on screen. The 20 s glow doesn't start while cards are on screen.
+- **The step bar** (`ProgressBar.tsx`, `Journey.tsx`): six steps, no Intro (the theme screen shows "Getting ready"); a header band with a line under it; finished steps show ✓; the chat's step dividers are thin lines, and the first step has none.
+- **The picture pane** (`GuideStage.tsx`): rendered only when there's a picture or a plan; until then the chat is one centered column (`max-w-4xl`).
+- **Parent screens on one laptop screen** (`Opening.tsx`, `ParentHome.tsx`, `parent.css`): the PIN screen in two columns (note | PIN pad) from 821 px, smaller keys on short screens; the parent home with the status in the header row and three columns from 1180 px, tighter cards, a compact ＋ for Add a kid, and the new pass beside its QR code.
+- **Checks:** two more in `npm run verify:revisions` (32 checks): which ideas fit when, and that the kid screen learns it when it picks up again.
+
 ## Data Model
 
 Everything lives in **`<home>\Build With Me`**, unless noted:

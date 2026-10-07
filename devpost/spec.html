@@ -127,6 +127,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
   <a class="sub" href="#c-apps">My Apps</a>
   <a class="sub" href="#c-exp">Usage Experiment</a>
   <a class="sub" href="#c-revision">Revision Round</a>
+  <a class="sub" href="#c-polish">Polish Round</a>
   <a href="#data">Data Model</a>
   <a href="#tree">File Structure</a>
   <a href="#ext">External Services</a>
@@ -621,6 +622,23 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
       <li><b>Checks:</b> <code>npm run verify:revisions</code> (30 checks, no Claude calls).</li>
     </ul>
     <div class="files">server/journey/ideas.ts · ideaLibrary.json · buildProgress.ts · appIcon.ts · web/src/kid/journey/components/IdeaPicker.tsx · PlanCard.tsx · BuildProgress.tsx · KidDialog.tsx</div>
+  </div></details>
+
+  <details id="c-polish"><summary><h3>✨ Polish Round</h3><span class="prd">prd › the (polish round) checks</span></summary><div class="body">
+    <p class="src">From your notes after trying the revision round.</p>
+    <ul>
+      <li><b>Show me ideas at every step</b> (<code>ideasMode</code> and <code>askIdeas</code> in <code>server/journey/guideTurn.ts</code>):
+        <ul>
+          <li><code>ideasMode(project)</code> is <code>library</code> only at the Idea stage while nothing has been answered or picked there yet; otherwise <code>question</code>. The kid screen gets it with every turn and when it picks up again.</li>
+          <li>In <code>question</code> mode the button (or a stuck answer) sends <code>POST /turn {askIdeas: true}</code> (with the kid's words, if any). The guide gets an <code>[app]</code> note with its last question: 3 clearly different ideas for that question as answer cards, the same question again, no moving on. Cards are allowed at every level for this reply; a reply without cards is asked once more. You found the bug: after picking Dot to Dot, asking for secret-picture ideas showed new apps.</li>
+          <li>The button is at every guide step from the first question (not while a teen's plan waits for 👍); it reads "🔀 Other ideas" when answer cards are already on screen. The 20 s glow doesn't start while cards are on screen.</li>
+        </ul></li>
+      <li><b>The step bar</b> (<code>ProgressBar.tsx</code>, <code>Journey.tsx</code>): six steps, no Intro (the theme screen shows "Getting ready"); a header band with a line under it; finished steps show ✓; the chat's step dividers are thin lines, and the first step has none.</li>
+      <li><b>The picture pane</b> (<code>GuideStage.tsx</code>): rendered only when there's a picture or a plan; until then the chat is one centered column (<code>max-w-4xl</code>).</li>
+      <li><b>Parent screens on one laptop screen</b> (<code>Opening.tsx</code>, <code>ParentHome.tsx</code>, <code>parent.css</code>): the PIN screen in two columns (note | PIN pad) from 821 px, smaller keys on short screens; the parent home with the status in the header row and three columns from 1180 px, tighter cards, a compact ＋ for Add a kid, and the new pass beside its QR code.</li>
+      <li><b>Checks:</b> two more in <code>npm run verify:revisions</code> (32 checks): which ideas fit when, and that the kid screen learns it when it picks up again.</li>
+    </ul>
+    <div class="files">server/journey/guideTurn.ts · routes.ts · web/src/kid/journey/components/ProgressBar.tsx · screens/GuideStage.tsx · Journey.tsx · web/src/parent/Opening.tsx · ParentHome.tsx · parent.css</div>
   </div></details>
 
   <!-- DATA -->
