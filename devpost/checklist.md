@@ -224,7 +224,7 @@ Build mode: fast — pause only for significant decisions, the planned checkpoin
 - [x] Early usable behavior explored — after slice 5: a kid talks through to Tech plan on the tablet (your "minor tweaks" feedback shapes slices 6–9)
   - Feedback (2026-10-06): slow but expected (E3 measures it); the device voice is good enough for the POC; "open on this laptop" was hard to find; opening on the laptop through the home address asked for the certificate; the first spoken word was cut; a terminal flashed; wanted a way to stop the automatic mic and type.
   - Fixed: a real "Open on this laptop" button and a code box that survives reloads; this laptop's home address goes to localhost; the voice starts 500 ms later; the `where claude` lookup runs hidden; a "⌨️ Type instead / 🎤 Talk instead" switch, saved on the project.
-- [ ] Final kick-the-tires exploration and feedback completed
+- [x] Final kick-the-tires exploration and feedback completed — covered by the Final Review below (learner confirmed 2026-10-07)
 
 ## Final Review
 
