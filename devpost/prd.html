@@ -292,7 +292,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     </ul>
   </div></details>
 
-  <details id="f-gate"><summary><h3>🔐 Parent Gate and Responsibility</h3><span class="count">4 checks</span></summary><div class="body">
+  <details id="f-gate"><summary><h3>🔐 Parent Gate and Responsibility</h3><span class="count">6 checks</span></summary><div class="body">
     <p class="src">Source: scope › The POC Boundary, Terms Check</p>
     <p class="story">As a parent, I want the app to open only for me, so my kids can't use my Claude account without my say-so.</p>
     <ul class="crit">
@@ -300,6 +300,8 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
         <ul><li>the app runs on your Claude account</li><li>kids get in only with your pass</li><li>you get a report for each app</li><li>Claude's terms say users must be 18+, so letting your kids use it is your decision</li><li>the safety check and reports help you supervise; they don't replace you</li><li>stay nearby</li></ul></li>
       <li>Nothing on the parent side works without the right PIN.</li>
       <li><b>🔒 Lock</b> returns to the opening screen.</li>
+      <li>The Parent area locks itself after 15 idle minutes and when its window closes. Wrong PINs lock the PIN pad for longer each time (1, 5, 15, 60, then 240 minutes), kept on disk; after unlocking, the parent sees how many wrong tries there were. /build-with-me:reset-pin also clears the lockout and locks open Parent areas. <span class="pill">safety review</span></li>
+      <li>Only this app's own pages may talk to it (the whole address, port included). Other devices reach it only while a pass is live or tablet setup is open; otherwise a "resting" page. Tablet setup works only while its window is open on the laptop and shows the certificate's fingerprint to compare. <span class="pill">safety review</span></li>
       <li>The app never asks for or shows a Claude password or sign-in. The Claude sign-in stays in Claude Code.</li>
     </ul>
   </div></details>
@@ -388,7 +390,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     </ul>
   </div></details>
 
-  <details id="f-safety"><summary><h3>🛡️ Safety</h3><span class="count">8 checks</span></summary><div class="body">
+  <details id="f-safety"><summary><h3>🛡️ Safety</h3><span class="count">11 checks</span></summary><div class="body">
     <p class="src">Source: scope › The POC Boundary (three safety layers). Everything runs on the parent's Claude.</p>
     <p><b>1 · The guide knows who it's talking to</b></p>
     <ul class="crit"><li>Each session's guide follows the kid's age group, with age-appropriate rules for content and wording.</li></ul>
@@ -401,6 +403,9 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
       <li>A sign the kid may be hurting or unsafe gets a warm "tell a trusted grown-up" reply, and the parent gets an alert under <b>Needs your attention</b> at once, not only in the report. <span class="pill">README review</span></li>
       <li>Kids' apps can't load or send anything over the internet or open a website, in the previews too. <span class="pill">README review</span></li>
       <li>If the safety check itself can't run, the message is held back (never shown or built), the kid is asked to try again, and the report notes it. <span class="pill">pre-install review</span></li>
+      <li>Everything the kid sees is checked before it's shown: the guide's words, pictures, plans and build steps, the change list, the app's name, and every word the finished app can show (checked last, exactly as it's saved). A check answer that can't be read is "couldn't run", never "ok". When more than one applies, unsuitable beats personal. <span class="pill">safety review</span></li>
+      <li>"+ New app" writes a report for the app being left. The report's check marks come from the flags, and each flag says who said it (the kid, the guide or the app). <span class="pill">safety review</span></li>
+      <li>A wellbeing alert comes with a chime and shows on the PIN page too; it still reaches the parent if the plan limit is hit or the check can't run. <span class="pill">safety review</span></li>
     </ul>
     <p><b>3 · The parent report</b> is the backstop (<a href="#f-report">below</a>).</p>
   </div></details>

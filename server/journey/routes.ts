@@ -93,6 +93,17 @@ function fail(res: Response, err: unknown, s?: KidSession) {
   res.status(500).json({ error: 'hiccup' });
 }
 
+/** The error a broken app reported, for a repair build (security review: it was any text, sent to
+ *  the builder unchecked). Only what looks like a JavaScript error, with personal details masked. */
+function appError(raw: unknown): string {
+  const t = typeof raw === 'string' ? raw.replace(/\s+/g, ' ').trim().slice(0, 300) : '';
+  if (!JS_ERROR.test(t)) return '';
+  return maskPersonal(personText(t)).text;
+}
+/** The wording browsers use for errors (the app's error reporter sends the message itself). */
+const JS_ERROR = /\b\w*Error\b|Script error|Unhandled promise rejection|is not (defined|a function|iterable|a constructor|valid)|Cannot (read|set|access|convert|destructure)|Unexpected (token|end|identifier|string|number)|Invalid or unexpected|Maximum call stack|(undefined|null) is not|is (null|undefined)\b|Assignment to constant|has already been declared|out of range|Failed to execute|Illegal (invocation|return)|Invalid (array length|left-hand side|regular expression)/i;
+export const appErrorForTests = appError;
+
 /** Plan usage of a check made outside a turn. */
 function metasOf(p: Project, c: { meta?: unknown; metas?: unknown[] }) { addUsage(p, (c.metas ?? [c.meta]) as any); }
 
@@ -182,7 +193,9 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
     const mode: BuildMode = ['full', 'edit', 'repair'].includes(req.body?.mode) ? req.body.mode : 'full';
     if (p.stage !== 'build') throw new TurnError(409, 'Building starts after the Tech plan.');
     try {
-      return await buildApp(p, mode, typeof req.body?.error === 'string' ? req.body.error : '');
+      const fault = appError(req.body?.error);
+      if (mode === 'repair' && !fault) throw new TurnError(400, "That error message wasn't recognised.");
+      return await buildApp(p, mode, fault);
     } catch (err) {
       // An app whose words weren't suitable is never shown: the last working version stays.
       if (err instanceof TurnError && err.status === 422) return { unsuitable: true };

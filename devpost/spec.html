@@ -129,6 +129,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
   <a class="sub" href="#c-revision">Revision Round</a>
   <a class="sub" href="#c-polish">Polish Round</a>
   <a class="sub" href="#c-window">Keep the Window Open</a>
+  <a class="sub" href="#c-safetyreview">Safety Review Round</a>
   <a href="#data">Data Model</a>
   <a href="#tree">File Structure</a>
   <a href="#ext">External Services</a>
@@ -654,6 +655,21 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
       <li><b>Checks:</b> <code>npm run verify:revisions</code>; checked live with a launcher-style test server: the kid tab showed the countdown within seconds and the server stopped itself about a minute after the parent tab closed.</li>
     </ul>
     <div class="files">server/presence.ts · server/main.ts · server/kidRoutes.ts · server/report/reporter.ts · web/src/App.tsx · web/src/kid/KidApp.tsx · web/src/parent/Opening.tsx · ParentHome.tsx</div>
+  </div></details>
+
+  <details id="c-safetyreview"><summary><h3>🛡️ Safety Review Round</h3><span class="prd">prd › the (safety review) checks</span></summary><div class="body">
+    <p class="src">Three fresh read-only reviews found no hidden behaviour; you chose to fix priorities 1-3 (skipping a 6-digit PIN minimum and a new tablet certificate).</p>
+    <ul>
+      <li><b>The check itself</b> (<code>safetyCheck.ts</code>): an unreadable answer (or any capitalisation) is retried, then held back; long texts are checked in pieces of 6,000 characters, all of them; the strongest verdict wins (wellbeing, unsuitable, personal); a masked rewrite is checked again before it's used. <code>standInCheckForTests</code> lets the checks stand in for Claude, in-process only.</li>
+      <li><b>What gets checked:</b> the guide's whole reply as shown (words, picture words via <code>visibleWords</code>, the plan document, build steps); the change list's reply and items; the app's name at Ship (masked, then checked); the final app version right before <code>saveVersion</code>, on <code>appWords</code> (page text, script strings, shown attributes, the "changed" note; not code). Wellbeing and personal verdicts on the guide's or an app's words count too.</li>
+      <li><b>Nothing lost:</b> "+ New app" reports the app being left; a wellbeing verdict is flagged even when the guide then fails (the plan limit); a held-back message keeps its masked words, and <code>mayBeHurting</code> (a word list) alerts the parent if the Claude check couldn't run.</li>
+      <li><b>The report:</b> the personal and output check marks are computed from the flags; each flag has <code>who</code> (kid, guide, app) and is worded by it; a personal detail from the guide or an app is 🟡, not 🔴.</li>
+      <li><b>The parent area:</b> a 15-minute idle lock on its screen, an 8-hour session limit, sessions end when the window closes (<code>presence.ts</code>), growing PIN lockouts in <code>family.json</code> (<code>pinLock</code>), a 🔑 alert with the number of wrong tries, and <code>sessionEpoch</code> so <code>reset-pin</code> locks open sessions.</li>
+      <li><b>Who may talk to it</b> (<code>auth.ts</code>): exact origins (scheme, name, port), loopback names only from the laptop, <code>Sec-Fetch-Site</code> must be same-origin for changes and for <code>/api/presence</code>.</li>
+      <li><b>Other devices</b> (<code>lan.ts</code>): answered only while a pass is live or tablet setup is open (15 minutes, renewed while its window is open); otherwise a "resting" page. Setup routes are gated the same way, and the setup window shows the certificate's SHA-256 and SHA-1 fingerprints.</li>
+      <li><b>Smaller:</b> a chime and a 💛 title for wellbeing alerts, also on the PIN page (<code>urgent</code> in <code>/api/parent/state</code>); the kid's wellbeing reply names the local emergency number; speech is 2 recordings at a time per pass (only its own) and 12 finishes a minute; repair builds accept only real browser error messages (masked); the 10 KB limit no longer runs in front of the journey's 64 KB one; young kids are never asked about their life at Start; the setup skill no longer pre-approves <code>npm</code>.</li>
+      <li><b>Checks:</b> <code>npm run verify:revisions</code> (60), <code>verify:security</code> (23, the speech check updated for the per-device limit).</li>
+    </ul>
   </div></details>
 
   <!-- DATA -->

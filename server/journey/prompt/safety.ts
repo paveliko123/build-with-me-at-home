@@ -23,7 +23,7 @@ export const AI_DISCLOSURE = { kid: "I'm your AI helper, not a person.", teen: "
 /** A refused or unsuitable turn gets this kind redirect, never a scolding (prd.md > Safety for Kids). */
 export const REDIRECT_REPLY = "Hmm, let's make something else instead! 🙂";
 /** Someone who may be hurting or unsafe is pointed to a grown-up, kindly (prd.md > Safety for Kids). */
-export const WELLBEING_REPLY = "That sounds really important, and I'm glad you said it. Please tell a grown-up you trust, like a parent or a teacher, right away. If you're in danger, they can call for help. I'm here for your app whenever you're ready.";
+export const WELLBEING_REPLY = "That sounds really important, and I'm glad you said it. Please tell a grown-up you trust, like a parent or a teacher, right away. If you're in danger right now, call your local emergency number, or ask any grown-up near you to call. I'm here for your app whenever you're ready.";
 /** Sent to the guide (as an app line) when a personal detail was hidden from what the person said. */
 export const PERSONAL_NOTE = '[app] Something personal (a name, school, address, phone, or email) was hidden from the person\'s last message as [name], [school], and so on. In one short, kind sentence, say they don\'t need to share things like that here. Never repeat it or ask for it. Then carry on with the stage.';
 export const LEAK_REPLY = "That's not something I can share, but I'm happy to keep going with your app!";

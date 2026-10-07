@@ -218,15 +218,31 @@ function loadSpeech() {
 }
 var utterances = /* @__PURE__ */ new Map();
 var MAX_UTTERANCES = 20;
+var PER_OWNER = 2;
+var ENDS_PER_MINUTE = 12;
+var ends = /* @__PURE__ */ new Map();
+function mayFinish(owner) {
+  const now = Date.now();
+  const recent = (ends.get(owner) ?? []).filter((t) => now - t < 6e4);
+  if (recent.length >= ENDS_PER_MINUTE) {
+    ends.set(owner, recent);
+    return false;
+  }
+  recent.push(now);
+  ends.set(owner, recent);
+  return true;
+}
 setInterval(() => {
   const now = Date.now();
   for (const [id, u] of utterances) if (now - u.lastChunk > 2 * 6e4) utterances.delete(id);
 }, 6e4).unref();
-function addChunk(id, pcm) {
+function addChunk(id, pcm, owner = "parent") {
   let u = utterances.get(id);
+  if (u && u.owner !== owner) return null;
   if (!u) {
     if (utterances.size >= MAX_UTTERANCES) return null;
-    u = { chunks: [], bytes: 0, started: Date.now(), lastChunk: Date.now() };
+    if ([...utterances.values()].filter((x) => x.owner === owner).length >= PER_OWNER) return null;
+    u = { chunks: [], bytes: 0, started: Date.now(), lastChunk: Date.now(), owner };
     utterances.set(id, u);
   }
   if ((u.bytes + pcm.length) / 2 / SAMPLE_RATE <= MAX_SECONDS) {
@@ -260,9 +276,10 @@ async function transcribeFloat32(audio) {
   const text = (Array.isArray(out) ? out.map((o) => o.text).join(" ") : out.text).trim();
   return { text: cleanTranscript(text), seconds: audio.length / SAMPLE_RATE, transcribeMs: Date.now() - t0 };
 }
-async function finishUtterance(id) {
-  const u = utterances.get(id);
-  utterances.delete(id);
+async function finishUtterance(id, owner = "parent") {
+  const mine = utterances.get(id);
+  const u = mine && mine.owner === owner ? mine : void 0;
+  if (u) utterances.delete(id);
   if (!u || u.bytes < SAMPLE_RATE * 2 * 0.3) {
     console.log(JSON.stringify({ event: "speech", result: u ? "too-short" : "no-audio", seconds: u ? +(u.bytes / 2 / SAMPLE_RATE).toFixed(1) : 0 }));
     return { text: "", seconds: 0, transcribeMs: 0 };
@@ -326,9 +343,15 @@ var updateFamily = (change) => updateJson(FAMILY_FILE, emptyFamily(), change);
 // server/auth.ts
 var scryptAsync = promisify(scrypt);
 var PARENT_COOKIE = "bwm_parent";
-var IDLE_MS = 12 * 60 * 60 * 1e3;
+var IDLE_MS = 2 * 60 * 60 * 1e3;
+var MAX_SESSION_MS = 8 * 60 * 60 * 1e3;
 var MAX_TRIES = 5;
-var LOCK_MS = 60 * 1e3;
+var LOCK_STEPS_MIN = [1, 5, 15, 60, 240];
+var ports = { http: 4747, https: 4748 };
+function setServerPorts(http2, https2) {
+  ports = { http: http2, https: https2 };
+}
+var LOOPBACK_NAMES = /* @__PURE__ */ new Set(["localhost", "127.0.0.1", "[::1]"]);
 function isLoopback(req) {
   const a = req.socket.remoteAddress ?? "";
   return a === "127.0.0.1" || a === "::1" || a === "::ffff:127.0.0.1";
@@ -351,17 +374,33 @@ function knownHosts() {
   return names;
 }
 var hostPart = (h) => h.trim().toLowerCase().replace(/:\d+$/, "").replace(/\.$/, "");
+function nameAllowed(req, name, port) {
+  if (port !== ports.http && port !== ports.https) return false;
+  return isLoopback(req) ? LOOPBACK_NAMES.has(name) : knownHosts().has(name);
+}
 function hostAllowed(req) {
-  return knownHosts().has(hostPart(req.headers.host ?? ""));
+  const host = (req.headers.host ?? "").trim().toLowerCase();
+  const m = host.match(/:(\d+)$/);
+  const secure = req.socket.encrypted === true;
+  return nameAllowed(req, hostPart(host), m ? Number(m[1]) : secure ? 443 : 80);
 }
 function originAllowed(req) {
+  const site = req.headers["sec-fetch-site"];
+  if (site !== void 0 && site !== "same-origin" && site !== "none") return false;
   const origin = req.headers.origin;
   if (origin === void 0) return true;
   try {
-    return knownHosts().has(hostPart(new URL(origin).host));
+    const u = new URL(origin);
+    const port = Number(u.port || (u.protocol === "https:" ? 443 : 80));
+    if (u.protocol === "http:" && port !== ports.http || u.protocol === "https:" && port !== ports.https) return false;
+    return nameAllowed(req, hostPart(u.host), port);
   } catch {
     return false;
   }
+}
+function sameOriginPage(req) {
+  const site = req.headers["sec-fetch-site"];
+  return site === void 0 || site === "same-origin";
 }
 function cookies(req) {
   const out = {};
@@ -383,24 +422,34 @@ async function pinMatches(pin, stored) {
   const hash = await scryptAsync(pin, Buffer.from(stored.salt, "hex"), 32);
   return timingSafeEqual(hash, Buffer.from(stored.hash, "hex"));
 }
-var failures = 0;
-var lockedUntil = 0;
+var NO_LOCK = { failures: 0, lockedUntil: 0, lockouts: 0, wrongSinceUnlock: 0 };
 async function checkPin(pin) {
   const now = Date.now();
-  if (now < lockedUntil) return { ok: false, reason: "locked", seconds: Math.ceil((lockedUntil - now) / 1e3) };
-  const stored = readFamily().pin;
-  if (!stored) return { ok: false, reason: "no-pin" };
-  if (validPin(pin) && await pinMatches(pin, stored)) {
-    failures = 0;
-    return { ok: true };
+  const family = readFamily();
+  const lock2 = { ...NO_LOCK, ...family.pinLock ?? {} };
+  if (now < lock2.lockedUntil) return { ok: false, reason: "locked", seconds: Math.ceil((lock2.lockedUntil - now) / 1e3) };
+  if (!family.pin) return { ok: false, reason: "no-pin" };
+  if (validPin(pin) && await pinMatches(pin, family.pin)) {
+    updateFamily((f) => {
+      f.pinLock = { ...NO_LOCK };
+    });
+    return { ok: true, wrongTries: lock2.wrongSinceUnlock, lastWrongAt: lock2.lastWrongAt };
   }
-  failures++;
-  if (failures >= MAX_TRIES) {
-    failures = 0;
-    lockedUntil = now + LOCK_MS;
-    return { ok: false, reason: "locked", seconds: LOCK_MS / 1e3 };
+  lock2.failures++;
+  lock2.wrongSinceUnlock++;
+  lock2.lastWrongAt = now;
+  let result = { ok: false, reason: "wrong", triesLeft: MAX_TRIES - lock2.failures };
+  if (lock2.failures >= MAX_TRIES) {
+    const minutes = LOCK_STEPS_MIN[Math.min(lock2.lockouts, LOCK_STEPS_MIN.length - 1)];
+    lock2.lockouts++;
+    lock2.failures = 0;
+    lock2.lockedUntil = now + minutes * 6e4;
+    result = { ok: false, reason: "locked", seconds: minutes * 60 };
   }
-  return { ok: false, reason: "wrong", triesLeft: MAX_TRIES - failures };
+  updateFamily((f) => {
+    f.pinLock = lock2;
+  });
+  return result;
 }
 async function setPin(pin) {
   const stored = await hashPin(pin);
@@ -412,8 +461,11 @@ async function setPin(pin) {
 var parentSessions = /* @__PURE__ */ new Map();
 function startParentSession(res) {
   const token = randomBytes(32).toString("base64url");
-  parentSessions.set(token, Date.now());
+  parentSessions.set(token, { seen: Date.now(), started: Date.now(), epoch: readFamily().sessionEpoch ?? 0 });
   res.cookie(PARENT_COOKIE, token, { httpOnly: true, sameSite: "strict", path: "/" });
+}
+function endAllParentSessions() {
+  parentSessions.clear();
 }
 function endParentSession(req, res) {
   parentSessions.delete(cookies(req)[PARENT_COOKIE] ?? "");
@@ -422,13 +474,14 @@ function endParentSession(req, res) {
 function isParent(req) {
   if (!isLoopback(req)) return false;
   const token = cookies(req)[PARENT_COOKIE];
-  const seen2 = token ? parentSessions.get(token) : void 0;
-  if (seen2 === void 0) return false;
-  if (Date.now() - seen2 > IDLE_MS) {
+  const s2 = token ? parentSessions.get(token) : void 0;
+  if (s2 === void 0) return false;
+  const now = Date.now();
+  if (now - s2.seen > IDLE_MS || now - s2.started > MAX_SESSION_MS || s2.epoch !== (readFamily().sessionEpoch ?? 0)) {
     parentSessions.delete(token);
     return false;
   }
-  parentSessions.set(token, Date.now());
+  s2.seen = now;
   return true;
 }
 function requireParent(req, res, next) {
@@ -443,47 +496,8 @@ function requireParent(req, res, next) {
   next();
 }
 
-// server/parentRoutes.ts
-import express, { Router } from "express";
-import QRCode from "qrcode";
-
-// server/kids.ts
-import { randomBytes as randomBytes2 } from "node:crypto";
-function cleanKidInput(body) {
-  const nickname = typeof body?.nickname === "string" ? body.nickname.trim().slice(0, 24) : "";
-  if (!nickname) return "A nickname is needed.";
-  const group = body?.group === "teen" ? "teen" : body?.group === "kid" ? "kid" : null;
-  if (!group) return "Pick Kid (under 13) or Teen (13\u201317).";
-  const emoji = typeof body?.emoji === "string" && body.emoji.trim() ? [...body.emoji.trim()].slice(0, 2).join("") : "\u{1F642}";
-  return { nickname, group, emoji };
-}
-function listKids() {
-  return readFamily().kids;
-}
-function addKid(input) {
-  const kid = { id: randomBytes2(6).toString("hex"), ...input, createdAt: Date.now() };
-  updateFamily((f) => {
-    f.kids.push(kid);
-  });
-  return kid;
-}
-function editKid(id, input) {
-  let found = null;
-  updateFamily((f) => {
-    const k = f.kids.find((x) => x.id === id);
-    if (k) {
-      Object.assign(k, input);
-      found = k;
-    }
-  });
-  return found;
-}
-
-// server/kidData.ts
-import { existsSync as existsSync8, readdirSync as readdirSync2, rmSync as rmSync3 } from "node:fs";
-
 // server/passes.ts
-import { randomBytes as randomBytes3, createHash } from "node:crypto";
+import { randomBytes as randomBytes2, createHash } from "node:crypto";
 import { EventEmitter } from "node:events";
 var PASS_COOKIE = "bwm_pass";
 var FILE = "passes.json";
@@ -508,7 +522,7 @@ var kidOf = (p) => readFamily().kids.find((k) => k.id === p.kidId);
 function typedCode() {
   const out = [];
   const limit = 256 - 256 % TYPED_ALPHABET.length;
-  while (out.length < 8) for (const b of randomBytes3(16)) if (b < limit && out.length < 8) out.push(TYPED_ALPHABET[b % TYPED_ALPHABET.length]);
+  while (out.length < 8) for (const b of randomBytes2(16)) if (b < limit && out.length < 8) out.push(TYPED_ALPHABET[b % TYPED_ALPHABET.length]);
   return out.join("");
 }
 var normalizeTyped = (s2) => s2.toUpperCase().replace(/[^0-9A-Z]/g, "");
@@ -523,9 +537,9 @@ function createPass(kidId, minutes, replace = false) {
   let typed = typedCode();
   while (live.has(typed)) typed = typedCode();
   const pass = {
-    id: randomBytes3(9).toString("base64url"),
+    id: randomBytes2(9).toString("base64url"),
     kidId,
-    code: randomBytes3(16).toString("base64url"),
+    code: randomBytes2(16).toString("base64url"),
     typedCode: typed,
     minutes: Math.round(minutes),
     createdAt: now,
@@ -648,7 +662,7 @@ function openPass(req, res, raw) {
     return { ok: true };
   }
   if (p.usedAt) return { ok: false, error: "used" };
-  const token = randomBytes3(32).toString("base64url");
+  const token = randomBytes2(32).toString("base64url");
   let won = false;
   update((ps) => {
     const x = ps.find((y) => y.id === p.id);
@@ -718,6 +732,72 @@ function setPassStep(id, step) {
   });
   if (changed) passEvents.emit("changed");
 }
+
+// server/lan.ts
+var SETUP_MS = 15 * 6e4;
+var setupUntil = 0;
+function openSetup() {
+  setupUntil = Date.now() + SETUP_MS;
+  return setupUntil;
+}
+var setupOpen = () => Date.now() < setupUntil;
+var cache = { at: 0, live: false };
+function anyPassLive() {
+  if (Date.now() - cache.at > 2e3) cache = { at: Date.now(), live: allPasses().some((p) => isLive(p)) };
+  return cache.live;
+}
+var lanOpen = () => setupOpen() || anyPassLive();
+function lanGate(req, res, next) {
+  if (isThisComputer(req) || lanOpen()) {
+    next();
+    return;
+  }
+  if (req.path.startsWith("/api/")) {
+    res.status(503).json({ error: "resting" });
+    return;
+  }
+  res.status(503).type("html").send(RESTING_PAGE);
+}
+var RESTING_PAGE = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Build With Me</title><body style="font:18px system-ui;margin:0;display:grid;place-items:center;min-height:100vh;background:#f6f4ef;color:#1f2430;text-align:center;padding:16px"><div><div style="font-size:48px">\u{1F634}</div><h1 style="font-size:24px">Build With Me is resting</h1><p>Ask your grown-up for a pass, then try again.</p></div>`;
+
+// server/parentRoutes.ts
+import express, { Router } from "express";
+import QRCode from "qrcode";
+
+// server/kids.ts
+import { randomBytes as randomBytes3 } from "node:crypto";
+function cleanKidInput(body) {
+  const nickname = typeof body?.nickname === "string" ? body.nickname.trim().slice(0, 24) : "";
+  if (!nickname) return "A nickname is needed.";
+  const group = body?.group === "teen" ? "teen" : body?.group === "kid" ? "kid" : null;
+  if (!group) return "Pick Kid (under 13) or Teen (13\u201317).";
+  const emoji = typeof body?.emoji === "string" && body.emoji.trim() ? [...body.emoji.trim()].slice(0, 2).join("") : "\u{1F642}";
+  return { nickname, group, emoji };
+}
+function listKids() {
+  return readFamily().kids;
+}
+function addKid(input) {
+  const kid = { id: randomBytes3(6).toString("hex"), ...input, createdAt: Date.now() };
+  updateFamily((f) => {
+    f.kids.push(kid);
+  });
+  return kid;
+}
+function editKid(id, input) {
+  let found = null;
+  updateFamily((f) => {
+    const k = f.kids.find((x) => x.id === id);
+    if (k) {
+      Object.assign(k, input);
+      found = k;
+    }
+  });
+  return found;
+}
+
+// server/kidData.ts
+import { existsSync as existsSync8, readdirSync as readdirSync2, rmSync as rmSync3 } from "node:fs";
 
 // server/journey/appIcon.ts
 var ICON = /<svg\b[^>]*\bid\s*=\s*["']bwm-icon["'][^>]*>[\s\S]*?<\/svg>/i;
@@ -1100,7 +1180,7 @@ function personText(text) {
 var LEAK = /SKILL\.md|-----\s*\d-[a-z]+\/|# SAFETY \(always applies|Devpost Learn Rules|# THE PLAN\b/i;
 var AI_DISCLOSURE = { kid: "I'm your AI helper, not a person.", teen: "I'm an AI helper, not a person." };
 var REDIRECT_REPLY = "Hmm, let's make something else instead! \u{1F642}";
-var WELLBEING_REPLY = "That sounds really important, and I'm glad you said it. Please tell a grown-up you trust, like a parent or a teacher, right away. If you're in danger, they can call for help. I'm here for your app whenever you're ready.";
+var WELLBEING_REPLY = "That sounds really important, and I'm glad you said it. Please tell a grown-up you trust, like a parent or a teacher, right away. If you're in danger right now, call your local emergency number, or ask any grown-up near you to call. I'm here for your app whenever you're ready.";
 var PERSONAL_NOTE = "[app] Something personal (a name, school, address, phone, or email) was hidden from the person's last message as [name], [school], and so on. In one short, kind sentence, say they don't need to share things like that here. Never repeat it or ask for it. Then carry on with the stage.";
 var LEAK_REPLY = "That's not something I can share, but I'm happy to keep going with your app!";
 
@@ -5597,7 +5677,9 @@ var EXPERIENCED = `Level: FOLLOW THE COURSE CLOSELY (experienced).
 - Show every document as a draft ("status": "draft", in "doc"), say in one short line that it's ready to look at (the app shows it as a card with \u{1F44D} Looks good and \u270F\uFE0F Change something), and ask whether it looks good or needs changes. Mark it "approved" and set "stageComplete": true only after a clear approval such as "looks good".
 - In the Start stage, include the question about what they'd like to get better at or understand by the end.`;
 var VOICE = {
-  kid: "The person is a child under 13, maybe as young as 6. Use the simplest everyday words, one idea per sentence, and keep text very short (they may be listening rather than reading). Be encouraging and playful.",
+  // Safety review: the course's Start questions are for adults ("work, hobbies, communities…
+  // where would it fit into your life?"), which invites life details from a young child.
+  kid: "The person is a child under 13, maybe as young as 6. Use the simplest everyday words, one idea per sentence, and keep text very short (they may be listening rather than reading). Be encouraging and playful. Ask only about what they like doing, playing and imagining. Never ask about their life: not their school, family, friends, where they live, work, communities or where an app would fit into their life, even if the stage instructions say to.",
   teen: "The person is a teenager (13\u201317). Talk to them like a capable teenager: friendly, never babyish.",
   adult: "The person is an adult. Talk to them as a peer."
 };
@@ -5669,10 +5751,10 @@ function withoutSections(markdown, titles) {
   }
   return out.join("\n");
 }
-var cache = /* @__PURE__ */ new Map();
+var cache2 = /* @__PURE__ */ new Map();
 function stageInstructions(stage, guided = false) {
   const key = `${stage}:${guided}`;
-  const hit = cache.get(key);
+  const hit = cache2.get(key);
   if (hit) return hit;
   const source = SOURCES[stage];
   if (!source) throw new Error(`No instructions for stage ${stage}`);
@@ -5683,7 +5765,7 @@ function stageInstructions(stage, guided = false) {
     return `----- ${source.dir}/${file} -----
 ${file === "SKILL.md" ? withoutSections(body, skipped).trim() : body}`;
   }).join("\n\n");
-  cache.set(key, text);
+  cache2.set(key, text);
   return text;
 }
 function firstStage(_profile) {
@@ -6028,6 +6110,9 @@ function cleanReply(reply, profile, probeFirst, unsure = true, askedIdeas = fals
   }
   return clean;
 }
+function visibleWords(html) {
+  return html.replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&[a-z]+;|&#\d+;/gi, " ").replace(/\s+/g, " ").trim();
+}
 var TurnError = class extends Error {
   constructor(status, message) {
     super(message);
@@ -6104,16 +6189,34 @@ async function guideTurn(project, rawText, opts = {}) {
         return { reply: { say: REDIRECT_REPLY, question: sameQuestion, stageComplete: false }, meta: err.metas ?? [] };
       }
     };
-    const [inputCheck, firstAnswer] = await Promise.all([
+    const [checked, answered] = await Promise.allSettled([
       text ? callSafetyCheck(text, "input", age, { system: systemInstruction, turns: contents, schema: REPLY_SCHEMA }) : Promise.resolve({ verdict: "ok" }),
       askGuide()
     ]);
+    if (answered.status === "rejected") {
+      if (checked.status === "fulfilled" && checked.value.verdict === "wellbeing") flag(session, "input", checked.value, text);
+      throw answered.reason;
+    }
+    if (checked.status === "rejected") throw checked.reason;
+    let inputCheck = checked.value;
+    const firstAnswer = answered.value;
     let raw = firstAnswer.reply;
-    metas.push(...firstAnswer.meta, inputCheck.meta);
-    if (inputCheck.failed) throw heldBack(session, "input");
+    metas.push(...firstAnswer.meta, ...inputCheck.metas ?? [inputCheck.meta]);
+    if (inputCheck.failed) throw heldBack(session, "input", text);
+    let flagText = text;
+    if (inputCheck.verdict === "personal" && inputCheck.masked?.trim()) {
+      const again = await callSafetyCheck(inputCheck.masked, "input", age);
+      metas.push(...again.metas ?? [again.meta]);
+      if (again.failed) throw heldBack(session, "input", inputCheck.masked);
+      if (again.verdict === "unsuitable" || again.verdict === "wellbeing") {
+        flag(session, "input", inputCheck, inputCheck.masked);
+        flagText = inputCheck.masked;
+        inputCheck = again;
+      }
+    }
     const blocked = inputCheck.verdict === "unsuitable" || inputCheck.verdict === "wellbeing";
     if (blocked) {
-      flag(session, "input", inputCheck, text);
+      flag(session, "input", inputCheck, flagText);
       raw = { say: inputCheck.verdict === "wellbeing" ? WELLBEING_REPLY : REDIRECT_REPLY, question: sameQuestion, stageComplete: false };
       const mine = newMessages.find((m) => m.role === "user" && m.text === text);
       if (mine) mine.text = "(A message that was left out because it was not suitable.)";
@@ -6181,13 +6284,24 @@ async function guideTurn(project, rawText, opts = {}) {
     const selfApprove = !needsPerson && reply.stageComplete;
     if (selfApprove && reply.doc) reply.doc.status = "approved";
     if (!blocked) {
-      const shown = [reply.say, reply.question, ...(reply.cards ?? []).map((c) => `${c.label} ${c.detail ?? ""}`), reply.techSummary, reply.laterIdea].filter(Boolean).join("\n");
+      const shown = [
+        reply.say,
+        reply.question,
+        ...(reply.cards ?? []).map((c) => `${c.label} ${c.detail ?? ""}`),
+        reply.techSummary,
+        reply.laterIdea,
+        reply.visualHtml ? visibleWords(reply.visualHtml) : "",
+        reply.doc?.markdown,
+        ...(reply.buildSteps ?? []).map((s2) => s2.step)
+      ].filter(Boolean).join("\n");
       const outputCheck = await callSafetyCheck(shown, "output", age, { system: systemInstruction, turns: [...contents, { role: "model", text: JSON.stringify(raw) }], schema: REPLY_SCHEMA });
-      metas.push(outputCheck.meta);
-      if (outputCheck.failed) throw heldBack(session, "output");
-      if (outputCheck.verdict === "unsuitable") {
+      metas.push(...outputCheck.metas ?? [outputCheck.meta]);
+      if (outputCheck.failed) throw heldBack(session, "output", shown);
+      if (outputCheck.verdict === "unsuitable" || outputCheck.verdict === "wellbeing") {
         flag(session, "output", outputCheck, shown);
         reply = { say: REDIRECT_REPLY, question: sameQuestion, stageComplete: false };
+      } else if (outputCheck.verdict === "personal") {
+        flag(session, "output", outputCheck, shown);
       }
     }
     if (reply.appEmojis?.length) session.appEmojis = reply.appEmojis;
@@ -6235,6 +6349,8 @@ Verdicts:
 - "personal": real personal details about the person or someone they know: a first name or full name they say is theirs or a friend's or family member's, a school, an address or where they live, a phone number, an email, a username. Already hidden details like [name] or [school] are fine. Also give "masked": the same text with each detail replaced by [name], [school], [address], [email], or [phone].
 - "ok": everything else.
 
+If more than one applies, give the strongest: "wellbeing" first, then "unsuitable", then "personal". A message with a personal detail AND an unsuitable request is "unsuitable".
+
 Be fair to kids. These are OK: cartoon battles, monsters, zombies or ghosts in a silly or mild way, superheroes, lasers and space fights, pets' names, made-up character names, game scores, ages and grades ("I'm 9", "4th grade"), favourite foods and shows, mild gross humour, being sad or bored in an everyday way.`;
 var LABEL = {
   input: "What the person just said to the helper",
@@ -6243,12 +6359,36 @@ var LABEL = {
 };
 async function callSafetyCheck(text, direction, ageGroup, fork) {
   if (!text.trim()) return { verdict: "ok" };
+  if (stand_in) return stand_in(text, direction);
+  const pieces = chunks(text, CHUNK);
+  if (pieces.length === 1) return checkOne(pieces[0], direction, ageGroup, fork);
+  const results = await Promise.all(pieces.map((piece) => checkOne(piece, direction, ageGroup)));
+  const failed = results.find((r) => r.failed);
+  if (failed) return failed;
+  const worst = results.reduce((a, b) => RANK[b.verdict] > RANK[a.verdict] ? b : a);
+  const metaAll = results.map((r) => r.meta).filter((m) => !!m);
+  return { verdict: worst.verdict, category: worst.category, meta: metaAll[0], metas: metaAll };
+}
+var stand_in = null;
+var CHUNK = 6e3;
+var MAX_PIECES = 12;
+var RANK = { ok: 0, personal: 1, unsuitable: 2, wellbeing: 3 };
+function readVerdict(v) {
+  const s2 = String(v ?? "").trim().toLowerCase();
+  return s2 in RANK ? s2 : null;
+}
+function chunks(text, size) {
+  const out = [];
+  for (let i = 0; i < text.length && out.length < MAX_PIECES; i += size) out.push(text.slice(i, i + size));
+  return out;
+}
+async function checkOne(text, direction, ageGroup, fork) {
   const who = ageGroup === "kid" ? "a kid under 13" : "a teen (13-17)";
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const { result, ok, meta, broken: broken2 } = await callCheck(`safety-${direction}`, RULES2, `${LABEL[direction]} (the person is ${who}):
 """
-${text.slice(0, 6e3)}
+${text}
 """`, SCHEMA, 3e4, fork);
       if (broken2) {
         console.warn(JSON.stringify({ event: "safety-check-failed", direction, attempt, error: "claude did not run" }));
@@ -6256,8 +6396,12 @@ ${text.slice(0, 6e3)}
       }
       const parsed = result ?? {};
       if (!ok && !result) return { verdict: "unsuitable", category: "refused", meta };
-      const verdict = ["ok", "unsuitable", "personal", "wellbeing"].includes(parsed.verdict) ? parsed.verdict : "ok";
-      return { verdict, category: parsed.category?.slice(0, 40), ...verdict === "personal" && parsed.masked ? { masked: parsed.masked.slice(0, 6e3) } : {}, meta };
+      const verdict = readVerdict(parsed.verdict);
+      if (!verdict) {
+        console.warn(JSON.stringify({ event: "safety-check-failed", direction, attempt, error: "unreadable answer" }));
+        continue;
+      }
+      return { verdict, category: typeof parsed.category === "string" ? parsed.category.slice(0, 40) : void 0, ...verdict === "personal" && parsed.masked ? { masked: String(parsed.masked).slice(0, 6e3) } : {}, meta };
     } catch (err) {
       if (err instanceof LimitError) throw err;
       console.warn(JSON.stringify({ event: "safety-check-failed", direction, attempt, error: String(err?.message ?? err).slice(0, 200) }));
@@ -6265,11 +6409,14 @@ ${text.slice(0, 6e3)}
   }
   return { verdict: "ok", failed: true };
 }
-function heldBack(project, direction) {
-  project.flags.push({ at: Date.now(), stage: project.stage, direction, verdict: "unchecked", category: "check-unavailable", text: "" });
+function heldBack(project, direction, maskedText = "") {
+  project.flags.push({ at: Date.now(), stage: project.stage, direction, verdict: "unchecked", category: "check-unavailable", text: maskedText.slice(0, 2e3) });
   console.warn(JSON.stringify({ event: "held-back", project: project.id, direction }));
+  if (direction === "input" && mayBeHurting(maskedText)) flag(project, "input", { verdict: "wellbeing", category: "words (check unavailable)" }, maskedText);
   return new TurnError(503, "The safety check could not run; held back.");
 }
+var HURTING = /\b(hurt(ing)? (my ?self|me)|kill(ing)? my ?self|want(ed)? to die|wish i (was|were) dead|suicid\w*|self[- ]?harm|cut(ting)? my ?self|(hits?|hitting|beats?|beating|touch(es|ed)?) me\b|abus\w*|nobody (loves|likes|cares about) me|everyone hates me|i hate my ?self|run(ning)? away from home|scared (of|to go) home|bull(y|ies|ied|ying) me)/i;
+var mayBeHurting = (text) => HURTING.test(text);
 function flag(project, direction, result, maskedText) {
   project.flags.push({ at: Date.now(), stage: project.stage, direction, verdict: result.verdict, category: result.category ?? "", text: maskedText.slice(0, 2e3) });
   console.warn(JSON.stringify({ event: "flag", project: project.id, direction, verdict: result.verdict, category: result.category }));
@@ -6321,7 +6468,13 @@ async function slot(work) {
   }
 }
 function appWords(html) {
-  return html.replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<svg[\s\S]*?<\/svg>/gi, (svg) => ` ${(svg.match(/<(text|tspan|title|desc)\b[^>]*>[\s\S]*?<\/\1>/gi) ?? []).join(" ")} `).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 6e3);
+  const note = html.match(/<!--\s*changed:\s*([\s\S]*?)-->/i)?.[1] ?? "";
+  const scripts = (html.match(/<script\b[^>]*>[\s\S]*?<\/script>/gi) ?? []).join("\n");
+  const quoted = scripts.match(/"(?:[^"\\\n]|\\.){2,}"|'(?:[^'\\\n]|\\.){2,}'|`(?:[^`\\]|\\.){2,}`/g) ?? [];
+  const strings = quoted.map((q) => q.slice(1, -1).replace(/\$\{[^}]*\}/g, " ")).filter((q) => /[A-Za-z]{2}/.test(q) && !/^[\w.#:\-[\]=" >*,()]+$/.test(q.trim()) || / /.test(q.trim()));
+  const shownAttrs = (html.match(/\b(?:title|alt|placeholder|aria-label|value)\s*=\s*"[^"]*"/gi) ?? []).map((a) => a.replace(/^[^=]+=\s*"/, "").replace(/"$/, ""));
+  const page = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<svg[\s\S]*?<\/svg>/gi, (svg) => ` ${(svg.match(/<(text|tspan|title|desc)\b[^>]*>[\s\S]*?<\/\1>/gi) ?? []).join(" ")} `).replace(/<[^>]+>/g, " ");
+  return [note, page, ...shownAttrs, ...strings].join(" ").replace(/&[a-z]+;|&#\d+;/gi, " ").replace(/\s+/g, " ").trim();
 }
 async function buildApp(p, mode, error = "") {
   const metas = [];
@@ -6407,14 +6560,6 @@ That HTML breaks these rules: ${problems.join("; ")}. Return the complete correc
         console.warn(JSON.stringify({ event: "build-rejected", project: p.id, mode, problems }));
         throw new TurnError(500, `The app didn't pass its checks: ${problems.join("; ")}`);
       }
-      setPhase(p.id, "safety");
-      const appCheck = await callSafetyCheck(appWords(html), "app", ageGroupOf(p.profile));
-      if (appCheck.failed) throw heldBack(p, "app");
-      metas.push(appCheck.meta);
-      if (appCheck.verdict === "unsuitable") {
-        flag(p, "app", appCheck, appWords(html).slice(0, 500));
-        throw new TurnError(422, "unsuitable");
-      }
       let missing = [];
       if (current && mode === "edit") {
         setPhase(p.id, "verifying");
@@ -6450,6 +6595,16 @@ ${EDIT_FORMAT}`);
           editedNote = void 0;
         }
       }
+      setPhase(p.id, "safety");
+      const words = appWords(html);
+      const appCheck = await callSafetyCheck(words, "app", ageGroupOf(p.profile));
+      metas.push(...appCheck.metas ?? [appCheck.meta].filter((m) => !!m));
+      if (appCheck.failed) throw heldBack(p, "app", words.slice(0, 500));
+      if (appCheck.verdict === "unsuitable" || appCheck.verdict === "wellbeing") {
+        flag(p, "app", appCheck, words.slice(0, 500));
+        throw new TurnError(422, "unsuitable");
+      }
+      if (appCheck.verdict === "personal") flag(p, "app", appCheck, words.slice(0, 500));
       const n = saveVersion(p, html, mode, mode === "edit" ? change : mode === "repair" ? `repair: ${fault}` : "first build");
       if (mode === "edit") {
         const added = (readProject(p.kidId, p.id)?.pendingChanges ?? []).filter((c) => !startList.includes(c));
@@ -6799,7 +6954,7 @@ function renderReport(r) {
     u.note && !a ? `${esc(u.note)}${u.own === null ? " Showing Claude Code's token count instead; the app's own share appears once Build With Me has learned the rate on your plan." : ""}` : ""
   ].filter(Boolean).join(" ");
   const shown = r.app ? `<div class="app"><div class="shot"><span>${r.app.icon && /^data:image\/svg\+xml;base64,[A-Za-z0-9+/=]+$/.test(r.app.icon) ? `<img class="e" src="${r.app.icon}" alt="" width="96" height="96">` : `<span class="e">${esc(r.app.emoji)}</span>`}</span></div><div><h3>${esc(r.app.name)}</h3><p class="muted" style="margin:0 0 8px">${esc(r.app.description)}</p><p style="margin:0"><a href="${esc(r.app.url)}" target="_blank" rel="noopener">Open the app \u2197</a> &nbsp;\xB7&nbsp; <span class="muted">works on this computer and on home Wi-Fi while Build With Me is running</span></p></div></div>` : `<p style="margin:0">Not finished: stopped at <b>${esc(r.stoppedAt ?? "")}</b>. It's saved, and ${esc(r.kidName)} picks up there with the next pass.</p>`;
-  const flags = r.flags.map((f) => `<div class="flag${r.badge === "look" ? " look" : ""}"><b>\u26A0 ${esc(f.headline)}</b> <span class="muted">\xB7 ${time(f.at)} \xB7 ${esc(f.stage)} step</span><p style="margin:6px 0 0">${esc(r.kidName)} said: <q>${esc(f.text)}</q>. ${esc(f.guideDid)}${f.kidReaction ? ` ${esc(f.kidReaction)}` : ""}</p></div>`).join("");
+  const flags = r.flags.map((f) => `<div class="flag${r.badge === "look" ? " look" : ""}"><b>\u26A0 ${esc(f.headline)}</b> <span class="muted">\xB7 ${time(f.at)} \xB7 ${esc(f.stage)} step</span><p style="margin:6px 0 0">${f.who === "guide" ? f.verdict === "personal" ? "The guide said" : "The guide was about to say (it was stopped)" : f.who === "app" ? f.verdict === "personal" ? "The app contained" : "The app contained (it was stopped)" : `${esc(r.kidName)} said`}: <q>${esc(f.text)}</q>. ${f.who && f.who !== "kid" ? "" : esc(f.guideDid)}${f.kidReaction ? ` ${esc(f.kidReaction)}` : ""}</p></div>`).join("");
   const check = (c) => `<li><span class="pill ${c.ok ? "ok" : "warn"}">${c.ok ? "OK" : "Look"}</span> ${esc(c.text)}</li>`;
   const ideas = r.ideasShareKid === null ? '<p class="muted" style="margin:0">Not estimated (the report writer did not run).</p>' : `<div class="bar"><i style="width:${r.ideasShareKid}%;background:var(--kid)"></i><i style="width:${100 - r.ideasShareKid}%;background:var(--brand)"></i></div><div class="legend"><span style="--c:var(--kid)">${esc(r.kidName)}'s ideas: ${r.ideasShareKid}%</span><span style="--c:var(--brand)">Guide's suggestions: ${100 - r.ideasShareKid}%</span></div><p class="muted" style="margin:8px 0 0">${esc(r.ideasNote)} <i>(an estimate)</i></p>`;
   const fromList = r.ideaSource ? `<p style="margin:10px 0 0">${esc(r.kidName)} started from an idea from the idea list, <q>${esc(r.ideaSource)}</q>, and made it their own.</p>` : "";
@@ -7063,9 +7218,9 @@ async function makeReport(kidId, projectId, opts) {
     const usage = await usageFor(readProject(kidId, projectId) ?? p, startedAt, Date.now());
     const flags = p.flags.map((f, i) => {
       const a = (ai?.flags ?? []).find((x) => x.index === i + 1) ?? {};
-      return { at: f.at, stage: STEP[f.stage] ?? f.stage, verdict: f.verdict, category: f.category, text: f.text, headline: a.headline ?? `${f.verdict === "personal" ? "Personal detail" : f.verdict === "wellbeing" ? "Wellbeing" : "Unsuitable request"}${f.category ? ` (${f.category})` : ""}`, guideDid: a.guideDid ?? (f.verdict === "personal" ? "The detail was hidden and the guide said it isn't needed." : "The guide redirected kindly to something else."), kidReaction: a.kidReaction ?? "" };
+      return { at: f.at, stage: STEP[f.stage] ?? f.stage, verdict: f.verdict, category: f.category, text: f.text, who: f.direction === "input" ? "kid" : f.direction === "output" ? "guide" : "app", headline: a.headline ?? `${f.verdict === "personal" ? "Personal detail" : f.verdict === "wellbeing" ? "Wellbeing" : "Unsuitable request"}${f.category ? ` (${f.category})` : ""}`, guideDid: a.guideDid ?? (f.verdict === "personal" ? "The detail was hidden and the guide said it isn't needed." : "The guide redirected kindly to something else."), kidReaction: a.kidReaction ?? "" };
     });
-    const serious = p.flags.some((f) => f.verdict === "wellbeing" || f.direction !== "input");
+    const serious = p.flags.some((f) => f.verdict === "wellbeing" || f.direction !== "input" && f.verdict !== "personal");
     const badge = !flags.length ? "none" : serious || ai?.needsLook ? "look" : "handled";
     const stageNotes = ai?.stageNotes ?? {};
     const timeline = [
@@ -7096,11 +7251,18 @@ async function makeReport(kidId, projectId, opts) {
       ...heldBack2 ? { heldBack: heldBack2 } : {},
       ...p.laterIdeas?.length ? { laterIdeas: p.laterIdeas } : {},
       ...p.ideaSource ? { ideaSource: p.ideaSource.title } : {},
-      checks: ai?.checks ?? {
-        personal: { ok: !p.flags.some((f) => f.verdict === "personal"), text: p.flags.some((f) => f.verdict === "personal") ? "A personal detail came up; it was hidden." : "No personal details shared." },
-        output: { ok: !p.flags.some((f) => f.direction !== "input"), text: "Based on the automatic checks of what the guide said and built." },
-        onTopic: { ok: true, text: "Not reviewed (the report writer did not run)." }
-      },
+      // Safety review: the ✓/✗ of the first two checks come from the flags, never from the report
+      // writer (a kid's words could steer it); its wording is kept only when it agrees.
+      checks: (() => {
+        const personalOk = !p.flags.some((f) => f.verdict === "personal");
+        const outputOk = !p.flags.some((f) => f.direction !== "input" && f.verdict !== "personal");
+        const said = (c, ok, fallback) => c && c.ok === ok && typeof c.text === "string" && c.text.trim() ? c.text : fallback;
+        return {
+          personal: { ok: personalOk, text: said(ai?.checks?.personal, personalOk, personalOk ? "No personal details shared." : "A personal detail came up; it was hidden.") },
+          output: { ok: outputOk, text: said(ai?.checks?.output, outputOk, outputOk ? "The automatic checks found nothing unsuitable in what the guide said or built." : "Something the guide or an app was about to show was stopped by the safety check (see the flags).") },
+          onTopic: ai?.checks?.onTopic ?? { ok: true, text: "Not reviewed (the report writer did not run)." }
+        };
+      })(),
       badge,
       title: ai?.title ?? fallbackTitle,
       summary: ai?.summary ?? "The report writer could not run this time, so this report shows the facts only.",
@@ -7202,7 +7364,7 @@ function parentRoutes(opts) {
       return;
     }
     const f = readFamily();
-    res.json({ hasPin: !!f.pin, kids: f.kids.length, unlocked: isParent(req) });
+    res.json({ hasPin: !!f.pin, kids: f.kids.length, unlocked: isParent(req), urgent: listAlerts().filter((a) => a.kind === "wellbeing").length });
   });
   r.get("/claude-check", async (req, res) => {
     if (!isLoopback(req)) {
@@ -7253,6 +7415,7 @@ function parentRoutes(opts) {
     }
     const result = await checkPin(String(req.body?.pin ?? ""));
     if (result.ok) {
+      if (result.wrongTries > 0) addAlert({ kind: "pin", kidId: "", kidName: "", text: `${result.wrongTries === 1 ? "Someone typed a wrong PIN once" : `Someone typed a wrong PIN ${result.wrongTries} times`} since you last unlocked${result.lastWrongAt ? ` (last at ${new Date(result.lastWrongAt).toLocaleTimeString(void 0, { hour: "numeric", minute: "2-digit" })})` : ""}. If that wasn't you, think about a longer PIN (Settings).` });
       startParentSession(res);
       res.json({ ok: true });
       return;
@@ -7350,7 +7513,8 @@ function parentRoutes(opts) {
   r.get("/tablet-setup", async (_req, res) => {
     const ips = homeAddresses();
     const url = ips[0] ? `http://${ips[0]}:${opts.httpPort}/setup-tablet` : null;
-    res.json({ url, addresses: ips, httpsPort: opts.httpsPort, certificateName: opts.caName, qr: url ? await QRCode.toDataURL(url, { margin: 1, width: 240 }) : null });
+    const openUntil = openSetup();
+    res.json({ url, addresses: ips, httpsPort: opts.httpsPort, certificateName: opts.caName, fingerprints: opts.caFingerprints, openUntil, qr: url ? await QRCode.toDataURL(url, { margin: 1, width: 240 }) : null });
   });
   r.get("/reports", (_req, res) => {
     res.json(listReports());
@@ -7465,6 +7629,7 @@ function presenceTick(busy2) {
     return false;
   }
   quiet++;
+  if (quiet === 1) endAllParentSessions();
   if (seen) announce({ seconds: Math.max(0, (GRACE_TICKS - quiet) * TICK_MS / 1e3) });
   return quiet >= (seen ? GRACE_TICKS : FIRST_TICKS);
 }
@@ -7482,7 +7647,8 @@ function stopWhenWindowCloses(busy2, stop2) {
 import express2, { Router as Router2 } from "express";
 function kidRoutes() {
   const r = Router2();
-  r.use(express2.json({ limit: "10kb" }));
+  const small = express2.json({ limit: "10kb" });
+  r.use((req, res, next) => req.path.startsWith("/kid/journey") ? next() : small(req, res, next));
   r.get("/pass/peek/:code", (req, res) => {
     res.json(peekPass(req, req.params.code));
   });
@@ -7630,10 +7796,27 @@ The person said: "${said}"`;
         throw err;
       }
     };
-    const [check, first] = await Promise.all([callSafetyCheck(text, "input", ageGroupOf(p.profile), { system, turns: [...past, { role: "user", text: ask }], schema: CHANGES_SCHEMA }), listChanges()]);
-    metas.push(check.meta, ...first instanceof GuideError ? first.metas ?? [] : [first.meta]);
+    const [checked, listed] = await Promise.allSettled([callSafetyCheck(text, "input", ageGroupOf(p.profile), { system, turns: [...past, { role: "user", text: ask }], schema: CHANGES_SCHEMA }), listChanges()]);
+    if (listed.status === "rejected") {
+      if (checked.status === "fulfilled" && checked.value.verdict === "wellbeing") flag(p, "input", checked.value, text);
+      throw listed.reason;
+    }
+    if (checked.status === "rejected") throw checked.reason;
+    let check = checked.value;
+    const first = listed.value;
+    metas.push(...check.metas ?? [check.meta], ...first instanceof GuideError ? first.metas ?? [] : [first.meta]);
     let called = first;
-    if (check.failed) throw heldBack(p, "input");
+    if (check.failed) throw heldBack(p, "input", text);
+    if (check.verdict === "personal" && check.masked?.trim()) {
+      const again = await callSafetyCheck(check.masked, "input", ageGroupOf(p.profile));
+      metas.push(...again.metas ?? [again.meta]);
+      if (again.failed) throw heldBack(p, "input", check.masked);
+      if (again.verdict === "unsuitable" || again.verdict === "wellbeing") {
+        flag(p, "input", check, check.masked);
+        text = check.masked;
+        check = again;
+      }
+    }
     if (check.verdict === "unsuitable" || check.verdict === "wellbeing" || called instanceof GuideError) {
       flag(p, "input", called instanceof GuideError && check.verdict === "ok" ? { verdict: "unsuitable", category: "refused" } : check, text);
       return { changes: list, ready: false, ship: false, reply: { say: check.verdict === "wellbeing" ? WELLBEING_REPLY : REDIRECT_REPLY } };
@@ -7653,7 +7836,16 @@ The person said: "${said}"`;
     const ready = result.ready === true && changes.length > 0;
     const ship = result.ship === true && changes.length === 0;
     const question = result.question && !ready && !ship ? String(result.question).slice(0, 300) : void 0;
-    const reply = { say: LEAK.test(String(result.say ?? "")) ? LEAK_REPLY : withoutEchoedQuestion(String(result.say ?? "").slice(0, 600), question), ...question ? { question } : {} };
+    let reply = { say: LEAK.test(String(result.say ?? "")) ? LEAK_REPLY : withoutEchoedQuestion(String(result.say ?? "").slice(0, 600), question), ...question ? { question } : {} };
+    const shown = [reply.say, reply.question, ...changes].filter(Boolean).join("\n");
+    const out = await callSafetyCheck(shown, "output", ageGroupOf(p.profile));
+    metas.push(...out.metas ?? [out.meta]);
+    if (out.failed) throw heldBack(p, "output", shown);
+    if (out.verdict === "unsuitable" || out.verdict === "wellbeing") {
+      flag(p, "output", out, shown);
+      return { changes: list, ready: false, ship: false, reply: { say: REDIRECT_REPLY } };
+    }
+    if (out.verdict === "personal") flag(p, "output", out, shown);
     const now = Date.now();
     p.messages.push({ thread: THREAD, role: "user", text: ask, seq: seq++, at: now });
     p.messages.push({ thread: THREAD, role: "model", text: JSON.stringify({ ...reply, changes, ready, ship }), seq: seq++, at: now });
@@ -7772,6 +7964,15 @@ function fail(res, err, s2) {
   console.error("[journey]", err);
   res.status(500).json({ error: "hiccup" });
 }
+function appError(raw) {
+  const t = typeof raw === "string" ? raw.replace(/\s+/g, " ").trim().slice(0, 300) : "";
+  if (!JS_ERROR.test(t)) return "";
+  return maskPersonal(personText(t)).text;
+}
+var JS_ERROR = /\b\w*Error\b|Script error|Unhandled promise rejection|is not (defined|a function|iterable|a constructor|valid)|Cannot (read|set|access|convert|destructure)|Unexpected (token|end|identifier|string|number)|Invalid or unexpected|Maximum call stack|(undefined|null) is not|is (null|undefined)\b|Assignment to constant|has already been declared|out of range|Failed to execute|Illegal (invocation|return)|Invalid (array length|left-hand side|regular expression)/i;
+function metasOf(p, c) {
+  addUsage(p, c.metas ?? [c.meta]);
+}
 function journeyRoutes(opts) {
   const r = Router3();
   r.use(express3.json({ limit: "64kb" }));
@@ -7853,7 +8054,9 @@ function journeyRoutes(opts) {
     const mode = ["full", "edit", "repair"].includes(req.body?.mode) ? req.body.mode : "full";
     if (p.stage !== "build") throw new TurnError(409, "Building starts after the Tech plan.");
     try {
-      return await buildApp(p, mode, typeof req.body?.error === "string" ? req.body.error : "");
+      const fault = appError(req.body?.error);
+      if (mode === "repair" && !fault) throw new TurnError(400, "That error message wasn't recognised.");
+      return await buildApp(p, mode, fault);
     } catch (err) {
       if (err instanceof TurnError && err.status === 422) return { unsuitable: true };
       throw err;
@@ -7874,13 +8077,33 @@ function journeyRoutes(opts) {
   r.post("/ship", (req, res) => withProject(req, res, "chat", async (p, s2) => {
     const raw = req.body?.icon;
     const choice = raw?.kind === "drawing" ? { kind: "drawing" } : raw?.kind === "emoji" && typeof raw.emoji === "string" ? { kind: "emoji", emoji: raw.emoji } : void 0;
-    const out = shipApp(p, String(req.body?.name ?? ""), choice);
+    const typed = String(req.body?.name ?? "").slice(0, 80);
+    if (typed.trim()) {
+      const masked = maskPersonal(personText(typed));
+      if (masked.kinds.length) throw new TurnError(409, "Let's pick a name without real names or details in it. \u{1F642}");
+      const check = await callSafetyCheck(masked.text, "input", ageGroupOf(p.profile));
+      metasOf(p, check);
+      if (check.failed) throw heldBack(p, "input", masked.text);
+      if (check.verdict !== "ok") {
+        flag(p, "input", check, masked.text);
+        throw new TurnError(409, check.verdict === "personal" ? "Let's pick a name without real names or details in it. \u{1F642}" : check.verdict === "wellbeing" ? WELLBEING_REPLY : "Let's pick a different name! \u{1F642}");
+      }
+    }
+    const out = shipApp(p, typed, choice);
     if (!out.ok) throw new TurnError(409, out.error);
     setTimeout(() => void makeReport(s2.kid.id, p.id, { finished: true, pass: s2.pass }).catch((e) => console.error("[report]", e)), 100);
     return appLinks(s2.kid.id, out.app, opts.httpsPort);
   }));
   r.post("/new", (req, res) => {
-    leaveCurrent(sessionOf(req).kid.id);
+    const s2 = sessionOf(req);
+    const left = currentProject(s2.kid.id);
+    if (left) {
+      const lastReport = Math.max(0, ...(left.reports ?? []).map((x) => x.at));
+      if (left.messages.some((m) => m.at > lastReport) || left.flags.some((f) => f.at > lastReport)) {
+        setTimeout(() => void makeReport(s2.kid.id, left.id, { finished: false, pass: s2.pass }).catch((e) => console.error("[report]", e)), 100);
+      }
+    }
+    leaveCurrent(s2.kid.id);
     res.json({ ok: true });
   });
   return r;
@@ -7905,6 +8128,9 @@ function shelfRoutes(opts) {
   });
   return r;
 }
+
+// server/index.ts
+import { createHash as createHash3 } from "node:crypto";
 
 // server/tabletSetupPage.ts
 function setupTabletPage(host, httpsPort, caName) {
@@ -8066,6 +8292,11 @@ render();
 }
 
 // server/index.ts
+function fingerprints(der) {
+  const hex = (alg) => createHash3(alg).update(Buffer.from(der)).digest("hex").toUpperCase().match(/../g).join(":");
+  return { sha256: hex("sha256"), sha1: hex("sha1") };
+}
+var SETUP_CLOSED_PAGE = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Build With Me</title><body style="font:18px system-ui;margin:0;display:grid;place-items:center;min-height:100vh;background:#f6f4ef;color:#1f2430;text-align:center;padding:16px"><div><div style="font-size:48px">\u{1F4F1}</div><h1 style="font-size:24px">Tablet setup isn't open</h1><p>On the laptop, open the Parent area \u2192 Kids &amp; their apps \u2192 <b>Set up a tablet or laptop for talking</b>, then try again.</p></div>`;
 var here2 = dirname6(fileURLToPath2(import.meta.url));
 var bundled = here2.endsWith(`dist${sep2}server`) || here2.endsWith("dist/server");
 var WEB_DIR = process.env.BWM_WEB_DIR || (bundled ? join10(here2, "..", "web") : join10(here2, "..", "app", "dist", "web"));
@@ -8087,6 +8318,7 @@ async function startServer(opts = {}) {
   if (opts.preloadSpeech) loadSpeech().catch((e) => console.error("[speech] model failed to load:", e?.message ?? e));
   const app = express4();
   app.disable("x-powered-by");
+  setServerPorts(httpPort, httpsPort);
   app.use((req, res, next) => {
     if (!hostAllowed(req)) {
       res.status(421).type("text").send("This address is not Build With Me.");
@@ -8098,6 +8330,7 @@ async function startServer(opts = {}) {
     }
     next();
   });
+  app.use(lanGate);
   app.use((req, res, next) => {
     const secure = req.socket.encrypted === true;
     if (secure || isLoopback(req) || OPEN_ON_HTTP.has(req.path)) return next();
@@ -8111,6 +8344,11 @@ async function startServer(opts = {}) {
   app.get("/api/health", (_req, res) => {
     res.set("Access-Control-Allow-Origin", "*").json({ ok: true, build: BUILD_ID });
   });
+  const setupGate = (req, res, next) => {
+    if (isThisComputer(req) || setupOpen()) return next();
+    res.status(404).type("html").send(SETUP_CLOSED_PAGE);
+  };
+  app.use(["/setup-tablet", "/home-certificate.mobileconfig", "/home-certificate.crt"], setupGate);
   app.get("/home-certificate.mobileconfig", (_req, res) => {
     res.attachment("Build With Me home.mobileconfig").type("application/x-apple-aspen-config").send(mobileConfig(authority));
   });
@@ -8122,13 +8360,13 @@ async function startServer(opts = {}) {
     res.type("html").send(setupTabletPage(host, httpsPort, authorityName(authority)));
   });
   app.get("/api/presence", (req, res) => {
-    if (!isLoopback(req)) {
+    if (!isLoopback(req) || !sameOriginPage(req)) {
       res.status(403).end();
       return;
     }
     presenceStream(req, res);
   });
-  app.use("/api/parent", parentRoutes({ httpPort, httpsPort, caName: authorityName(authority) }));
+  app.use("/api/parent", parentRoutes({ httpPort, httpsPort, caName: authorityName(authority), caFingerprints: fingerprints(authority.certDer) }));
   app.use("/api", kidRoutes());
   watchPassesForReports(httpPort);
   app.use("/api/kid/journey", journeyRoutes({ httpsPort }));
@@ -8162,7 +8400,15 @@ async function startServer(opts = {}) {
     res.type("html").send(found.html);
   });
   const mayTalk = (req, res, next) => {
-    if (kidSession(req)?.live || isParent(req)) return next();
+    const kid = kidSession(req);
+    if (kid?.live) {
+      res.locals.owner = `pass:${kid.pass.id}`;
+      return next();
+    }
+    if (isParent(req)) {
+      res.locals.owner = "parent";
+      return next();
+    }
     res.status(401).json({ error: "no-pass" });
   };
   app.post("/api/speech/:id", mayTalk, express4.raw({ type: "application/octet-stream", limit: "1mb" }), (req, res) => {
@@ -8170,7 +8416,7 @@ async function startServer(opts = {}) {
       res.status(400).json({ error: "bad request" });
       return;
     }
-    const out = addChunk(String(req.params.id), req.body);
+    const out = addChunk(String(req.params.id), req.body, res.locals.owner);
     if (!out) {
       res.status(429).json({ error: "busy" });
       return;
@@ -8178,8 +8424,12 @@ async function startServer(opts = {}) {
     res.json(out);
   });
   app.post("/api/speech/:id/end", mayTalk, async (req, res) => {
+    if (!mayFinish(res.locals.owner)) {
+      res.status(429).json({ error: "busy" });
+      return;
+    }
     try {
-      res.json(await finishUtterance(String(req.params.id)));
+      res.json(await finishUtterance(String(req.params.id), res.locals.owner));
     } catch (e) {
       res.status(500).json({ error: "speech failed", detail: e.message });
     }

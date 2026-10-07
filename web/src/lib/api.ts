@@ -19,7 +19,7 @@ export async function api<T = any>(path: string, opts: { method?: string; body?:
 
 export type AgeGroup = 'kid' | 'teen';
 export interface Kid { id: string; nickname: string; group: AgeGroup; emoji: string }
-export interface ParentState { hasPin: boolean; kids: number; unlocked: boolean }
+export interface ParentState { hasPin: boolean; kids: number; unlocked: boolean; urgent?: number }
 export interface Status {
   claude: { found: boolean; signedIn: boolean; subscription?: boolean };
   usage?: { fiveHourPct?: number; fiveHourResets?: string; weeklyPct?: number; weeklyResets?: string; at: number } | null;

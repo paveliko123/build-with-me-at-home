@@ -39,8 +39,20 @@ export function loadSpeech(): Promise<Transcriber> {
 }
 
 interface Utterance { chunks: Buffer[]; bytes: number; started: number; lastChunk: number }
-const utterances = new Map<string, Utterance>();
+const utterances = new Map<string, Utterance & { owner: string }>();
 const MAX_UTTERANCES = 20; // at once (a family has a few devices; each holds at most 60 s)
+// Security review: one device (one pass) can't take every slot or keep the laptop busy.
+const PER_OWNER = 2;
+const ENDS_PER_MINUTE = 12;
+const ends = new Map<string, number[]>();
+/** May this owner (a pass, or the parent) finish another utterance now? */
+export function mayFinish(owner: string): boolean {
+  const now = Date.now();
+  const recent = (ends.get(owner) ?? []).filter((t) => now - t < 60_000);
+  if (recent.length >= ENDS_PER_MINUTE) { ends.set(owner, recent); return false; }
+  recent.push(now); ends.set(owner, recent);
+  return true;
+}
 
 // Forget utterances that were abandoned (tab closed mid-sentence).
 setInterval(() => {
@@ -49,11 +61,13 @@ setInterval(() => {
 }, 60_000).unref();
 
 /** Adds a chunk of 16 kHz mono Int16 little-endian PCM to an utterance (null: too many at once). */
-export function addChunk(id: string, pcm: Buffer): { seconds: number } | null {
+export function addChunk(id: string, pcm: Buffer, owner = 'parent'): { seconds: number } | null {
   let u = utterances.get(id);
+  if (u && u.owner !== owner) return null; // someone else's utterance
   if (!u) {
     if (utterances.size >= MAX_UTTERANCES) return null;
-    u = { chunks: [], bytes: 0, started: Date.now(), lastChunk: Date.now() }; utterances.set(id, u);
+    if ([...utterances.values()].filter((x) => x.owner === owner).length >= PER_OWNER) return null;
+    u = { chunks: [], bytes: 0, started: Date.now(), lastChunk: Date.now(), owner }; utterances.set(id, u);
   }
   if ((u.bytes + pcm.length) / 2 / SAMPLE_RATE <= MAX_SECONDS) { u.chunks.push(pcm); u.bytes += pcm.length; }
   u.lastChunk = Date.now();
@@ -89,9 +103,10 @@ export async function transcribeFloat32(audio: Float32Array): Promise<Transcript
 }
 
 /** Ends an utterance and returns its text. */
-export async function finishUtterance(id: string): Promise<Transcript> {
-  const u = utterances.get(id);
-  utterances.delete(id);
+export async function finishUtterance(id: string, owner = 'parent'): Promise<Transcript> {
+  const mine = utterances.get(id);
+  const u = mine && mine.owner === owner ? mine : undefined;
+  if (u) utterances.delete(id);
   if (!u || u.bytes < SAMPLE_RATE * 2 * 0.3) { // < 0.3 s: nothing said
     console.log(JSON.stringify({ event: 'speech', result: u ? 'too-short' : 'no-audio', seconds: u ? +(u.bytes / 2 / SAMPLE_RATE).toFixed(1) : 0 }));
     return { text: '', seconds: 0, transcribeMs: 0 };

@@ -11,7 +11,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadOrCreateAuthority, issueServerCert, mobileConfig, authorityName, type Authority } from './certs.js';
-import { addChunk, finishUtterance, loadSpeech } from './speech.js';
+import { addChunk, finishUtterance, loadSpeech, mayFinish } from './speech.js';
 import { hostAllowed, isLoopback, isParent, isThisComputer, originAllowed, sameOriginPage, setServerPorts } from './auth.js';
 import { parentRoutes } from './parentRoutes.js';
 import { kidRoutes } from './kidRoutes.js';
@@ -141,17 +141,20 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
 
   // ---- speech: a kid with a live pass, or the parent (security audit M1) ----
   const mayTalk = (req: Request, res: Response, next: NextFunction) => {
-    if (kidSession(req)?.live || isParent(req)) return next();
+    const kid = kidSession(req);
+    if (kid?.live) { res.locals.owner = `pass:${kid.pass.id}`; return next(); }
+    if (isParent(req)) { res.locals.owner = 'parent'; return next(); }
     res.status(401).json({ error: 'no-pass' });
   };
   app.post('/api/speech/:id', mayTalk, express.raw({ type: 'application/octet-stream', limit: '1mb' }), (req, res) => {
     if (!/^[A-Za-z0-9_-]{6,64}$/.test(String(req.params.id)) || !Buffer.isBuffer(req.body)) { res.status(400).json({ error: 'bad request' }); return; }
-    const out = addChunk(String(req.params.id), req.body);
+    const out = addChunk(String(req.params.id), req.body, res.locals.owner);
     if (!out) { res.status(429).json({ error: 'busy' }); return; }
     res.json(out);
   });
   app.post('/api/speech/:id/end', mayTalk, async (req, res) => {
-    try { res.json(await finishUtterance(String(req.params.id))); }
+    if (!mayFinish(res.locals.owner)) { res.status(429).json({ error: 'busy' }); return; }
+    try { res.json(await finishUtterance(String(req.params.id), res.locals.owner)); }
     catch (e) { res.status(500).json({ error: 'speech failed', detail: (e as Error).message }); }
   });
 

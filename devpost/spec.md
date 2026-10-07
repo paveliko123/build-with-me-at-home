@@ -382,6 +382,18 @@ Implements `prd.md > Installing and Updating` (Keep the window open), a learner 
 - **Reports never missed:** on every start, passes that ended in the last two weeks with activity and no report get their "(not finished)" report (`watchPassesForReports`).
 - **Checks:** `npm run verify:revisions` (the clock, the countdown status); checked live with a launcher-style test server: the kid tab showed the countdown within seconds and the server stopped itself about a minute after the parent tab closed.
 
+### Safety Review Round
+Three fresh read-only reviews (a parent before installing, network and security, child safety) found no hidden behaviour; the learner chose to fix priorities 1-3 (skipping a 6-digit PIN minimum and a new tablet certificate). Implements the `(safety review)` checks in `prd.md`.
+- **The check itself** (`safetyCheck.ts`): an unreadable answer (or any capitalisation) is retried, then held back; long texts are checked in pieces of 6,000 characters, all of them; the strongest verdict wins (wellbeing, unsuitable, personal); a masked rewrite is checked again before it's used. `standInCheckForTests` lets the checks stand in for Claude, in-process only.
+- **What gets checked:** the guide's whole reply as shown (words, picture words via `visibleWords`, the plan document, build steps); the change list's reply and items; the app's name at Ship (masked, then checked); the final app version right before `saveVersion`, on `appWords` (page text, script strings, shown attributes, the "changed" note; not code). Wellbeing and personal verdicts on the guide's or an app's words count too.
+- **Nothing lost:** "+ New app" reports the app being left; a wellbeing verdict is flagged even when the guide then fails (the plan limit); a held-back message keeps its masked words, and `mayBeHurting` (a word list) alerts the parent if the Claude check couldn't run.
+- **The report:** the personal and output check marks are computed from the flags; each flag has `who` (kid, guide, app) and is worded by it; a personal detail from the guide or an app is 🟡, not 🔴.
+- **The parent area:** a 15-minute idle lock on its screen, an 8-hour session limit, sessions end when the window closes (`presence.ts`), growing PIN lockouts in `family.json` (`pinLock`), a 🔑 alert with the number of wrong tries, and `sessionEpoch` so `reset-pin` locks open sessions.
+- **Who may talk to it** (`auth.ts`): exact origins (scheme, name, port), loopback names only from the laptop, `Sec-Fetch-Site` must be same-origin for changes and for `/api/presence`.
+- **Other devices** (`lan.ts`): answered only while a pass is live or tablet setup is open (15 minutes, renewed while its window is open); otherwise a "resting" page. Setup routes are gated the same way, and the setup window shows the certificate's SHA-256 and SHA-1 fingerprints.
+- **Smaller:** a chime and a 💛 title for wellbeing alerts, also on the PIN page (`urgent` in `/api/parent/state`); the kid's wellbeing reply names the local emergency number; speech is 2 recordings at a time per pass (only its own) and 12 finishes a minute; repair builds accept only real browser error messages (masked); the 10 KB limit no longer runs in front of the journey's 64 KB one; young kids are never asked about their life at Start; the setup skill no longer pre-approves `npm`.
+- **Checks:** `npm run verify:revisions` (60), `verify:security` (23, the speech check updated for the per-device limit).
+
 ## Data Model
 
 Everything lives in **`<home>\Build With Me`**, unless noted:

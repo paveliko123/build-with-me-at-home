@@ -71,7 +71,7 @@ Kids (under 13) get short questions and picture cards. Teens (13–17) see and a
 ```
 
 > [!TIP]
-> Use the full `https://` address. The short `paveliko123/build-with-me-at-home` form needs GitHub SSH keys, which most computers don't have.
+> Use the full `https://` address. The short `paveliko123/build-with-me-at-home` form needs GitHub SSH keys, which most computers don't have. While it starts up or sets up, Claude Code runs the plugin's own `node` scripts without asking each time; installing anything else (Node.js, Claude Code) still asks you first.
 
 **2.** Start it:
 
@@ -148,14 +148,14 @@ Questions or concerns? See [SECURITY.md](SECURITY.md).
 <a id="tablets"></a>
 ## 📱 Tablets and phones
 
-Talking from a tablet needs a secure connection, so each tablet is set up once: in the Parent area, open **Kids & their apps → 📱 Set up a tablet or laptop for talking** and follow the steps on the tablet. It installs a certificate that only works on your home network. Typing works without it.
+Talking from a tablet needs a secure connection, so each tablet is set up once: in the Parent area, open **Kids & their apps → 📱 Set up a tablet or laptop for talking** and follow the steps on the tablet. It installs a certificate that only works on your home network. Setup only works while that window is open on your laptop, and the window shows the certificate's fingerprint: before you trust the certificate on the tablet, check that they match. Typing works without it.
 
 ---
 
 <a id="forgot-pin"></a>
 ## 🔑 Forgot your PIN
 
-In Claude Code: `/build-with-me:reset-pin`
+In Claude Code: `/build-with-me:reset-pin`. It also clears a PIN-pad lockout (wrong PINs lock it for longer each time) and locks any Parent area that's still open. After you unlock, the Parent area tells you if someone typed wrong PINs.
 
 ---
 
@@ -197,12 +197,12 @@ Several layers work together. None of them is perfect on its own, which is why y
 
 | | Layer | What it does |
 |---|---|---|
-| 🎟️ | **Only with your pass** | The Parent area opens only on your laptop, behind your PIN. Kids need a timed pass from you, it works on one device, and you can end it any time. Each pass is capped (10 requests a minute, 150 an hour, 5 new apps, 30 builds). |
+| 🎟️ | **Only with your pass** | The Parent area opens only on your laptop, behind your PIN, and locks itself after 15 idle minutes or when its window closes. Wrong PINs lock the PIN pad for longer each time. Kids need a timed pass from you, it works on one device, and you can end it any time. Each pass is capped (10 requests a minute, 150 an hour, 5 new apps, 30 builds). |
 | 🧭 | **A guide made for kids** | The guide says it's an AI, not a person. It follows strict safety rules in every message, adjusts to the kid's age group, never asks for personal details, and redirects kindly instead of scolding. |
-| 🔍 | **Every message checked, both ways** | A separate Claude safety check reads **what the kid says** (before the guide's answer is shown), **what the guide is about to say**, and **the words in every app** before it's shown or shared. |
+| 🔍 | **Everything checked, both ways** | A separate Claude safety check reads **what the kid says** (before the guide's answer is shown), **everything the guide is about to show** (its words, pictures, plans and build steps), the change list, the app's name, and **every word the finished app can show**, checked last, exactly as it's saved. |
 | 🙈 | **Personal details hidden** | Obvious details (a full name, home address, school, phone number or email) are masked the moment they're typed or said, before anything is saved or sent; the safety check catches ones the masking missed. |
 | 🧱 | **Apps sealed off** | Kids' apps run in a locked-down frame: they can't load anything from the internet, send anything out or open a website, can't ask for passwords or payments, and can't reach the rest of your computer. |
-| 🔐 | **Your Claude kept separate** | The kids' Claude sessions run sealed off from your own Claude Code: they can't see your settings, memory, projects or files. |
+| 🔐 | **Your Claude kept separate** | The kids' Claude sessions run sealed off from your own Claude Code, with no tools at all: they can't see your settings, memory, projects or files. (Hiding your account name or email from what Claude says is best-effort, on top of that.) |
 
 **What happens when the check finds something:**
 
@@ -210,13 +210,15 @@ Several layers work together. None of them is perfect on its own, which is why y
 |---|---|---|
 | 🚫 **Something unsuitable** (violence, weapons, adult or scary themes, drugs, hate or bullying, scams, tricks to break the rules) | A kind "let's make something else instead!" It's never answered and never built. | A flag in the report |
 | 🙈 **A personal detail** | The detail is hidden, and the guide gently says it isn't needed here. | A flag in the report |
-| 💛 **A sign they may be hurting or unsafe** | A warm message to tell a trusted grown-up right away. | 💛 **An alert on your home screen at once** (under **Needs your attention**), and 🔴 **Needs a look** in the report |
+| 💛 **A sign they may be hurting or unsafe** | A warm message to tell a trusted grown-up right away, and to call the local emergency number if they're in danger. | 💛 **An alert at once**, with a chime: on your home screen and on the PIN page, so a locked Parent area can't hide it. Then 🔴 **Needs a look** in the report. |
 
-Reports are written when the kid ships the app or the pass ends; a wellbeing alert doesn't wait for that.
+Reports are written when the kid ships the app, leaves it with **＋ New app**, or the pass ends; a wellbeing alert doesn't wait for that.
 
 Cartoon battles, silly monsters, superheroes, space lasers and everyday "I'm bored" are fine: the check is built to be fair to kids, not jumpy.
 
-If the safety check itself can't run (say, a network hiccup), nothing goes through unchecked: the message is held back, your kid is asked to try again, and your report notes it.
+If the safety check itself can't run (say, a network hiccup) or its answer can't be read, nothing goes through unchecked: the message is held back, your kid is asked to try again, and your report notes it. If your kid's words in that moment may mean they're hurting, you're still alerted.
+
+What kids type **inside** their finished apps (a diary entry, a pet's name in a game) stays in the app on that device: it isn't checked or reported.
 
 ---
 
@@ -238,8 +240,8 @@ After every app (or when a pass ends before the app is finished), Claude Opus re
 - 📊 **The facts:** time spent, rounds of changes, the device, talking or typing, and the app's share of your 5-hour limit.
 - 📝 **In one paragraph:** what happened.
 - 🎮 **The app** itself, with a link to open it.
-- ⚠️ **Each flag:** what was said, what the guide did, and how your kid reacted.
-- ✅ **Three checks:** were personal details shared, did the guide or an app say anything unsuitable, and did the session stay on the project.
+- ⚠️ **Each flag:** what was said and who said it (your kid, the guide or the app), what the guide did, and how your kid reacted.
+- ✅ **Three checks:** were personal details shared, did the guide or an app say anything unsuitable (these two come straight from the automatic checks, so nothing typed in the chat can change them), and did the session stay on the project.
 - 💬 **Worth a chat?** anything to talk about together.
 - 💡 **Whose ideas?** your kid's share versus the guide's, whether they started from the idea list, and the ideas they had while waiting.
 - 🕒 **How it went:** a timeline of the six steps.
@@ -255,7 +257,7 @@ After every app (or when a pass ends before the app is finished), Claude Opus re
 - 📤 **What leaves your computer:** the kids' conversations and plans go to Anthropic through *your* Claude Code, the same way your own Claude Code use does, to run the guide, build the apps, check safety and write your reports. Nothing else is sent anywhere, and **nothing at all is sent to the developer of this plugin**: no accounts, no analytics, no tracking, no crash reports.
 - 📥 **Downloads:** the app's packages (from npm) and the speech model (from Hugging Face), once each, during setup (the model also at the first start, if setup skipped it). Nothing about you or your kids is sent with them.
 - 🎤 **Talking stays local:** speech-to-text runs on this computer; the guide's voice is your device's built-in voice.
-- 📶 **Your network:** while it runs, Build With Me answers on the network the laptop is on (ports 4747 and 4748), so tablets can connect. Devices reach the kid side only with a pass; without one they see just the tablet setup page. The Parent area only opens on the laptop itself. On a public Wi-Fi (a café, a hotel), close the Build With Me window first: the app stops about a minute later.
+- 📶 **Your network:** other devices can reach Build With Me only while a pass is live or tablet setup is open on your laptop; otherwise they see a "resting" page and nothing else. Even then, kids' devices reach the kid side only, with a pass, and the Parent area only opens on the laptop itself. On a public Wi-Fi (a café, a hotel), close the Build With Me window first: the app stops about a minute later.
 - 🗑️ **Deleting:** removing a kid in **Kids & their apps** deletes all of their data (conversations, apps, reports and passes) after a warning. Nothing is deleted automatically otherwise.
 
 ---

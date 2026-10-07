@@ -8,7 +8,10 @@ import { kidSession, kidView, openPass, peekPass, passEvents } from './passes.js
 
 export function kidRoutes(): Router {
   const r = Router();
-  r.use(express.json({ limit: '10kb' }));
+  const small = express.json({ limit: '10kb' });
+  // The journey has its own, larger limit (security review: this one ran first and turned long
+  // kid messages away).
+  r.use((req, res, next) => (req.path.startsWith('/kid/journey') ? next() : small(req, res, next)));
 
   // What a QR link would open (doesn't use it up).
   r.get('/pass/peek/:code', (req, res) => { res.json(peekPass(req, req.params.code)); });

@@ -49,6 +49,7 @@ Fixed and checked by `npm run verify:security` (23/23, no Claude calls), with sl
 | I1 | Fixed | The `--safe-mode` comment no longer overclaims. |
 | C9a | Fixed | The username and home IP were replaced in the two result files and in all 40 commits of git history, before the first push (the owner agreed; a backup bundle was kept). |
 | C9b | Fixed | README (with a privacy section and the 18+ note), LICENSE, SECURITY.md; the setup skill says the 18+ note too. |
+| Safety review round | Fixed | Three fresh reviews (2026-10-07): unreadable check answers held back; everything shown is checked (pictures, plans, change list, app name, the final app in pieces); "+ New app" reported; report checks from flags; exact origins; growing, saved PIN lockouts; idle and window-close lock; other devices only with a live pass or open setup; tablet fingerprint; speech per pass; repair errors filtered. See `spec.md > Safety Review Round`. |
 | A4, C1, C2, C4, C5b, C7b, C7c, C8, I2, I3, I5, I7, I8 | Open | Low/Info hardening, kept on the list. |
 
 ---

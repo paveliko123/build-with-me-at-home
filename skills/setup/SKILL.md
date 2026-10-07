@@ -1,7 +1,7 @@
 ---
 name: setup
 description: Install or repair Build With Me at Home on this computer. Checks Node.js, the Claude Code command-line tool and its sign-in, the app's packages, the speech model, the data folder and the network port, fixes what it can (with the parent's normal approval prompts) and explains the rest. Use when the parent asks to set up, install, repair or start Build With Me, or when /build-with-me:start reports a problem.
-allowed-tools: Bash(node:*), Bash(npm:*)
+allowed-tools: Bash(node:*)
 ---
 
 # Set up Build With Me at Home

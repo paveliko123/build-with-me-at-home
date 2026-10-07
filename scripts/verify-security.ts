@@ -95,9 +95,13 @@ async function main() {
     const big = Buffer.alloc(16000 * 2 * 59); addChunk('capcheck1', big);
     const after = addChunk('capcheck1', Buffer.alloc(16000 * 2 * 5));
     add('M1: one recording stops at 60 seconds', !!after && after.seconds <= 60, `${after?.seconds.toFixed(1)} s after adding 59 s + 5 s`);
+    // Safety review: 2 at a time per device (pass); still at most 20 for the whole house.
     const codes: number[] = [];
-    for (let i = 4; i <= 21; i++) codes.push((await tablet.call(`/api/speech/abcdef${String(i).padStart(2, '0')}`, undefined, { raw: chunk })).status);
-    add('M1: at most 20 recordings at once', codes.slice(0, -1).every((c) => c === 200) && codes.at(-1) === 429, `the 20th → ${codes.at(-2)}, the 21st → ${codes.at(-1)}`);
+    for (let i = 4; i <= 5; i++) codes.push((await tablet.call(`/api/speech/abcdef${String(i).padStart(2, '0')}`, undefined, { raw: chunk })).status);
+    const perDevice = codes.at(-1);
+    let houseOk = 0;
+    for (let i = 0; i < 25; i++) if (addChunk(`house${String(i).padStart(4, '0')}`, Buffer.alloc(320), `pass:h${i}`)) houseOk++;
+    add('M1: at most 2 recordings at once per device, 20 for the whole house', perDevice === 429 && houseOk <= 20 && houseOk >= 15, `the tablet's 3rd → ${perDevice}; house-wide accepted ${houseOk} of 25 (with the others still open)`);
 
     // ---------- H2: what one pass can spend ----------
     r = await tablet.call('/api/kid/journey/start', { theme: 'space', inputMode: 'type' });

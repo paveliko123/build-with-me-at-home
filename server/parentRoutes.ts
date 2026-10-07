@@ -36,7 +36,9 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
   r.get('/state', (req, res) => {
     if (!isLoopback(req)) { res.status(403).json({ error: 'laptop-only' }); return; }
     const f = readFamily();
-    res.json({ hasPin: !!f.pin, kids: f.kids.length, unlocked: isParent(req) });
+    // urgent: wellbeing alerts waiting, shown on the PIN page too (safety review: it used to be
+    // seen only once the Parent area was unlocked).
+    res.json({ hasPin: !!f.pin, kids: f.kids.length, unlocked: isParent(req), urgent: listAlerts().filter((a) => a.kind === 'wellbeing').length });
   });
 
   // First-run step 1 (UI review P1): is Claude Code here and signed in? Same check as the status

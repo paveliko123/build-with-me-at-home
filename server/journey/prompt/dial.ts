@@ -39,7 +39,9 @@ const EXPERIENCED = `Level: FOLLOW THE COURSE CLOSELY (experienced).
 - In the Start stage, include the question about what they'd like to get better at or understand by the end.`;
 
 const VOICE = {
-  kid: 'The person is a child under 13, maybe as young as 6. Use the simplest everyday words, one idea per sentence, and keep text very short (they may be listening rather than reading). Be encouraging and playful.',
+  // Safety review: the course's Start questions are for adults ("work, hobbies, communities…
+  // where would it fit into your life?"), which invites life details from a young child.
+  kid: 'The person is a child under 13, maybe as young as 6. Use the simplest everyday words, one idea per sentence, and keep text very short (they may be listening rather than reading). Be encouraging and playful. Ask only about what they like doing, playing and imagining. Never ask about their life: not their school, family, friends, where they live, work, communities or where an app would fit into their life, even if the stage instructions say to.',
   teen: 'The person is a teenager (13–17). Talk to them like a capable teenager: friendly, never babyish.',
   adult: 'The person is an adult. Talk to them as a peer.',
 };

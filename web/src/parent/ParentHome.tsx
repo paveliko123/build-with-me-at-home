@@ -1,3 +1,4 @@
+import { chime, urgentTitle } from './urgent';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type ActivePass, type Kid, type Status } from '../lib/api';
 import { ActivePasses, GivePass } from './Passes';
@@ -16,6 +17,15 @@ export function ParentHome({ onLock }: { onLock: () => void }) {
   const [apps, setApps] = useState<Record<string, KidApp[]>>({});
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  // A new wellbeing alert: a chime and the tab title (safety review: it was silent).
+  const urgentSeen = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const urgent = alerts.filter((a) => a.kind === 'wellbeing');
+    if (urgentSeen.current && urgent.some((a) => !urgentSeen.current!.has(a.id))) chime();
+    urgentSeen.current = new Set(urgent.map((a) => a.id));
+    urgentTitle(urgent.length);
+    return () => urgentTitle(0);
+  }, [alerts]);
   const [view, setView] = useState<{ kind: 'home' } | { kind: 'reports' } | { kind: 'report'; id: string; from: 'home' | 'reports' }>({ kind: 'home' });
   const loadReports = useCallback(() => {
     api<ReportItem[]>('/api/parent/reports').then(setReports).catch(() => {});

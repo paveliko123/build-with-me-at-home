@@ -117,6 +117,8 @@ Source: `scope.md > The POC Boundary`, `scope.md > Terms Check`.
     - stay nearby
   - [ ] Nothing on the parent side works without the right PIN.
   - [ ] **🔒 Lock** returns to the opening screen.
+  - [ ] The Parent area locks itself after 15 idle minutes and when its window closes. Wrong PINs lock the PIN pad for longer each time (1, 5, 15, 60, then 240 minutes), kept on disk; after unlocking, the parent sees how many wrong tries there were. `/build-with-me:reset-pin` also clears the lockout and locks open Parent areas. *(safety review)*
+  - [ ] Only this app's own pages may talk to it (the whole address, port included). Other devices reach it only while a pass is live or tablet setup is open; otherwise a "resting" page. Tablet setup works only while its window is open on the laptop and shows the certificate's fingerprint to compare. *(safety review)*
   - [ ] The app never asks for or shows a Claude password or sign-in. The Claude sign-in stays in Claude Code.
 
 ### First-Run Setup
@@ -217,6 +219,9 @@ Source: `scope.md > The POC Boundary` (three safety layers). Everything runs on 
    - [ ] A sign the kid may be hurting or unsafe gets a warm "tell a trusted grown-up" reply, and the parent gets an alert under **Needs your attention** at once, not only in the report. *(README review)*
    - [ ] Kids' apps can't load or send anything over the internet or open a website, in the previews too. *(README review)*
    - [ ] If the safety check itself can't run, the message is held back (never shown or built), the kid is asked to try again, and the report notes it. *(pre-install review)*
+   - [ ] Everything the kid sees is checked before it's shown: the guide's words, pictures, plans and build steps, the change list, the app's name, and every word the finished app can show (checked last, exactly as it's saved). A check answer that can't be read is "couldn't run", never "ok". When more than one applies, unsuitable beats personal. *(safety review)*
+   - [ ] "+ New app" writes a report for the app being left. The report's check marks come from the flags, and each flag says who said it (the kid, the guide or the app). *(safety review)*
+   - [ ] A wellbeing alert comes with a chime and shows on the PIN page too; it still reaches the parent if the plan limit is hit or the check can't run. *(safety review)*
 3. **The parent report** (below) is the backstop.
 
 ### Limit Reached
