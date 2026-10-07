@@ -17,7 +17,11 @@
 
 > [!IMPORTANT]
 > **You're responsible for how your kids use this.**
-> Build With Me runs on *your* Claude account. Anthropic's terms say Claude users must be 18 or older, so letting your kids use it is your decision. They can only use it with a pass you give them, for as long as you choose. You'll get a report after every app they make. The safety check and reports help you supervise; they don't replace you. Stay nearby, especially with younger kids.
+> Build With Me runs on *your* Claude account.
+>
+> **Anthropic's terms say Claude users must be 18 or older, so letting your kids use it is your decision.**
+>
+> They can only use it with a pass you give them, for as long as you choose. You'll get a report after every app they make. The safety check and reports help you supervise; they don't replace you. Stay nearby, especially with younger kids.
 
 ## 📑 Contents
 
@@ -85,6 +89,40 @@ Kids (under 13) get short questions and picture cards. Teens (13–17) see and a
 
 > [!NOTE]
 > On Windows, a firewall window may ask about Node.js. Choose **Private networks** so tablets at home can connect.
+
+<details>
+<summary><b>🔍 Optional: have your own Claude check it before you install</b></summary>
+
+<br>
+
+Nothing in this plugin runs until you type `/build-with-me:start`, so you can have your own Claude read the code first and tell you, in plain words, whether anything looks wrong. Open Claude Code in an empty folder and paste this (it uses a little of your plan):
+
+```
+Clone https://github.com/paveliko123/build-with-me-at-home.git into a new folder and review it
+as a careful parent would before installing it as a Claude Code plugin. Only read the code:
+don't run any of it, don't run npm install, don't start it.
+
+Tell me, in plain words:
+1. Does it send any data anywhere other than Anthropic through my own Claude Code
+   (analytics, tracking, crash reports, hidden network calls, the developer's servers)?
+2. Does it read or touch my files, my Claude settings or memory, passwords, tokens or API keys?
+3. Does anything run by itself (at install, at startup, in the background) without me asking?
+4. What does it change on my computer, and does each change match what the README says?
+5. Is anything hidden, obfuscated, or different from what the README promises?
+
+Good to know: it does a few things on purpose, described in its README, so judge whether
+each matches the README and is reasonable: it creates a home certificate so tablets can use
+the microphone, listens on home-network ports 4747 and 4748, adds a desktop shortcut, keeps
+its data in a "Build With Me" folder in my home folder, and runs my own `claude` command for
+the kids' sessions. app/dist is the built (minified) version of server/ and web/; review the
+source and spot-check app/dist/server/main.mjs for network calls.
+
+End with a short verdict (looks safe / some concerns / don't install) and anything I should check.
+```
+
+Questions or concerns? See [SECURITY.md](SECURITY.md).
+
+</details>
 
 ---
 
