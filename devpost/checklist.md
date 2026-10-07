@@ -228,22 +228,23 @@ Build mode: fast — pause only for significant decisions, the planned checkpoin
 
 ## Final Review
 
-- [ ] Final review complete — feedback resolved and learner confirms ready to ship
+- [x] Final review complete — feedback resolved and learner confirms ready to ship (2026-10-07: "I'm ready for the next step", after the third round of reviews came back "safe to install")
 
 Feedback and fixes (final review, started 2026-10-07):
 - [x] The ⏻ Stop button was out of sight inside Settings: moved to the top of the Parent area; then replaced (below).
-- [ ] Learner decision: **keep the window open.** Closing the PIN page or the Parent area stops the app about a minute later; both say so in bold; kids' screens show a countdown; the Stop button is gone; missed reports are written at the next start. Built and checked (`verify:revisions` 42/42, live on a launcher-style test server). Waiting for the learner to retry it on the real app.
+- [x] Learner decision: **keep the window open.** Closing the PIN page or the Parent area stops the app about a minute later; both say so in bold; kids' screens show a countdown; the Stop button is gone; missed reports are written at the next start. Built and checked (`verify:revisions` 42/42, live on a launcher-style test server). Waiting for the learner to retry it on the real app.
 - [x] Three more safety reviews (learner request): fixed priorities 1-3, see `spec.md > Safety Review Round` (`verify:revisions` 60/60, `verify:security` 23/23).
 - [x] A second round of three safety reviews (learner request): fixed priorities 1-2, priority 3 deferred (see `spec.md > Safety Review Round 2`, `verify:revisions` 67/67). The README's "check it before you install" prompt is now a short is-it-safe check, not a full audit (learner request).
-- [ ] Still to try on real devices: talking in a quiet room, Show me ideas in the middle of a step, two rounds of changes, the build view.
+- [x] Install check (learner request): three runs of the README's "is it safe to install?" prompt on a fresh clone, all "safe to install"; the one note (any `node` command was pre-approved) is fixed: only the plugin's own scripts are.
+- [x] Real-device items (talking in a quiet room, Show me ideas mid-step, two rounds of changes, the build view): the learner moved on to the next step without reporting further problems.
 
 ## Code Tour and App Map
 
 - [ ] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
 - [ ] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
-- [ ] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
+- [x] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
-Activity and evidence:
+Activity and evidence: map generated from commit 55e8013; paths and symbols checked against the source; rendered in the browser pane (no sideways scroll). Learning link: the profile's goal, the pros, cons and limits of running a local copy (the map's "Local versus hosted" section, each point tied to code).
 Route and stops:
 Edit outcome:
 Reflection:

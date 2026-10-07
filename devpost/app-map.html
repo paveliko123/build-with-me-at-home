@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build With Me at Home: App Map</title>
+<style>
+  :root {
+    --bg: #fbfaf7; --card: #ffffff; --ink: #1f2430; --muted: #5d6475; --line: #e3e0d8;
+    --accent: #5b4bd6; --accent-soft: #ece9ff; --green: #1f7a4d; --green-soft: #e3f4ea;
+    --amber: #8a5a00; --amber-soft: #fff1d6; --code: #f3f1ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15171c; --card: #1d2027; --ink: #e8e9ee; --muted: #a3a8b6; --line: #2e323c;
+      --accent: #a79bff; --accent-soft: #2a2747; --green: #6fd19d; --green-soft: #1b3326;
+      --amber: #f2c46b; --amber-soft: #3a2f17; --code: #262a33;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 920px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.9rem; margin: 0 0 4px; }
+  h2 { font-size: 1.3rem; margin: 40px 0 12px; }
+  h3 { font-size: 1.05rem; margin: 0 0 6px; }
+  p { margin: 0 0 12px; }
+  .sub { color: var(--muted); margin-bottom: 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin: 0 0 14px; }
+  .pieces { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .pieces .card { margin: 0; }
+  .emoji { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+  code { background: var(--code); border-radius: 5px; padding: 1px 5px; font: 0.88em ui-monospace, "Cascadia Code", Consolas, monospace; overflow-wrap: anywhere; }
+  .stop { display: grid; grid-template-columns: 44px 1fr; gap: 12px; }
+  .num { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; }
+  .where { color: var(--muted); font-size: 0.93rem; margin-bottom: 6px; }
+  .tag { display: inline-block; font-size: 0.78rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); margin-left: 6px; vertical-align: middle; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 680px) { .two { grid-template-columns: 1fr; } }
+  .plus { border-left: 5px solid var(--green); }
+  .minus { border-left: 5px solid var(--amber); }
+  .plus h3 { color: var(--green); }
+  .minus h3 { color: var(--amber); }
+  ul { margin: 6px 0 0; padding-left: 20px; }
+  li { margin: 4px 0; }
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; margin: 0 0 10px; }
+  summary { cursor: pointer; font-weight: 600; }
+  summary:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; }
+  td { border-top: 1px solid var(--line); padding: 8px 6px; vertical-align: top; }
+  td:first-child { width: 42%; }
+  .diagram { width: 100%; height: auto; display: block; }
+  .diagram text { fill: var(--ink); font: 13px system-ui, sans-serif; }
+  .diagram .small { fill: var(--muted); font-size: 11.5px; }
+  .diagram .box { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
+  .diagram .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+  .diagram .arrow { stroke: var(--accent); stroke-width: 2; fill: none; marker-end: url(#head); }
+  .diagram .dash { stroke: var(--muted); stroke-dasharray: 5 4; }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .practice { background: var(--accent-soft); border-color: transparent; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🗺️ Build With Me at Home: App Map</h1>
+  <p class="sub">A take-home guide to what you built: the main pieces, one kid message followed through the code, where to start a change, and what this project showed about running an app locally.</p>
+
+  <h2>The pieces</h2>
+  <div class="pieces">
+    <div class="card"><span class="emoji">🧒</span><h3>Kid screens</h3><p>The chat with the guide, the plans, the build view and My apps, on the laptop or a tablet.</p><p class="note"><code>web/src/kid/</code></p></div>
+    <div class="card"><span class="emoji">🔐</span><h3>Parent area</h3><p>PIN, passes, kids, reports and alerts. Opens only on the laptop. Its window is the app's on switch.</p><p class="note"><code>web/src/parent/</code></p></div>
+    <div class="card"><span class="emoji">🖥️</span><h3>The local server</h3><p>Runs on the laptop. Decides who may talk to it, runs each turn, checks safety, builds apps, writes reports.</p><p class="note"><code>server/</code></p></div>
+    <div class="card"><span class="emoji">🤖</span><h3>Your own Claude</h3><p>Every guide reply, check, build and report is your <code>claude</code> command, run sealed off with no tools.</p><p class="note"><code>server/claude/runner.ts</code></p></div>
+    <div class="card"><span class="emoji">📁</span><h3>The family folder</h3><p>Kids, projects, apps and reports as plain files in <code>Build With Me</code> in your home folder. Never a cloud folder.</p><p class="note"><code>server/paths.ts</code></p></div>
+  </div>
+
+  <h2>One action, end to end: a kid sends a message</h2>
+  <div class="card">
+    <svg class="diagram" viewBox="0 0 880 300" role="img" aria-labelledby="dtitle ddesc">
+      <title id="dtitle">How one kid message travels</title>
+      <desc id="ddesc">A tablet sends the message to the laptop server. The door (lanGate) lets it in only during a live pass. The turn route runs guideTurn, which masks personal details and checks safety. The runner starts your own claude command, which talks to Anthropic. The project is saved in the family folder and the checked reply goes back to the tablet.</desc>
+      <defs><marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b4bd6"/></marker></defs>
+      <rect class="box" x="10" y="40" width="130" height="70" rx="12"/>
+      <text x="75" y="70" text-anchor="middle">🧒 Tablet</text>
+      <text class="small" x="75" y="90" text-anchor="middle">types or talks</text>
+      <rect class="hot" x="185" y="40" width="150" height="70" rx="12"/>
+      <text x="260" y="66" text-anchor="middle">① The door</text>
+      <text class="small" x="260" y="86" text-anchor="middle">lanGate · live pass?</text>
+      <rect class="hot" x="380" y="40" width="170" height="70" rx="12"/>
+      <text x="465" y="66" text-anchor="middle">② The turn</text>
+      <text class="small" x="465" y="86" text-anchor="middle">guideTurn · mask · check</text>
+      <rect class="hot" x="595" y="40" width="150" height="70" rx="12"/>
+      <text x="670" y="66" text-anchor="middle">③ Your Claude</text>
+      <text class="small" x="670" y="86" text-anchor="middle">oneShot · no tools</text>
+      <rect class="box" x="775" y="40" width="95" height="70" rx="12"/>
+      <text x="822" y="70" text-anchor="middle">Anthropic</text>
+      <text class="small" x="822" y="90" text-anchor="middle">your plan</text>
+      <path class="arrow" d="M140,75 L183,75"/>
+      <path class="arrow" d="M335,75 L378,75"/>
+      <path class="arrow" d="M550,75 L593,75"/>
+      <path class="arrow dash" d="M745,75 L773,75"/>
+      <rect class="box" x="380" y="190" width="170" height="70" rx="12"/>
+      <text x="465" y="218" text-anchor="middle">📁 Family folder</text>
+      <text class="small" x="465" y="238" text-anchor="middle">commitProject · files</text>
+      <path class="arrow" d="M465,110 L465,188"/>
+      <path class="arrow" d="M380,225 C200,225 75,200 75,112"/>
+      <text class="small" x="190" y="248" text-anchor="middle">checked reply back to the tablet</text>
+      <text class="small" x="440" y="22" text-anchor="middle">Everything except the tablet and Anthropic runs on your laptop</text>
+    </svg>
+  </div>
+
+  <h3 style="margin-top:18px">The route <span class="tag">reference route</span></h3>
+  <p class="note">Open these in your editor and search for the quoted name. Line numbers drift; the names don't.</p>
+
+  <div class="card stop">
+    <div class="num">1</div>
+    <div>
+      <h3>The door: who may come in</h3>
+      <p class="where"><code>server/lan.ts</code> → search <code>export function lanGate</code></p>
+      <p>Every request from another device stops here first. With no live pass and no open tablet setup, the tablet only gets the "resting" page. This is what "local" means on a shared Wi-Fi: the app decides who on the network it answers.</p>
+    </div>
+  </div>
+  <div class="card stop">
+    <div class="num">2</div>
+    <div>
+      <h3>The turn: mask, check, answer</h3>
+      <p class="where"><code>server/journey/routes.ts</code> → search <code>r.post('/turn'</code>, then <code>server/journey/guideTurn.ts</code> → <code>export async function guideTurn</code></p>
+      <p>The route spends from the pass's limits, then <code>guideTurn</code> hides obvious personal details (<code>maskPersonal</code>), asks the guide and the safety check at the same time, and checks the guide's whole reply before it's shown. The result is saved with <code>commitProject</code> into the family folder.</p>
+    </div>
+  </div>
+  <div class="card stop">
+    <div class="num">3</div>
+    <div>
+      <h3>Your Claude, sealed off</h3>
+      <p class="where"><code>server/claude/runner.ts</code> → search <code>export function oneShot</code> and <code>export function cleanEnv</code></p>
+      <p>The kid's turn becomes a run of your own <code>claude</code> command: <code>--tools ''</code>, <code>--safe-mode</code>, <code>--setting-sources ''</code>, an empty working folder, and your Claude settings left out of its environment. It can only talk, never touch the computer. It uses your plan, not an API key.</p>
+    </div>
+  </div>
+
+  <h2>To change this, start here</h2>
+  <div class="card">
+    <table>
+      <tr><td>How the guide talks at each level and age</td><td><code>server/journey/prompt/dial.ts</code> (<code>YOUNG</code>, <code>MIDDLE</code>, <code>EXPERIENCED</code>, <code>VOICE</code>)</td></tr>
+      <tr><td>The safety rules and the "hurting" words</td><td><code>server/journey/safetyCheck.ts</code> (<code>RULES</code>, <code>HURTING</code>); the kind replies in <code>server/journey/prompt/safety.ts</code></td></tr>
+      <tr><td>What the instant mask hides</td><td><code>server/journey/personal.ts</code> (<code>RULES</code>)</td></tr>
+      <tr><td>Per-pass limits (10 a minute, 150 an hour, 30 builds)</td><td><code>server/journey/limits.ts</code> (<code>PER_MINUTE</code>, <code>PER_HOUR</code>, <code>MAX_BUILDS</code>)</td></tr>
+      <tr><td>The "💡 Show me ideas" library</td><td><code>server/journey/ideaLibrary.json</code></td></tr>
+      <tr><td>Kid themes and colors</td><td><code>web/src/kid/journey/themes/themes.ts</code> (<code>THEMES</code>)</td></tr>
+      <tr><td>How long the app waits after the window closes</td><td><code>server/presence.ts</code> (<code>GRACE_TICKS</code>, <code>LOCK_AFTER_MS</code>)</td></tr>
+    </table>
+    <p class="note" style="margin-top:10px">After a change: <code>npm run typecheck</code>, the checks (<code>npm run verify:revisions</code>, <code>verify:security</code>), then <code>npm run release</code> to rebuild <code>app/dist</code>. The running app picks up a new build only when it restarts.</p>
+  </div>
+
+  <h2>Local versus hosted: what this project showed</h2>
+  <p>The same idea exists as a hosted website (the original Build With Me). Running it as a local copy changed these things, each one visible in the code:</p>
+  <div class="two">
+    <div class="card plus">
+      <h3>✅ What local gives you</h3>
+      <ul>
+        <li><b>The data stays home.</b> Plain files in the family folder; the app refuses a cloud-synced folder (<code>familyDataDir</code> in <code>server/paths.ts</code>).</li>
+        <li><b>No accounts, no server bill, no API key.</b> Every Claude call is the parent's own plan (<code>runner.ts</code>). A whole app used about 2–3% of a 5-hour limit (slice 8).</li>
+        <li><b>Supervision you can see.</b> The parent's window is the on switch, and the Parent area only opens on the laptop (<code>presence.ts</code>, <code>requireParent</code>).</li>
+        <li><b>Talking stays local too.</b> Speech-to-text runs on the laptop, not in a cloud service.</li>
+      </ul>
+    </div>
+    <div class="card minus">
+      <h3>⚠️ What it costs and limits</h3>
+      <ul>
+        <li><b>Setup is the family's job:</b> Node.js, the <code>claude</code> tool and its sign-in, packages, a 250 MB speech model (<code>app/setup-check.mjs</code>).</li>
+        <li><b>Tablets need a home certificate</b> before the browser lets them use the microphone (<code>server/certs.ts</code>).</li>
+        <li><b>It only works while the laptop is on</b> and the parent's window is open; updates need a restart (the runtime copy in <code>app/launch.mjs</code>).</li>
+        <li><b>The home network becomes part of security:</b> other devices, other programs and websites on the same laptop all had to be kept out (<code>lan.ts</code>, <code>auth.ts</code>).</li>
+        <li><b>Sharing stays at home:</b> no public shelf of kids' apps. And Claude's terms are 18+, so letting kids use it is the parent's decision.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>A practice to reuse</h2>
+  <div class="card practice">
+    <p><b>Review from several fixed viewpoints, then turn every confirmed finding into a check.</b> Before shipping, three separate read-only reviewers looked at the code as a parent, as an attacker and as a child-safety red team, and then again. The second round found something no test had caught: the personal-detail mask turned "I live in fear because my dad hits me" into "I live in [address]" before the safety check could see it. The finding was confirmed in the code (<code>server/journey/personal.ts</code>), fixed, and kept as a check in <code>scripts/verify-revisions.ts</code> ("the instant mask hides real details but never swallows…").</p>
+    <p style="margin:0">On another project: give each reviewer one clear point of view and a "read only" rule, check every finding yourself before acting on it, and keep each fix as a test so it can't quietly come back. The same project also showed the opposite need: for an everyday "is it safe to install?" question, a short prompt about serious problems only (the README's) gives a clearer answer than a full audit.</p>
+  </div>
+
+  <h2>Run it again</h2>
+  <details open>
+    <summary>Everyday use</summary>
+    <p style="margin-top:8px">Double-click <b>Build With Me</b> on the desktop, or type <code>/build-with-me:start</code> in Claude Code. Keep the window open while the kids use it; closing it stops the app about a minute later.</p>
+  </details>
+  <details>
+    <summary>For changing the code</summary>
+    <p style="margin-top:8px">From the project folder: <code>npm run dev:server</code> and <code>npm run dev:web</code> for a development copy, or <code>npm run release</code> then <code>npm start</code> for the built one. Use a separate data folder (<code>BWM_DATA</code>) so tests never touch the family's files.</p>
+  </details>
+  <p class="note">A snapshot of commit <code>55e8013</code> (7 October 2026). The code will move on; the names in this map are the anchors to search for.</p>
+</main>
+</body>
+</html>
