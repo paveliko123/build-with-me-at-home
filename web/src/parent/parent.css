@@ -173,3 +173,11 @@
 .parent .grid.home .qrbox>div:not(.top){min-width:200px!important;flex:1}
 .parent .grid.home .qrbox{align-items:flex-start}
 .parent .kidpick .kidbtn.addkid{justify-content:center;min-width:52px}
+/* Learner: the parent home still scrolled by a couple of pixels. On a laptop it is exactly one
+   window tall; a column with more than fits (a new pass's QR code) scrolls on its own. */
+@media (min-width:1180px) and (min-height:560px){
+  .parent main:has(.grid.home){height:100vh;display:flex;flex-direction:column;padding-bottom:12px}
+  .parent main:has(.grid.home)>.top{flex-shrink:0}
+  .parent .grid.home{flex:1;min-height:0}
+  .parent .grid.home>.stack{min-height:0;overflow-y:auto;scrollbar-width:thin;padding:2px}
+}

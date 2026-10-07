@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, ApiError, clock, timeOfDay, type ActivePass, type Kid } from '../lib/api';
 
 // prd.md > Passes: 🎟️ Give a pass and ⏱️ Active passes (laid out like parent-mockup.html).
@@ -87,12 +87,15 @@ export function GivePass({ kids, passes, shown, setShown, onAddKid, reload }: {
 
 function PassCode({ pass, onClose }: { pass: ActivePass; onClose: () => void }) {
   const name = pass.kid?.nickname ?? 'Your kid';
+  // The passes column scrolls on its own on a laptop: bring the new code into view.
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => { box.current?.scrollIntoView({ block: 'nearest' }); }, [pass.id]);
   if (pass.usedAt) {
     return <div className="qrbox"><div>✅ <b>{name}'s pass is open</b> on {pass.device ?? 'a device'}. <button className="ghost" onClick={onClose}>OK</button></div></div>;
   }
   // UI review A3: the QR code big, the typed code big, then one line per way to open it.
   return (
-    <div className="qrbox">
+    <div className="qrbox" ref={box}>
       <div className="top" style={{ width: '100%', marginBottom: 0 }}><b>{name}'s pass · {lengthText(pass.minutes)}</b><button className="ghost" onClick={onClose}>Hide</button></div>
       {pass.qr && <img className="qr big" src={pass.qr} alt={`QR code for ${name}'s pass`} />}
       <div style={{ flex: 1, minWidth: 240 }}>
