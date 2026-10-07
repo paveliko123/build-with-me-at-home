@@ -76,7 +76,11 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
   useEffect(() => {
     const el = topBar.current;
     if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(() => document.documentElement.style.setProperty('--bwm-top', `${el.offsetHeight}px`));
+    // Set at once and rounded up: a header of 61.4 px read as 61 left the page a pixel taller
+    // than the window, so a second scroll bar appeared next to the chat's (learner report).
+    const set = () => document.documentElement.style.setProperty('--bwm-top', `${Math.ceil(el.getBoundingClientRect().height)}px`);
+    set();
+    const ro = new ResizeObserver(set);
     ro.observe(el);
     return () => ro.disconnect();
   }, [screen, !!profile]);
