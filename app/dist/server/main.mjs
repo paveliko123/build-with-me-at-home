@@ -7255,6 +7255,10 @@ function parentRoutes(opts) {
     res.json({ ok: true });
   });
   r.use(requireParent);
+  r.post("/shutdown", (_req, res) => {
+    res.json({ ok: true });
+    setTimeout(() => process.emit("SIGTERM"), 300);
+  });
   r.post("/pin", async (req, res) => {
     const { current, next } = req.body ?? {};
     const check = await checkPin(String(current ?? ""));

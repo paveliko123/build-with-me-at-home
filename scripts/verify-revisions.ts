@@ -282,6 +282,10 @@ async function main() {
     r = await parent.call('/api/parent/alerts');
     add('the parent home gets the wellbeing alert', JSON.stringify(r.body).includes('"kind":"wellbeing"'), `status ${r.status}`);
 
+    // README review: ⏻ Stop Build With Me is the parent's only (the stop itself was checked live).
+    const stopKid = await kid.call('/api/parent/shutdown', {});
+    add('only the parent can stop Build With Me', stopKid.status === 401 || stopKid.status === 403, `a kid's request: ${stopKid.status}`);
+
     // Learner: no way out to a website from a kid's app.
     const { checkApp } = await import('../server/journey/appCheck.js');
     const page = (body: string) => `<!doctype html><html><head><title>t</title></head><body>${body}</body></html>`;

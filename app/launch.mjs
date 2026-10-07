@@ -1,7 +1,7 @@
 // Starts Build With Me in the background (if it isn't running) and opens the browser.
 //   node launch.mjs [--data <plugin data dir>] [--no-shortcut] [--no-open]
 // Also: refreshes the runtime copy of the app when the plugin has a newer build (and restarts
-// an outdated server), writes a stable start file in Documents\Build With Me that survives
+// an outdated server), writes a stable start file in the family folder (<home>\Build With Me) that survives
 // plugin updates (the plugin folder moves on every update), and creates a desktop shortcut
 // the first time (learner request: no question asked).
 
@@ -10,22 +10,6 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { spawn, spawnSync } from 'node:child_process';
 import { ROOT, pluginData, familyData, runtimeDir, port, cleanEnv, health, healthInfo, buildId, openBrowser, flag, version } from './common.mjs';
-
-// One-time move from the early location (Documents\Build With Me), which can be a
-// cloud-synced folder, to <home>\Build With Me. Runs before anything else touches the folder.
-if (!process.env.BWM_DATA) {
-  const oldDir = join(homedir(), 'Documents', 'Build With Me');
-  const newDir = join(homedir(), 'Build With Me');
-  if (existsSync(join(oldDir, 'family.json')) && !existsSync(join(newDir, 'family.json'))) {
-    const old = await healthInfo(port());
-    if (old) { try { process.kill(JSON.parse(readFileSync(join(pluginData(), 'server.lock'), 'utf8')).pid); } catch {} }
-    for (let i = 0; i < 20 && (await health(port())); i++) await new Promise((r) => setTimeout(r, 250));
-    cpSync(oldDir, newDir, { recursive: true });
-    rmSync(join(newDir, '.shortcut-created'), { force: true }); // re-point the shortcut at the new start file
-    rmSync(oldDir, { recursive: true, force: true });
-    console.error(`Moved family data to ${newDir}`);
-  }
-}
 
 const DATA = pluginData();
 const RUNTIME = runtimeDir(DATA);

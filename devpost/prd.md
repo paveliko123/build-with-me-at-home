@@ -55,7 +55,7 @@ Source: `scope.md > The Core Loop`, `scope.md > What "Working" Looks Like`.
    - **🔔 Needs your attention:** flags and limit-reached alerts
    - **📄 Latest reports:** with "All reports →"
    - **🧒 Kids & their apps:** Manage, Add a kid, and **📱 Set up a tablet for talking**
-   - **⚙️ Settings** (change the PIN) and **🔒 Lock**
+   - **⚙️ Settings** (change the PIN; **⏻ Stop Build With Me**, since it keeps running after Claude Code closes *(README review)*) and **🔒 Lock**
 4. **All reports:** a table with when, who, what was built, safety, and the app link (`report-mockup.html`, first tab).
 5. **One report:** described in **The Parent Report** (`report-mockup.html`, second tab).
 

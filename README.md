@@ -132,6 +132,7 @@ Questions or concerns? See [SECURITY.md](SECURITY.md).
 1. 🖱️ Double-click **Build With Me** on the desktop (or run `/build-with-me:start` in Claude Code) and enter your PIN.
 2. 🎟️ Under **Give a pass**, pick the kid and how long, then **Create pass**.
 3. 📲 The kid scans the QR code with a tablet, or you tap **Open on this laptop**. One device per pass; you can extend or end it from your laptop at any time.
+4. ⏻ **When you're done:** Build With Me keeps running in the background after you close Claude Code, so tablets can connect. To stop it, open **⚙️ Settings → ⏻ Stop Build With Me** in the Parent area (restarting the computer stops it too).
 
 ---
 
@@ -237,9 +238,9 @@ After every app, Claude Opus reads the whole conversation and writes you a repor
 - 🏠 **Everything is stored on your computer**, in your family's folder: `C:\Users\<you>\Build With Me` on Windows, `~/Build With Me` on a Mac. It holds the kids' profiles, their conversations and plans, their apps and the reports. Build With Me refuses to use a cloud-synced folder (like OneDrive) for it.
 - 🧩 **App files** (the program, the home certificate for tablets, the speech model, a log) live in Claude Code's plugin data folder.
 - 📤 **What leaves your computer:** the kids' conversations and plans go to Anthropic through *your* Claude Code, the same way your own Claude Code use does, to run the guide, build the apps, check safety and write your reports. Nothing else is sent anywhere, and **nothing at all is sent to the developer of this plugin**: no accounts, no analytics, no tracking, no crash reports.
-- 📥 **Downloads, during setup only:** the app's packages (from npm) and the speech model (from Hugging Face), once each. Nothing about you or your kids is sent with them.
+- 📥 **Downloads:** the app's packages (from npm) and the speech model (from Hugging Face), once each, during setup (the model also at the first start, if setup skipped it). Nothing about you or your kids is sent with them.
 - 🎤 **Talking stays local:** speech-to-text runs on this computer; the guide's voice is your device's built-in voice.
-- 📶 **Your home network:** tablets reach the kid side only, with a pass. The Parent area only opens on the laptop itself.
+- 📶 **Your network:** while it runs, Build With Me answers on the network the laptop is on (ports 4747 and 4748), so tablets can connect. Devices reach the kid side only with a pass; without one they see just the tablet setup page. The Parent area only opens on the laptop itself. On a public Wi-Fi (a café, a hotel), stop it first: **⚙️ Settings → ⏻ Stop Build With Me**.
 - 🗑️ **Deleting:** removing a kid in **Kids & their apps** deletes all of their data (conversations, apps, reports and passes) after a warning. Nothing is deleted automatically otherwise.
 
 ---
@@ -248,6 +249,8 @@ After every app, Claude Opus reads the whole conversation and writes you a repor
 ## ⚡ Your Claude plan
 
 Build With Me uses your Claude Code plan. A typical app takes a few percent of the 5-hour limit (each report shows that app's share). The per-pass caps mean one pass can't use up your plan, and the Parent area shows your 5-hour and weekly limits.
+
+Besides the kids' own chats and builds, it makes a few small calls on its own: the safety checks, a quick reading of your plan's usage (when an app starts and finishes, and when the Parent area shows your limits), the sign-in check during setup, and the Opus report after each app.
 
 ---
 

@@ -77,7 +77,7 @@ async function check() {
   add('speech-model', modelOk, modelOk ? 'Speech model downloaded' : 'Speech model not downloaded yet (about 250 MB, once)', 'Run setup-check.mjs --download-model.');
 
   try { const d = familyData(); accessSync(d, constants.W_OK); add('data-folder', true, d); }
-  catch (e) { add('data-folder', false, String(e.message), 'Make sure the Documents folder is writable.'); }
+  catch (e) { add('data-folder', false, String(e.message), 'Make sure your home folder is writable (Build With Me keeps its data in <home>/Build With Me).'); }
 
   const p = port();
   const running = await health(p);

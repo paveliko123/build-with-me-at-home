@@ -298,6 +298,34 @@ function Settings({ onClose }: { onClose: () => void }) {
           : step === 'next' ? <button className="btn" disabled={next.length < 4} onClick={() => setStep('again')}>Next</button>
           : <button className="btn" disabled={again.length < 4} onClick={save}>Save new PIN</button>}
       </div>
+      <StopApp />
     </Modal>
+  );
+}
+
+/** ⏻ Stop Build With Me: it keeps running in the background after Claude Code closes (so
+ *  tablets can connect); this stops it until the next start (README review). */
+function StopApp() {
+  const [ask, setAsk] = useState(false);
+  const [stopped, setStopped] = useState(false);
+  const stop = async () => {
+    await api('/api/parent/shutdown', { body: {} }).catch(() => {});
+    setStopped(true);
+  };
+  return (
+    <div style={{ borderTop: '1px solid var(--line)', marginTop: 18, paddingTop: 14 }}>
+      <h2>⏻ Stop Build With Me</h2>
+      {stopped
+        ? <p role="status"><b>Build With Me is stopped.</b> You can close this tab. To start it again, double-click <b>Build With Me</b> on the desktop or run <code>/build-with-me:start</code>.</p>
+        : <>
+          <p className="muted" style={{ marginTop: 0 }}>It keeps running in the background after you close Claude Code, so tablets can connect. Stop it when you're done, or before using a public Wi-Fi. Nothing is lost; a pass that's still running can't be used until you start it again.</p>
+          {!ask
+            ? <button className="ghost" onClick={() => setAsk(true)}>⏻ Stop Build With Me</button>
+            : <div className="confirm" role="alertdialog" aria-label="Stop Build With Me?">
+                <span>Stop it now? Kids using it will see that it can't be reached.</span>
+                <span className="acts"><button className="btn danger-fill" onClick={() => void stop()}>Stop now</button><button className="ghost" onClick={() => setAsk(false)}>Cancel</button></span>
+              </div>}
+        </>}
+    </div>
   );
 }
