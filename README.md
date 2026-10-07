@@ -4,11 +4,16 @@
 
 # Build With Me at Home
 
-**A Claude Code plugin for parents: your kids plan and build their own small apps with a friendly AI guide, on your computer and your Claude account, with you supervising.**
+**A fully local Claude Code plugin for parents: your kids plan and build their own small apps with a friendly AI guide, on your computer and your own Claude account, with you supervising.**
 
-![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757) ![Windows | Mac](https://img.shields.io/badge/runs%20on-Windows%20%7C%20Mac-3a8ee2) ![Stays on your computer](https://img.shields.io/badge/data-stays%20on%20your%20computer-2f9e6e) ![License: MIT](https://img.shields.io/badge/license-MIT-8a5cd6)
+🏠 **Nothing is ever sent to the developer** of this plugin: no accounts, no sign-ups, no analytics, no tracking.
+
+![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757) ![Fully local](https://img.shields.io/badge/runs-100%25%20on%20your%20computer-2f9e6e) ![No tracking](https://img.shields.io/badge/analytics-none-2f9e6e) ![Windows | Mac](https://img.shields.io/badge/runs%20on-Windows%20%7C%20Mac-3a8ee2) ![License: MIT](https://img.shields.io/badge/license-MIT-8a5cd6)
 
 </div>
+
+> [!NOTE]
+> **Fully local.** The app, your kids' profiles, their conversations, their apps and your reports all live on your computer. The only thing that leaves it is the kids' chat with Claude, which goes to Anthropic through *your own* Claude Code, exactly like your own Claude use. Talking is turned into text on this computer too. Details in [Privacy](#privacy).
 
 > [!IMPORTANT]
 > **You're responsible for how your kids use this.**
@@ -193,7 +198,8 @@ After every app, Claude Opus reads the whole conversation and writes you a repor
 
 - 🏠 **Everything is stored on your computer**, in your family's folder: `C:\Users\<you>\Build With Me` on Windows, `~/Build With Me` on a Mac. It holds the kids' profiles, their conversations and plans, their apps and the reports. Build With Me refuses to use a cloud-synced folder (like OneDrive) for it.
 - 🧩 **App files** (the program, the home certificate for tablets, the speech model, a log) live in Claude Code's plugin data folder.
-- 📤 **What leaves your computer:** the kids' conversations and plans go to Anthropic through *your* Claude Code, the same way your own Claude Code use does, to run the guide, build the apps, check safety and write your reports. Nothing else is sent anywhere: no accounts, no analytics, no tracking.
+- 📤 **What leaves your computer:** the kids' conversations and plans go to Anthropic through *your* Claude Code, the same way your own Claude Code use does, to run the guide, build the apps, check safety and write your reports. Nothing else is sent anywhere, and **nothing at all is sent to the developer of this plugin**: no accounts, no analytics, no tracking, no crash reports.
+- 📥 **Downloads, during setup only:** the app's packages (from npm) and the speech model (from Hugging Face), once each. Nothing about you or your kids is sent with them.
 - 🎤 **Talking stays local:** speech-to-text runs on this computer; the guide's voice is your device's built-in voice.
 - 📶 **Your home network:** tablets reach the kid side only, with a pass. The Parent area only opens on the laptop itself.
 - 🗑️ **Deleting:** removing a kid in **Kids & their apps** deletes all of their data (conversations, apps, reports and passes) after a warning. Nothing is deleted automatically otherwise.
