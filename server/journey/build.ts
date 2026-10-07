@@ -14,7 +14,7 @@ import { callBuilder, callVerifyEdits, type CallMeta } from './claude.js';
 import { applyEdits, EDIT_FORMAT, lineDiff, withoutChangedNote } from './edits.js';
 import { BUILDER_LAYER } from './prompt/builderLayer.js';
 import { personText, SAFETY_LAYER } from './prompt/safety.js';
-import { callSafetyCheck, flag } from './safetyCheck.js';
+import { callSafetyCheck, flag, heldBack } from './safetyCheck.js';
 import { addUsage, readProject, type Project } from './project.js';
 import { ageGroupOf, type DocKind } from './types.js';
 import { TurnError } from './guideTurn.js';
@@ -145,6 +145,7 @@ export async function buildApp(p: Project, mode: BuildMode, error = ''): Promise
       // spec.md > Safety: the builder's output gets one check before it's shown.
       setPhase(p.id, 'safety');
       const appCheck = await callSafetyCheck(appWords(html), 'app', ageGroupOf(p.profile));
+      if (appCheck.failed) throw heldBack(p, 'app'); // the last working version stays
       metas.push(appCheck.meta);
       if (appCheck.verdict === 'unsuitable') {
         flag(p, 'app', appCheck, appWords(html).slice(0, 500));

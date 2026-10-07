@@ -107,6 +107,7 @@ export function renderReport(r: ReportData): string {
     ${flags}
     <ul style="margin:10px 0 0">${check(r.checks.personal)}${check(r.checks.output)}${check(r.checks.onTopic)}</ul>
     ${r.worthAChat ? `<p class="note">Worth a chat? ${esc(r.worthAChat)}</p>` : ''}
+    ${r.heldBack ? `<p class="note">The safety check couldn't run ${r.heldBack === 1 ? 'once' : `${r.heldBack} times`} (for example, a network hiccup). ${r.heldBack === 1 ? 'That message was' : 'Those messages were'} held back, never shown or built, and ${esc(r.kidName)} was asked to try again.</p>` : ''}
   </div>
   <div class="card"><h2>Whose ideas?</h2>${ideas}${fromList}${waitIdeas}</div>
   <div class="card"><h2>How it went</h2><ul class="timeline">${timeline}</ul></div>

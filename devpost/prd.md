@@ -214,6 +214,7 @@ Source: `scope.md > The POC Boundary` (three safety layers). Everything runs on 
    - [ ] Every redirect and every personal detail becomes a **flag** for the report.
    - [ ] A sign the kid may be hurting or unsafe gets a warm "tell a trusted grown-up" reply, and the parent gets an alert under **Needs your attention** at once, not only in the report. *(README review)*
    - [ ] Kids' apps can't load or send anything over the internet or open a website, in the previews too. *(README review)*
+   - [ ] If the safety check itself can't run, the message is held back (never shown or built), the kid is asked to try again, and the report notes it. *(pre-install review)*
 3. **The parent report** (below) is the backstop.
 
 ### Limit Reached

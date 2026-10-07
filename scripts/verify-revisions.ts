@@ -282,6 +282,19 @@ async function main() {
     r = await parent.call('/api/parent/alerts');
     add('the parent home gets the wellbeing alert', JSON.stringify(r.body).includes('"kind":"wellbeing"'), `status ${r.status}`);
 
+    // Pre-install review (learner decision): when the safety check can't run, the text is held
+    // back, never shown or built, and the report says so (not as a safety flag).
+    const { callSafetyCheck, heldBack } = await import('../server/journey/safetyCheck.js');
+    const { rmSync: rm0, existsSync: ex0 } = await import('node:fs');
+    rm0(join(PLUGIN, 'simulate-limit'));
+    const cantRun = await callSafetyCheck('a robot that dances', 'input', 'kid');
+    writeFileSync(join(PLUGIN, 'simulate-limit'), '');
+    const holdP: any = { id: 'hold-test', kidId: maya.id, stage: 'idea', flags: [] };
+    const err = heldBack(holdP, 'output');
+    add('a safety check that can\'t run holds the message back (the turn fails with "try again")', cantRun.failed === true && (err as any).status === 503 && holdP.flags[0]?.verdict === 'unchecked' && ex0(join(PLUGIN, 'simulate-limit')), `check: ${JSON.stringify({ verdict: cantRun.verdict, failed: cantRun.failed })} · turn: ${(err as any).status}`);
+    const heldHtml = renderReport({ ...base0, heldBack: 2 } as any);
+    add('the report notes held-back messages without counting them as safety flags', heldHtml.includes("couldn't run 2 times") && heldHtml.includes('No flags'), 'a note in Safety; the level stays 🟢');
+
     // README review: ⏻ Stop Build With Me is the parent's only (the stop itself was checked live).
     const stopKid = await kid.call('/api/parent/shutdown', {});
     add('only the parent can stop Build With Me', stopKid.status === 401 || stopKid.status === 403, `a kid's request: ${stopKid.status}`);

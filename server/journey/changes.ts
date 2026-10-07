@@ -7,7 +7,7 @@ import { CHANGES_INSTRUCTIONS } from './prompt/changesLayer.js';
 import { voiceLine } from './prompt/dial.js';
 import { LEAK, LEAK_REPLY, personText, REDIRECT_REPLY, SAFETY_LAYER, WELLBEING_REPLY } from './prompt/safety.js';
 import { maskPersonal } from './personal.js';
-import { callSafetyCheck, flag } from './safetyCheck.js';
+import { callSafetyCheck, flag, heldBack } from './safetyCheck.js';
 import { withoutEchoedQuestion } from './echo.js';
 import { addUsage, thread, type Project } from './project.js';
 import { ageGroupOf } from './types.js';
@@ -74,6 +74,7 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
     const [check, first] = await Promise.all([callSafetyCheck(text, 'input', ageGroupOf(p.profile), { system, turns: [...past, { role: 'user', text: ask }], schema: CHANGES_SCHEMA }), listChanges()]);
     metas.push(check.meta, ...(first instanceof GuideError ? ((first as any).metas ?? []) : [first.meta]));
     let called = first;
+    if (check.failed) throw heldBack(p, 'input');
     if (check.verdict === 'unsuitable' || check.verdict === 'wellbeing' || called instanceof GuideError) {
       flag(p, 'input', called instanceof GuideError && check.verdict === 'ok' ? { verdict: 'unsuitable', category: 'refused' } : check, text);
       return { changes: list, ready: false, ship: false, reply: { say: check.verdict === 'wellbeing' ? WELLBEING_REPLY : REDIRECT_REPLY } };

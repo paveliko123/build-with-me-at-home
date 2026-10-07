@@ -207,6 +207,8 @@ Reports are written when the kid ships the app or the pass ends; a wellbeing ale
 
 Cartoon battles, silly monsters, superheroes, space lasers and everyday "I'm bored" are fine: the check is built to be fair to kids, not jumpy.
 
+If the safety check itself can't run (say, a network hiccup), nothing goes through unchecked: the message is held back, your kid is asked to try again, and your report notes it.
+
 ---
 
 <a id="report"></a>

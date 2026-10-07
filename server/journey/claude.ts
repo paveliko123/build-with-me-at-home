@@ -165,16 +165,21 @@ export interface ForkFrom { system: string; turns: Turn[]; schema: unknown }
  *  knows the guide's call runs as that call (same model, system prompt and schema: Claude Code's
  *  --json-schema is a tool, and a different tool list misses the whole cache), with the check
  *  asked at the end and its verdict returned as JSON in "say". */
-export async function callCheck(label: string, system: string, prompt: string, schema: unknown, timeoutMs = 30_000, fork?: ForkFrom): Promise<{ result: unknown; ok: boolean; meta: CallMeta }> {
+/** claude didn't run or answer at all (couldn't start, crashed, timed out, offline): a technical
+ *  failure, not a refusal (a refusal still comes back with an answer). */
+const broken = (r: { ok: boolean; text: string; structured?: unknown; error?: string; stopReason?: string | null }) =>
+  !r.ok && !r.text && r.structured === undefined && !!r.error && r.stopReason !== 'refusal';
+
+export async function callCheck(label: string, system: string, prompt: string, schema: unknown, timeoutMs = 30_000, fork?: ForkFrom): Promise<{ result: unknown; ok: boolean; meta: CallMeta; broken?: boolean }> {
   if (fork && currentMix().forkChecks) {
     const conversation = renderTurns(fork.turns).replace(/\n\nNow write your next reply as the guide\.$/, '');
     const ask = `${conversation}\n\nPAUSE. This is not your next reply. Before it, the app needs a safety check, and you are doing it now.\n\n${system}\n\n${prompt}\n\nPut your answer in the "say" field as one JSON object with the fields above (for example {"verdict":"ok"}) and nothing else; give any other required field an empty or false value.`;
     const { r, meta } = await call(`${label}-fork`, 'guide', fork.system, ask, fork.schema, Math.max(timeoutMs, 60_000), rateLimitListener);
     const say = (r.structured as { say?: unknown } | undefined)?.say;
-    return { result: typeof say === 'string' ? tryJson(say) : null, ok: r.ok, meta };
+    return { result: typeof say === 'string' ? tryJson(say) : null, ok: r.ok, meta, broken: broken(r) };
   }
   const { r, meta } = await call(label, 'check', system, prompt, schema, timeoutMs, rateLimitListener);
-  return { result: r.structured ?? tryJson(r.text), ok: r.ok, meta };
+  return { result: r.structured ?? tryJson(r.text), ok: r.ok, meta, broken: broken(r) };
 }
 
 // ---------- after the plan: the builder, the change list, the edit check ----------

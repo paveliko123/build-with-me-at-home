@@ -9,7 +9,7 @@ import { callDocWriter, callGuide, GuideError, type CallMeta } from './claude.js
 import { buildContents, buildSystemInstruction, stageKickoff, type StoredMessage } from './prompt/buildPrompt.js';
 import { AI_DISCLOSURE, PERSONAL_NOTE, personText, REDIRECT_REPLY, WELLBEING_REPLY } from './prompt/safety.js';
 import { maskPersonal } from './personal.js';
-import { callSafetyCheck, flag, type SafetyResult } from './safetyCheck.js';
+import { callSafetyCheck, flag, heldBack, type SafetyResult } from './safetyCheck.js';
 import { REPLY_SCHEMA } from './prompt/replySchema.js';
 import { withoutEchoedQuestion } from './echo.js';
 import { GUIDE_STAGES, nextStage, stageDocKind, STAGE_ORDER } from './stages.js';
@@ -307,6 +307,7 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
     ]);
     let raw = firstAnswer.reply;
     metas.push(...firstAnswer.meta, inputCheck.meta);
+    if (inputCheck.failed) throw heldBack(session, 'input');
     const blocked = inputCheck.verdict === 'unsuitable' || inputCheck.verdict === 'wellbeing';
     if (blocked) {
       // Never answered, never built: a kind redirect (or, if they may be hurting, a grown-up).
@@ -413,6 +414,7 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
       const shown = [reply.say, reply.question, ...(reply.cards ?? []).map(c => `${c.label} ${c.detail ?? ''}`), reply.techSummary, reply.laterIdea].filter(Boolean).join('\n');
       const outputCheck = await callSafetyCheck(shown, 'output', age, { system: systemInstruction, turns: [...contents, { role: 'model', text: JSON.stringify(raw) }], schema: REPLY_SCHEMA });
       metas.push(outputCheck.meta);
+      if (outputCheck.failed) throw heldBack(session, 'output');
       if (outputCheck.verdict === 'unsuitable') {
         flag(session, 'output', outputCheck, shown);
         reply = { say: REDIRECT_REPLY, question: sameQuestion, stageComplete: false };

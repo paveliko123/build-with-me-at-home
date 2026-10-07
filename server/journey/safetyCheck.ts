@@ -6,6 +6,7 @@
 import { callCheck, LimitError, type CallMeta, type ForkFrom } from './claude.js';
 import type { Project } from './project.js';
 import { addAlert } from '../report/alerts.js';
+import { TurnError } from './guideTurn.js';
 import { readFamily } from '../store.js';
 import type { AgeGroup } from './types.js';
 
@@ -46,13 +47,17 @@ const LABEL: Record<Direction, string> = {
   app: 'The text in an app that is about to be shared',
 };
 
-/** Checks one text. Two tries; if both fail the result is "ok" with failed: true (logged). */
+/** Checks one text. Two tries; if both fail the result has failed: true, and the caller holds the
+ *  text back (heldBack): never shown or built unchecked (learner decision after the pre-install
+ *  review; it used to go through). */
 export async function callSafetyCheck(text: string, direction: Direction, ageGroup: AgeGroup, fork?: ForkFrom): Promise<SafetyResult> {
   if (!text.trim()) return { verdict: 'ok' };
   const who = ageGroup === 'kid' ? 'a kid under 13' : 'a teen (13-17)';
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const { result, ok, meta } = await callCheck(`safety-${direction}`, RULES, `${LABEL[direction]} (the person is ${who}):\n"""\n${text.slice(0, 6000)}\n"""`, SCHEMA, 30_000, fork);
+      const { result, ok, meta, broken } = await callCheck(`safety-${direction}`, RULES, `${LABEL[direction]} (the person is ${who}):\n"""\n${text.slice(0, 6000)}\n"""`, SCHEMA, 30_000, fork);
+      // claude didn't run at all: try again, then hold the text back (never a flag on the kid).
+      if (broken) { console.warn(JSON.stringify({ event: 'safety-check-failed', direction, attempt, error: 'claude did not run' })); continue; }
       const parsed = (result ?? {}) as { verdict?: Verdict; category?: string; masked?: string };
       // No answer at all on a safety check usually means the text itself is the problem.
       if (!ok && !result) return { verdict: 'unsuitable', category: 'refused', meta };
@@ -67,6 +72,14 @@ export async function callSafetyCheck(text: string, direction: Direction, ageGro
 }
 
 /** A flag for the parent report (spec.md > Safety: {time, step, kidSaid/guideDid, kind}). */
+/** The safety check couldn't run: noted for the report (not a safety flag), and the turn fails
+ *  with the usual "let's try that again", so the kid simply retries. */
+export function heldBack(project: Project, direction: Direction): TurnError {
+  project.flags.push({ at: Date.now(), stage: project.stage, direction, verdict: 'unchecked', category: 'check-unavailable', text: '' });
+  console.warn(JSON.stringify({ event: 'held-back', project: project.id, direction }));
+  return new TurnError(503, 'The safety check could not run; held back.');
+}
+
 export function flag(project: Project, direction: Direction, result: SafetyResult, maskedText: string) {
   project.flags.push({ at: Date.now(), stage: project.stage, direction, verdict: result.verdict, category: result.category ?? '', text: maskedText.slice(0, 2000) });
   console.warn(JSON.stringify({ event: 'flag', project: project.id, direction, verdict: result.verdict, category: result.category }));

@@ -34,6 +34,7 @@ export interface ReportData {
   checks: { personal: { ok: boolean; text: string }; output: { ok: boolean; text: string }; onTopic: { ok: boolean; text: string } };
   badge: Badge; title: string; summary: string; ideasShareKid: number | null; ideasNote: string; worthAChat: string; starters: string[];
   laterIdeas?: string[]; // ideas the kid had in the waiting chat (a fact from the project)
+  heldBack?: number; // messages held back because the safety check couldn't run
   ideaSource?: string; // the idea-list idea the kid started from, if any
   timeline: { at: number; label: string; text: string }[];
   transcript: ReportLine[];
@@ -258,9 +259,12 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
   if (writing.has(key)) return null;
   writing.add(key);
   try {
-    const p = readProject(kidId, projectId);
+    const saved = readProject(kidId, projectId);
     const kid = readFamily().kids.find((k) => k.id === kidId);
-    if (!p || !kid) return null;
+    if (!saved || !kid) return null;
+    // Messages held back because the safety check couldn't run: a note in the report, not flags.
+    const heldBack = saved.flags.filter((f) => f.verdict === 'unchecked').length;
+    const p = { ...saved, flags: saved.flags.filter((f) => f.verdict !== 'unchecked') };
     const lines = transcriptOf(p);
     const times = [...p.messages.map((m) => m.at), ...(p.versions ?? []).map((v) => v.at), ...p.timeline.map((t) => t.at)];
     const startedAt = Math.min(p.createdAt, ...times), endedAt = Math.max(...times, p.shipped?.at ?? 0);
@@ -296,7 +300,7 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
       device: p.device ?? pass?.device ?? 'Unknown device', answered: p.profile.inputMode === 'talk' ? 'talking' : 'typing',
       ...(opts.finished ? {} : { stoppedAt: STEP[p.stage] }),
       app: shelfApp ? { name: shelfApp.name, path: `/apps/${kidId}/${shelfApp.slug}/`, url: `http://localhost:${appPort}/apps/${kidId}/${shelfApp.slug}/`, emoji: shelfApp.emoji, ...(shelfApp.icon && appIcon(kidId, shelfApp.slug) ? { icon: svgDataUrl(appIcon(kidId, shelfApp.slug)!) } : {}), description: ai?.appDescription ?? '' } : null,
-      usage, flags, ...(p.laterIdeas?.length ? { laterIdeas: p.laterIdeas } : {}), ...(p.ideaSource ? { ideaSource: p.ideaSource.title } : {}),
+      usage, flags, ...(heldBack ? { heldBack } : {}), ...(p.laterIdeas?.length ? { laterIdeas: p.laterIdeas } : {}), ...(p.ideaSource ? { ideaSource: p.ideaSource.title } : {}),
       checks: ai?.checks ?? {
         personal: { ok: !p.flags.some((f) => f.verdict === 'personal'), text: p.flags.some((f) => f.verdict === 'personal') ? 'A personal detail came up; it was hidden.' : 'No personal details shared.' },
         output: { ok: !p.flags.some((f) => f.direction !== 'input'), text: 'Based on the automatic checks of what the guide said and built.' },
