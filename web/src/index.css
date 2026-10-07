@@ -66,3 +66,5 @@ body { margin: 0; }
 .bwm-overlay{position:fixed;inset:0;z-index:50}
 /* Phones and portrait tablets: the newest message stops above the pinned answer bar (UI review O1). */
 @media (max-width:1023px){.bwm-convo>*{scroll-margin-bottom:calc(var(--bwm-bar,0px) + 12px)}}
+/* "How I planned it" prints cleanly: no countdown, white page, cards kept whole. */
+@media print{.bwm-countdown{display:none!important}.bwm-journey{background:#fff!important}.bwm-print section{break-inside:avoid}}

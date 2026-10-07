@@ -1,11 +1,49 @@
 // prd.md > My Apps: this kid's shelf, newest first, with name, picture and Open. Apps live on the
 // family's computer and open on this device, or on a device on the home Wi-Fi with this kid's pass.
 import { useEffect, useState } from 'react';
-import { myApps, type ShelfApp } from '../lib/api';
+import { appPlan, myApps, type ShelfApp } from '../lib/api';
+import Md from '../components/Md';
+import PlanCard from '../components/PlanCard';
+
+const PLAN_NAMES = { scope: '💡 The idea', prd: '🎨 The design', spec: '🛠️ The tech plan' } as const;
+
+/** "📄 How I planned it": the plans next to the app, nice to show or print (family trial). */
+function HowIPlanned({ slug, onClose }: { slug: string; onClose: () => void }) {
+  const [plan, setPlan] = useState<Awaited<ReturnType<typeof appPlan>> | null | 'none'>(null);
+  useEffect(() => { appPlan(slug).then(setPlan).catch(() => setPlan('none')); }, [slug]);
+  return (
+    <main className="bwm-print mx-auto flex max-w-4xl flex-col gap-5 px-4 py-6">
+      <div className="flex flex-wrap items-center gap-3 print:hidden">
+        <button onClick={onClose} className="min-h-11 rounded-full border-2 border-line bg-surface px-4 font-bold text-ink hover:border-accent">← My apps</button>
+        <button onClick={() => window.print()} className="min-h-11 rounded-full border-2 border-line bg-surface px-4 font-bold text-ink hover:border-accent">🖨️ Print</button>
+      </div>
+      {plan === null && <p className="text-muted">Loading…</p>}
+      {plan === 'none' && <p className="text-muted">There's no plan to show for this app.</p>}
+      {plan && plan !== 'none' && (
+        <>
+          <h1 className="text-3xl font-extrabold text-ink"><span aria-hidden>{plan.emoji}</span> How I planned {plan.name}</h1>
+          <p className="text-lg text-muted">First the plan, then the app: these are the plans I approved before it was built.</p>
+          {plan.docs.map(d => (
+            <section key={d.kind} className="rounded-3xl border-2 border-line bg-surface p-5">
+              <h2 className="mb-3 text-xl font-extrabold text-muted">{PLAN_NAMES[d.kind]}</h2>
+              <PlanCard markdown={d.markdown} />
+              <details className="mt-4 rounded-2xl border-2 border-line px-4 py-2">
+                <summary className="cursor-pointer font-bold text-muted">Show the whole plan</summary>
+                <div className="ppg-doc mt-2"><Md doc>{d.markdown}</Md></div>
+              </details>
+            </section>
+          ))}
+        </>
+      )}
+    </main>
+  );
+}
 
 export default function MyApps({ name, onClose }: { name: string; onClose: () => void }) {
   const [apps, setApps] = useState<ShelfApp[] | null>(null);
+  const [planFor, setPlanFor] = useState<string | null>(null);
   useEffect(() => { myApps().then(setApps).catch(() => setApps([])); }, []);
+  if (planFor) return <HowIPlanned slug={planFor} onClose={() => setPlanFor(null)} />;
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-5 px-4 py-6">
       <div className="flex items-center justify-between gap-3">
@@ -30,6 +68,7 @@ export default function MyApps({ name, onClose }: { name: string; onClose: () =>
                 <p className="text-sm text-muted">{new Date(a.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</p>
               </div>
               <a href={a.path} target="_blank" rel="noopener noreferrer" className="mt-auto rounded-full bg-accent px-5 py-2 text-center font-extrabold text-white">Open ↗</a>
+              {a.hasPlan && <button onClick={() => setPlanFor(a.slug)} className="min-h-11 rounded-full border-2 border-line bg-surface px-5 font-bold text-ink hover:border-accent">📄 How I planned it</button>}
             </li>
           ))}
         </ul>

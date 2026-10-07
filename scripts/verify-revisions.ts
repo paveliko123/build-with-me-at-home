@@ -39,6 +39,31 @@ function client(base: string) {
 }
 
 const APP = '<!doctype html><html><head><title>Biscuit Feeder</title></head><body><h1>Biscuit Feeder</h1><svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg></body></html>';
+const DESIGN_PLAN = `# Biscuit's Feeding Helper: The Design Plan
+
+A helper that reminds me to feed my dog, Biscuit, and shows a happy dog after I do.
+
+## How it works
+1. I open the helper and see a cartoon Biscuit and big buttons.
+2. When it's time to feed Biscuit, the helper rings a loud bell.
+3. I press the big "I fed Biscuit!" button.
+
+## What you see
+- One screen with a cartoon dog and big buttons.
+
+## The look
+- Style chosen: **Crayon Doodle**.
+- Warm yellow background.
+
+## What it does
+- **Reminder:** a loud bell sound tells me it's dinner time.
+
+## How we'll know it works
+- The loud bell rings when it's time to feed Biscuit.
+
+## What we're leaving out for now
+- Exact feeding times: not discussed.
+`;
 const reply = (say: string, question?: string, extra: object = {}) => JSON.stringify({ say, ...(question ? { question } : {}), stageComplete: false, ...extra });
 
 async function main() {
@@ -103,6 +128,38 @@ async function main() {
     add('an opened app has a thin bar with its name and "← Back"', r.status === 200 && r.text.includes('← Back') && r.text.includes('<span>Biscuit Feeder</span>'), `status ${r.status}`);
     r = await parent.call('/setup-tablet');
     add('the tablet setup "All set" says what to do if the page still says Not secure', r.text.includes('close the browser completely'), 'in the Check result');
+
+    // ---------- batch 2: the teen's plan card and "How I planned it" ----------
+    const { summarizePlan } = await import('../web/src/kid/journey/lib/planSummary.js');
+    const sum = summarizePlan(DESIGN_PLAN);
+    const icons = sum.points.map((p) => p.icon).join('');
+    add('the plan card shows the title, the one-line summary and up to 5 key sections with icons', sum.title === "Biscuit's Feeding Helper" && /reminds me to feed/.test(sum.summary) && sum.points.length >= 4 && sum.points.length <= 5 && icons.includes('⭐') && icons.includes('🎨'), `${sum.title} · ${icons} · ${sum.points.map((p) => p.label).join(' / ')}`);
+    add('…and leaves out "not discussed" lines', !JSON.stringify(sum).includes('not discussed'), 'none shown');
+
+    const leo = kids.find((k) => k.nickname === 'Leo')!;
+    const lid = 'verifyrevleo01';
+    const leoProject = {
+      ...project, id: lid, kidId: leo.id, profile: { ageGroup: 'teen', experience: 2, theme: 'space', inputMode: 'type' }, stage: 'ship', messages: [], laterIdeas: [],
+      docs: { scope: { kind: 'scope', markdown: '# Rocket Dodge\nDodge rocks in space.\n\n## How it works\n- Tap to move', status: 'approved', updatedAt: m(5) }, prd: { kind: 'prd', markdown: DESIGN_PLAN, status: 'approved', updatedAt: m(9) }, spec: { kind: 'spec', markdown: '# Tech plan', status: 'draft', updatedAt: m(12) } },
+      shipped: { name: 'Rocket Dodge', slug: 'rocket-dodge', at: now },
+    };
+    const ldir = join(FAMILY, 'kids', leo.id, 'projects', lid);
+    mkdirSync(join(ldir, 'versions'), { recursive: true });
+    writeFileSync(join(ldir, 'versions', 'v1.html'), APP);
+    writeFileSync(join(ldir, 'project.json'), JSON.stringify(leoProject));
+    mkdirSync(join(FAMILY, 'kids', leo.id, 'apps', 'rocket-dodge'), { recursive: true });
+    writeFileSync(join(FAMILY, 'kids', leo.id, 'apps', 'rocket-dodge', 'index.html'), APP);
+    writeFileSync(join(FAMILY, 'kids', leo.id, 'apps.json'), JSON.stringify({ apps: [{ slug: 'rocket-dodge', name: 'Rocket Dodge', emoji: '🚀', createdAt: now, projectId: lid, version: 1 }] }));
+    const passL = (await parent.call('/api/parent/passes', { kidId: leo.id, minutes: 30 })).body;
+    const teen = client(base);
+    await teen.call('/api/pass/open', { code: passL.code });
+    const shelfL = (await teen.call('/api/kid/apps')).body;
+    const shelfM = (await kid.call('/api/kid/apps')).body;
+    add('My apps offers "How I planned it" for a teen\'s app, never for a kid\'s', shelfL[0]?.hasPlan === true && shelfM[0]?.hasPlan === false, `teen ${shelfL[0]?.hasPlan}, kid ${shelfM[0]?.hasPlan}`);
+    r = await teen.call('/api/kid/apps/rocket-dodge/plan');
+    const r2 = await kid.call('/api/kid/apps/biscuit-feeder/plan');
+    const r3 = await kid.call('/api/kid/apps/rocket-dodge/plan');
+    add('"How I planned it" returns only approved plans, only to that teen', r.status === 200 && r.body.docs.map((d: any) => d.kind).join(',') === 'scope,prd' && r2.status === 404 && r3.status === 404, `teen ${r.status} ${r.body.docs?.map((d: any) => d.kind)} · kid's own ${r2.status} · another kid's ${r3.status}`);
   } finally {
     await server.close();
   }

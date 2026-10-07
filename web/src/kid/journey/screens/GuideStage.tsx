@@ -76,7 +76,21 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
     return () => ro.disconnect();
   }, []);
 
-  const placeholder = reply?.cards?.length ? '…or type your own answer'
+  // ✏️ Change something: the answer box asks what to change (family trial).
+  const [changing, setChanging] = useState(false);
+  useEffect(() => { setChanging(false); }, [draft?.markdown]);
+  const askChange = () => {
+    setChanging(true);
+    const box = bar.current?.querySelector<HTMLTextAreaElement | HTMLInputElement>('textarea, input[type=text]');
+    box?.scrollIntoView({ block: 'nearest' });
+    box?.focus();
+  };
+  const seePlan = () => {
+    if (draft) onPane(draft.kind as Pane);
+    window.setTimeout(() => document.getElementById('bwm-plan')?.scrollIntoView({ block: 'start' }), 50);
+  };
+  const placeholder = changing ? 'What would you like to change?'
+    : reply?.cards?.length ? '…or type your own answer'
     : draft ? 'Say "looks good", or tell me what to change'
     : reply?.question ? 'Type your answer' : 'Type here';
   const current: Pane = pane !== 'picture' && shownDocs.includes(pane) ? pane
@@ -107,6 +121,7 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
                 )}
                 {reply.tooBig && <p className="mt-4 rounded-2xl bg-accent-soft px-4 py-3 font-bold text-ink">🐘 That one's too big to build in one go, so let's shrink it!</p>}
                 {reply.techSummary && <p className="mt-4 rounded-2xl bg-accent-soft px-4 py-3 font-bold text-ink">🛠️ {reply.techSummary}</p>}
+                {draft && <button onClick={seePlan} className="mt-4 min-h-11 rounded-full border-2 border-accent bg-surface px-5 font-bold text-ink lg:hidden">📋 See your plan</button>}
               </>
             )}
             {error && !busy && (error.startsWith('LIMIT:')
@@ -156,7 +171,8 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
           </div>
         )}
         {current !== 'picture'
-          ? <DocReview doc={docs[current]!} className="flex-1" />
+          ? <DocReview doc={docs[current]!} className="flex-1" busy={busy}
+              onApprove={() => onSend('Looks good!')} onChange={askChange} />
           : visual
             ? <VisualPane title="Picture of the idea" html={visual} fit className="min-h-[420px] flex-1" />
             : <div className="flex min-h-[420px] flex-1 items-center justify-center rounded-3xl border-2 border-dashed border-line px-6 text-center text-lg text-muted">Pictures of your idea will show up here</div>}

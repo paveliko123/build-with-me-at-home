@@ -14,7 +14,7 @@ import { LimitError } from './claude.js';
 import { buildApp, latestVersion, type BuildMode } from './build.js';
 import { changeTurn } from './changes.js';
 import { shelf, shipApp, type ShelfApp } from './apps.js';
-import { commitProject, createProject, currentProject, exclusive, exclusiveBuild, leaveCurrent, thread, type Project } from './project.js';
+import { commitProject, createProject, currentProject, exclusive, exclusiveBuild, leaveCurrent, readProject, thread, type Project } from './project.js';
 import { firstStage, stageDocKind } from './stages.js';
 import { makeReport, noteUsageStart } from '../report/reporter.js';
 import { addAlert } from '../report/alerts.js';
@@ -29,12 +29,21 @@ const STEP_NAMES: Record<Stage, string> = { start: 'Start', idea: 'Idea', design
 const sessionOf = (req: Request) => (req as any).kidSession as KidSession;
 const copy = (p: Project): Project => structuredClone(p);
 
+/** The plans a teen approved for a shipped app ("📄 How I planned it" in My apps). Kids never see
+ *  plans (prd.md > The Kid's Journey), so theirs stay behind the scenes. */
+const PLAN_KINDS = ['scope', 'prd', 'spec'] as const;
+function plansOf(kidId: string, app: ShelfApp) {
+  const p = readProject(kidId, app.projectId);
+  if (!p || p.profile.experience < 2) return [];
+  return PLAN_KINDS.map((k) => p.docs[k]).filter((d) => d?.status === 'approved').map((d) => ({ kind: d!.kind, markdown: d!.markdown }));
+}
+
 /** Links for a shelf app: on this device, and on the home network (for the QR code). */
 export async function appLinks(kidId: string, app: ShelfApp, httpsPort: number) {
   const path = `/apps/${kidId}/${app.slug}/`;
   const ip = homeAddresses()[0];
   const homeUrl = ip ? `https://${ip}:${httpsPort}${path}` : null;
-  return { ...app, path, homeUrl, qr: homeUrl ? await QRCode.toDataURL(homeUrl, { margin: 1, width: 240 }) : null };
+  return { ...app, path, homeUrl, qr: homeUrl ? await QRCode.toDataURL(homeUrl, { margin: 1, width: 240 }) : null, hasPlan: plansOf(kidId, app).length > 0 };
 }
 
 /** What the screen needs to pick up where the kid left off (getSession). */
@@ -196,6 +205,15 @@ export function shelfRoutes(opts: { httpsPort: number }): Router {
   r.get('/', async (req, res) => {
     const s = sessionOf(req);
     res.json(await Promise.all(shelf(s.kid.id).map((a) => appLinks(s.kid.id, a, opts.httpsPort))));
+  });
+  // "📄 How I planned it": this kid's approved plans for one of their shipped apps.
+  r.get('/:slug/plan', (req, res) => {
+    const s = sessionOf(req);
+    const app = shelf(s.kid.id).find((a) => a.slug === req.params.slug);
+    const docs = app ? plansOf(s.kid.id, app) : [];
+    if (!app || !docs.length) { res.status(404).json({ error: 'not found' }); return; }
+    const p = readProject(s.kid.id, app.projectId)!;
+    res.json({ name: app.name, emoji: app.emoji, theme: p.profile.theme, docs });
   });
   return r;
 }

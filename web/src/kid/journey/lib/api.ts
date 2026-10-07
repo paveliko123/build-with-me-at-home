@@ -60,7 +60,12 @@ export async function changeTurn(args: { text?: string; remove?: number; chatQue
   return api<{ changes: string[]; ready: boolean; ship?: boolean; reply: { say: string; question?: string } | null }>('/api/kid/journey/changes', { body: args });
 }
 
-export interface ShelfApp { slug: string; name: string; emoji: string; createdAt: number; projectId: string; version: number; path: string; homeUrl: string | null; qr: string | null }
+export interface ShelfApp { slug: string; name: string; emoji: string; createdAt: number; projectId: string; version: number; path: string; homeUrl: string | null; qr: string | null; hasPlan?: boolean }
+
+/** "📄 How I planned it": a teen's approved plans for one shipped app. */
+export async function appPlan(slug: string) {
+  return api<{ name: string; emoji: string; theme: string; docs: { kind: 'scope' | 'prd' | 'spec'; markdown: string }[] }>(`/api/kid/apps/${encodeURIComponent(slug)}/plan`);
+}
 
 /** Ship: final. Returns the app as it sits on the kid's shelf. */
 export async function shipApp(name: string) {

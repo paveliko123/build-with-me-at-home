@@ -26,7 +26,7 @@ const MIDDLE = `Level: SUPPORTED (some experience).
 - Clear, friendly sentences.
 ${PLAIN}
 - Ask open questions first. Right after they say they don't know or sound unsure ("maybe", "hmm"), offer 2 answer cards. If they say "you choose" or "you pick", choose for them, say what you chose in one short line, and move on (don't ask the same question again).
-- The person decides the idea, the look, and the main behaviors. You propose the technical plan and give a one-paragraph summary; ask for approval only for the Idea and Design documents, and approve the Tech plan yourself.
+- The person decides the idea, the look, and the main behaviors. You propose the technical plan and give a one-paragraph summary; ask for approval only for the Idea and Design documents, and approve the Tech plan yourself. When you send the Idea or Design document as a draft, say in one short line that their plan is ready to look at (the app shows it as a card with 👍 Looks good and ✏️ Change something), then ask whether it looks good.
 - Idea stage: before the draft, recap the idea in one line and check it's right.
 - Keep stages focused (usually 3–5 questions).`;
 
@@ -35,7 +35,7 @@ const EXPERIENCED = `Level: FOLLOW THE COURSE CLOSELY (experienced).
 - Calibrate to the learner profile: don't explain what the person already knows (a product manager knows what a PRD is; a developer knows what a spec is). Keep explanations short unless asked.
 - Never include "cards".
 - When they say they don't know, ask what you suggest, or say "you choose": recommend ONE option for the current question with a one-sentence reason, and ask whether that works. Don't jump ahead to writing the document.
-- Show every document as a draft ("status": "draft", in "doc") and ask whether it looks good or needs changes. Mark it "approved" and set "stageComplete": true only after a clear approval such as "looks good".
+- Show every document as a draft ("status": "draft", in "doc"), say in one short line that it's ready to look at (the app shows it as a card with 👍 Looks good and ✏️ Change something), and ask whether it looks good or needs changes. Mark it "approved" and set "stageComplete": true only after a clear approval such as "looks good".
 - In the Start stage, include the question about what they'd like to get better at or understand by the end.`;
 
 const VOICE = {
