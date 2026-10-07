@@ -6,10 +6,11 @@ import { spawnSync } from 'node:child_process';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const run = (args) => {
   console.log(`\n> npm ${args.join(' ')}`);
-  const r = spawnSync(npm, args, { stdio: 'inherit', shell: process.platform === 'win32' });
+  const r = process.platform === 'win32'
+    ? spawnSync(`npm.cmd ${args.join(' ')}`, { stdio: 'inherit', shell: true })
+    : spawnSync('npm', args, { stdio: 'inherit' });
   if (r.status !== 0) { console.error(`\nRelease stopped: npm ${args.join(' ')} failed.`); process.exit(1); }
 };
 

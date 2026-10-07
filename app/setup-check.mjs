@@ -22,8 +22,12 @@ function installPackages() {
   for (const f of ['package.json', 'package-lock.json']) cpSync(join(ROOT, f), join(RUNTIME, f));
   rmSync(join(RUNTIME, 'app'), { recursive: true, force: true });
   cpSync(join(ROOT, 'app', 'dist'), join(RUNTIME, 'app', 'dist'), { recursive: true });
-  const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-  const r = spawnSync(npm, ['ci', '--omit=dev', '--no-audit', '--no-fund', '--loglevel=error'], { cwd: RUNTIME, stdio: 'inherit', shell: process.platform === 'win32', env: cleanEnv() });
+  // Windows runs npm.cmd through the shell: one command line (fixed words only), so Node doesn't
+  // warn about unescaped arguments in the parent's setup output.
+  const args = ['ci', '--omit=dev', '--no-audit', '--no-fund', '--loglevel=error'];
+  const r = process.platform === 'win32'
+    ? spawnSync(`npm.cmd ${args.join(' ')}`, { cwd: RUNTIME, stdio: 'inherit', shell: true, env: cleanEnv() })
+    : spawnSync('npm', args, { cwd: RUNTIME, stdio: 'inherit', env: cleanEnv() });
   if (r.status !== 0) { console.error('npm ci failed'); process.exit(1); }
   writeFileSync(stampFile, JSON.stringify(wantStamp()));
   console.log('Packages installed.');
