@@ -227,6 +227,8 @@ export class Conversation {
 export interface OneShotOptions extends IsolationOptions, RunnerEvents {
   prompt: string;
   timeoutMs?: number;
+  /** The reply's text as it arrives (Claude Code's partial messages), for a progress view. */
+  onDelta?: (text: string) => void;
 }
 
 export function oneShot(o: OneShotOptions): Promise<TurnResult> {
@@ -234,7 +236,7 @@ export function oneShot(o: OneShotOptions): Promise<TurnResult> {
   return new Promise((resolve) => {
     let proc: ChildProcessWithoutNullStreams;
     try {
-      proc = spawnClaude([...isolationArgs(o), '--output-format', 'stream-json', '--verbose']);
+      proc = spawnClaude([...isolationArgs(o), '--output-format', 'stream-json', '--verbose', ...(o.onDelta ? ['--include-partial-messages'] : [])]);
     } catch (e) {
       resolve({ ok: false, text: '', costUsd: 0, usage: {}, durationMs: 0, error: (e as Error).message });
       return;
@@ -254,6 +256,9 @@ export function oneShot(o: OneShotOptions): Promise<TurnResult> {
       else if (msg.type === 'rate_limit_event') { lastRateLimit = msg.rate_limit_info; o.onRateLimit?.(msg.rate_limit_info); }
       else if (msg.type === 'system' && msg.subtype === 'api_retry') o.onRetry?.(msg);
       else if (msg.type === 'result') result = toTurnResult(msg, started, lastRateLimit);
+      else if (msg.type === 'stream_event' && o.onDelta && msg.event?.type === 'content_block_delta' && msg.event.delta?.type === 'text_delta' && typeof msg.event.delta.text === 'string') {
+        try { o.onDelta(msg.event.delta.text); } catch { /* a progress view never breaks a build */ }
+      }
     });
     proc.on('close', (code) => {
       finish(result ?? { ok: false, text: '', costUsd: 0, usage: {}, durationMs: Date.now() - started, error: `claude exited (${code}): ${scrubText(stderr.slice(-500))}` });

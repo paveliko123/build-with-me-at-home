@@ -162,6 +162,15 @@ function cleanReply(reply: GuideReply, profile: Profile, probeFirst: boolean, un
   if (reply.techSummary) clean.techSummary = String(reply.techSummary).slice(0, 300);
   if (reply.tooBig) clean.tooBig = true;
   if (typeof reply.laterIdea === 'string' && reply.laterIdea.trim()) clean.laterIdea = personText(reply.laterIdea).trim().slice(0, 140);
+  if (Array.isArray(reply.buildSteps)) {
+    const kinds = ['look', 'drawing', 'rules', 'tap', 'move', 'sound', 'memory'];
+    const steps = reply.buildSteps
+      .filter((s) => s && typeof s.step === 'string' && typeof s.word === 'string' && kinds.includes(s.kind))
+      .map((s) => ({ step: personText(s.step).trim().slice(0, 60), word: s.word.trim().toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24), kind: s.kind }))
+      .filter((s) => s.step && s.word.length >= 2)
+      .slice(0, 6);
+    if (steps.length >= 2) clean.buildSteps = steps;
+  }
   if (Array.isArray(reply.appEmojis)) {
     const emojis = [...new Set(reply.appEmojis.map(oneEmoji).filter((e): e is string => !!e))].slice(0, 6);
     if (emojis.length) clean.appEmojis = emojis;
@@ -390,6 +399,7 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
     }
 
     if (reply.appEmojis?.length) session.appEmojis = reply.appEmojis;
+    if (reply.buildSteps?.length && stage === 'tech') session.buildSteps = reply.buildSteps;
 
     // Waiting chat: keep the kid's idea so the app can offer it when the build is ready
     // (family trial: ideas asked "for later" were lost). Only from a real answer.

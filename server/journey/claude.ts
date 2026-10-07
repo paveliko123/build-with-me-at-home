@@ -182,10 +182,10 @@ export async function callCheck(label: string, system: string, prompt: string, s
 const BUILD_TIMEOUT_MS = 12 * 60_000; // big apps can take several minutes to write
 
 /** The builder (Opus) writes one complete HTML document, or edits in the EDIT FORMAT (plain text). */
-export async function callBuilder(system: string, prompt: string): Promise<{ text: string; meta: CallMeta }> {
+export async function callBuilder(system: string, prompt: string, onDelta?: (text: string) => void): Promise<{ text: string; meta: CallMeta }> {
   const model: Model = currentMix().builder;
   if (simulatedLimit()) throw new LimitError(Date.now() + 60 * 60_000);
-  const r = await oneShot({ model, systemPrompt: salted(system), prompt, timeoutMs: BUILD_TIMEOUT_MS, onRateLimit: rateLimitListener });
+  const r = await oneShot({ model, systemPrompt: salted(system), prompt, timeoutMs: BUILD_TIMEOUT_MS, onRateLimit: rateLimitListener, onDelta });
   if (limited(r)) throw new LimitError(r.rateLimit?.resetsAt ? r.rateLimit.resetsAt * 1000 : undefined);
   if (!r.ok) throw new GuideError(`the builder did not answer: ${(r.error ?? '').slice(0, 200)}`);
   return { text: r.text, meta: metaOf('generateApp', model, r) };

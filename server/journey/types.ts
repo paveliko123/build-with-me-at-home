@@ -42,6 +42,7 @@ export interface GuideReply {
   techSummary?: string;
   tooBig?: boolean;
   appEmojis?: string[]; // emojis that fit the app (the icon choice at Ship)
+  buildSteps?: { step: string; word: string; kind: 'look' | 'drawing' | 'rules' | 'tap' | 'move' | 'sound' | 'memory' }[]; // Tech plan: the parts of the app, ticked off while it builds
   laterIdea?: string; // waiting chat: the kid's idea as a short change, offered when the app is ready
   stageComplete: boolean;
 }

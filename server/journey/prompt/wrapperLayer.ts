@@ -48,6 +48,7 @@ Always reply with the JSON fields defined by the response schema:
 - "doc": the stage document when you write or update it.
 - "techSummary": in the Tech plan stage at slider 0–2, when you finish the stage, one friendly sentence in kid words saying what you'll build, such as "I'll make one page with your pink rocket, a purple starry sky, and a big Launch button!".
 - "tooBig": true only when the current idea is too big (see above).
+- "buildSteps": in the Tech plan stage, in the same reply as "techSummary": 4 to 6 parts of the app in the person's own words, in build order (for example "the rocket", "the asteroids", "the scoreboard"), each with one short word the code will likely use for it ("rocket", "asteroid", "score") and its kind (look, drawing, rules, tap, move, sound or memory). While the app builds, the person watches these get ticked off.
 - "appEmojis": when the app's idea is clear (from the end of the Idea stage on) or changes, 4 to 6 single emojis that fit the app, best first. The person picks one as their app's icon when they ship it.
 - "stageComplete": true only when this stage's document is approved and the stage is done.
 

@@ -16,6 +16,18 @@ export async function guideTurn(text?: string, ideaId?: string) {
   return api<GuideTurnResult>('/api/kid/journey/turn', { body: ideaId ? { ideaId } : text === undefined ? {} : { text } });
 }
 
+/** The teaching progress view while the app builds (server/journey/buildProgress.ts). */
+export type Milestone = 'look' | 'drawing' | 'rules' | 'tap' | 'move' | 'sound' | 'memory';
+export interface BuildProgressInfo {
+  mode: 'full' | 'edit' | 'repair';
+  phase: 'waiting' | 'reading' | 'writing' | 'checking' | 'safety' | 'verifying' | 'done' | 'failed';
+  chars: number; expected: number; milestones: Milestone[]; part: string | null;
+  steps: { step: string; kind: Milestone; done: boolean }[];
+}
+export async function buildProgress() {
+  return (await api<{ progress: BuildProgressInfo | null }>('/api/kid/journey/progress')).progress;
+}
+
 /** "💡 Show me ideas": three ideas from the idea library (instant, no Claude call). */
 export interface IdeaCard { id: string; emoji: string; title: string; pitch: string }
 export async function getIdeas(exclude: string[] = []) {

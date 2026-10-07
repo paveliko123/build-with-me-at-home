@@ -3,6 +3,7 @@
 // documents, the transcript (personal details already masked), flags, and what each call cost.
 // kids/<kidId>/current.json points at the unfinished project the next pass resumes.
 
+import type { BuildStep } from './buildProgress.js';
 import { randomBytes } from 'node:crypto';
 import { readJson, writeJson, updateJson } from '../store.js';
 import type { CallMeta } from './claude.js';
@@ -34,6 +35,7 @@ export interface Project {
   laterIdeas?: string[]; // ideas from the waiting chat (offered when the app is ready; in the report)
   appEmojis?: string[]; // emojis that fit the app, from the guide (the icon choice at Ship)
   ideaSource?: { id: string; title: string; at: number }; // started from an idea in the idea library
+  buildSteps?: BuildStep[]; // the parts of the app from the Tech plan, ticked off while it builds
 }
 
 const projectFile = (kidId: string, id: string) => `kids/${kidId}/projects/${id}/project.json`;
@@ -137,6 +139,7 @@ export function commitProject(before: Project, after: Project): Project {
     if (!same(before.shipped, after.shipped)) fresh.shipped = after.shipped;
     if (!same(before.appEmojis, after.appEmojis)) fresh.appEmojis = after.appEmojis;
     if (!same(before.ideaSource, after.ideaSource)) fresh.ideaSource = after.ideaSource;
+    if (!same(before.buildSteps, after.buildSteps)) fresh.buildSteps = after.buildSteps;
     const newIdeas = (after.laterIdeas ?? []).filter((i) => !(before.laterIdeas ?? []).includes(i));
     if (newIdeas.length) fresh.laterIdeas = [...(fresh.laterIdeas ?? []), ...newIdeas.filter((i) => !(fresh.laterIdeas ?? []).includes(i))].slice(-8);
     if (before.device !== after.device) fresh.device = after.device;

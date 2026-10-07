@@ -5,6 +5,7 @@
 // (minutes) and the kid's chat or change list can run side by side.
 // Implements prd.md > The Kid's Journey, My Apps, States and Boundaries (coming back).
 
+import { getProgress } from './buildProgress.js';
 import { pickIdeas } from './ideas.js';
 import express, { Router, type Request, type Response } from 'express';
 import QRCode from 'qrcode';
@@ -143,6 +144,12 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
   // One conversation turn (text empty = the guide opens the current stage; in Build, the
   // waiting chat).
   r.post('/turn', (req, res) => withProject(req, res, 'chat', (p) => guideTurn(p, typeof req.body?.text === 'string' ? req.body.text : undefined, { ideaId: typeof req.body?.ideaId === 'string' ? req.body.ideaId : undefined })));
+
+  // The teaching progress view while the app builds (buildProgress.ts): milestones, not code.
+  r.get('/progress', (req, res) => {
+    const p = currentProject(sessionOf(req).kid.id);
+    res.json({ progress: p ? getProgress(p.id) : null });
+  });
 
   // "💡 Show me ideas": three from the idea library for this kid (instant, no Claude call).
   r.get('/ideas', (req, res) => {

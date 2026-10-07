@@ -12,7 +12,8 @@ import Md from '../components/Md';
 import Thinking from '../components/Thinking';
 import VisualPane from '../components/VisualPane';
 import WaitingAnimation from '../components/WaitingAnimation';
-import { addIdeas, changeTurn, generateApp, guideTurn, limitMessage, passEnded, type BuildMode } from '../lib/api';
+import { addIdeas, buildProgress, changeTurn, generateApp, guideTurn, limitMessage, passEnded, type BuildMode, type BuildProgressInfo } from '../lib/api';
+import BuildProgress, { progressLine } from '../components/BuildProgress';
 import { speak, stopSpeaking, voiceReady, warmVoice } from '../lib/voice';
 import { pauseFor } from '../lib/speech';
 import type { Profile } from '../types';
@@ -114,6 +115,30 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
   const [listenToken, setListenToken] = useState(0);
   // What's building now, shown on a small badge so the app stays usable underneath.
   const [buildLabel, setBuildLabel] = useState('');
+  // The teaching progress view (family trial: "Building…" for minutes): what the builder is
+  // working on, asked every 1.5 s while a build runs. In talk mode, one milestone is said aloud.
+  const [progress, setProgress] = useState<BuildProgressInfo | null>(null);
+  const toldDrawing = useRef(false);
+  useEffect(() => {
+    if (!building) return;
+    setProgress(null);
+    let live = true;
+    const tick = async () => {
+      try {
+        const p = await buildProgress();
+        if (!live) return;
+        setProgress(p);
+        if (p?.mode === 'full' && voiceOnRef.current && !toldDrawing.current && p.milestones.includes('drawing')) {
+          toldDrawing.current = true;
+          say({ from: 'guide', text: young ? "I'm drawing your pictures now!" : 'Now drawing the pictures.' });
+        }
+      } catch { /* the badge keeps its label */ }
+    };
+    void tick();
+    const id = window.setInterval(tick, 1500);
+    return () => { live = false; window.clearInterval(id); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [building]);
 
   // Voice: read each new guide line aloud; after a question, listen for the answer (after a
   // short pause, so the microphone doesn't catch the end of the guide's own voice).
@@ -474,15 +499,15 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
       <section ref={preview} className="relative order-1 min-h-0 md:order-2">
         {html && <VisualPane title="Your app" html={html} onAppError={onAppError} className="h-full min-h-0" />}
         {!html && (
-          <div className="absolute inset-0 flex items-center justify-center rounded-3xl border-2 border-line bg-surface/95">
+          <div className="absolute inset-0 flex overflow-y-auto rounded-3xl border-2 border-line bg-surface/95">
             {choosingMode
-              ? <p className="px-6 text-center text-2xl font-extrabold text-ink"><span className="md:hidden">↓</span><span className="hidden md:inline">←</span> Choose learn or fast mode to start building</p>
-              : <WaitingAnimation theme={profile.theme} />}
+              ? <p className="m-auto px-6 text-center text-2xl font-extrabold text-ink"><span className="md:hidden">↓</span><span className="hidden md:inline">←</span> Choose learn or fast mode to start building</p>
+              : <div className="m-auto flex w-full flex-col items-center gap-4 py-4"><div className="scale-75"><WaitingAnimation theme={profile.theme} /></div><BuildProgress progress={progress} young={young} fallback={buildLabel} /></div>}
           </div>
         )}
         {html && building && (
           <div role="status" className="pointer-events-none absolute right-4 top-4 flex items-center gap-2 rounded-full bg-accent px-4 py-2 font-bold text-white shadow-lg">
-            <span className="ppg-bounce inline-block" aria-hidden>⏳</span>{buildLabel}
+            <span className="ppg-bounce inline-block" aria-hidden>⏳</span>{progressLine(progress, young, buildLabel)}
           </div>
         )}
       </section>

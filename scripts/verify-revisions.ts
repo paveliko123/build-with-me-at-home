@@ -221,6 +221,32 @@ async function main() {
     add('the kid screen gets three idea cards (emoji, title, pitch) instantly, and new ones on "More ideas"', r.status === 200 && r.body.ideas.length === 3 && r.body.ideas.every((i: any) => i.emoji && i.title && i.pitch && !i.buildNotes) && overlap === 0, r.body.ideas.map((i: any) => `${i.emoji} ${i.title}`).join(' · '));
     const reportIdea = renderReport({ ...base0, ideaSource: 'The Lost Ducklings' } as any);
     add('the parent report says the kid started from an idea-list idea', reportIdea.includes('started from an idea from the idea list') && reportIdea.includes('The Lost Ducklings'), 'in "Whose ideas?"');
+
+    // ---------- batch 5: the teaching progress view while building ----------
+    const prog = await import('../server/journey/buildProgress.js');
+    const real = readFileSync(join(process.cwd(), 'scripts', 'fixtures', 'star-catcher.html'), 'utf8'); // a real Opus build (live test)
+    const steps = [{ step: 'the night sky', word: 'sky', kind: 'drawing' as const }, { step: 'the basket', word: 'basket', kind: 'tap' as const }, { step: 'the ding', word: 'ding', kind: 'sound' as const }];
+    prog.startProgress('replay1', 'full', 30_000, steps);
+    const firstBasket = real.toLowerCase().indexOf('basket');
+    const fnBasket = real.indexOf('function drawBasket');
+    let basketEarly = false, leaked = false;
+    for (let i = 0; i < real.length; i += 300) {
+      prog.onText('replay1', real.slice(i, i + 300));
+      const g = prog.getProgress('replay1')!;
+      if (i + 300 > firstBasket && i + 300 < fnBasket - 300 && g.steps[1].done) basketEarly = true;
+      if (JSON.stringify(g).includes('<')) leaked = true;
+    }
+    const replay = prog.getProgress('replay1')!;
+    add('streaming the real build gives every milestone, in the order it was written', JSON.stringify(replay.milestones) === JSON.stringify(['look', 'drawing', 'rules', 'memory', 'sound', 'tap', 'move']) && replay.chars === real.length, replay.milestones.join(' → '));
+    add('a plan step ticks when its part is written, not when the word first shows up', !basketEarly && replay.steps[0].done && replay.steps[1].done && !replay.steps[2].done, replay.steps.map((s) => `${s.step} ${s.done ? '✓' : '·'}`).join(', '));
+    prog.setPhase('replay1', 'done');
+    add('…and every step is ticked when the build is done', prog.getProgress('replay1')!.steps.every((s) => s.done), 'all ✓');
+    add('the progress never carries the code itself (only names and counts)', !leaked && /^[A-Za-z][A-Za-z0-9]*$/.test(replay.part ?? ''), `last part: ${replay.part}()`);
+    prog.startProgress('replay2', 'full', 30_000, []);
+    prog.onText('replay2', '<script>function killAll(){} function spawnStar(){} function shootDown(){}');
+    add('part names with unkind words are never shown', prog.getProgress('replay2')!.part === 'spawnStar', `shown: ${prog.getProgress('replay2')!.part}()`);
+    r = await kid.call('/api/kid/journey/progress');
+    add('the kid screen asks for progress (nothing while no build runs)', r.status === 200 && r.body.progress === null, JSON.stringify(r.body));
   } finally {
     await server.close();
   }
