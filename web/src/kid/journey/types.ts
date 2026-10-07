@@ -37,6 +37,7 @@ export interface GuideReply {
   doc?: StageDoc;
   techSummary?: string;
   tooBig?: boolean;
+  appEmojis?: string[]; // emojis that fit the app (the icon choice at Ship)
   laterIdea?: string;
   stageComplete: boolean;
 }
@@ -63,5 +64,6 @@ export interface SessionSnapshot {
   app: { version: number; html: string } | null;
   stepsBuilt: number;
   pendingChanges: string[]; // the change list waiting to be built
+  appEmojis?: string[]; // emojis that fit the app (the icon choice at Ship)
   techSummary?: string; // the Tech plan's one-line "Here's how I'll build it!"
 }

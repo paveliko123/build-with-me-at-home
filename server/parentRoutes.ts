@@ -138,7 +138,7 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
 
   // ---- each kid's apps (prd.md > My Apps: Kids & their apps → Manage) ----
   r.get('/apps', (_req, res) => {
-    res.json(Object.fromEntries(readFamily().kids.map((k) => [k.id, shelf(k.id).map((a) => ({ ...a, path: `/apps/${k.id}/${a.slug}/` }))])));
+    res.json(Object.fromEntries(readFamily().kids.map((k) => [k.id, shelf(k.id).map((a) => ({ ...a, path: `/apps/${k.id}/${a.slug}/`, iconUrl: a.icon ? `/apps/${k.id}/${a.slug}/icon.svg` : null }))])));
   });
   r.delete('/kids/:kidId/apps/:slug', (req, res) => {
     if (!deleteApp(String(req.params.kidId), String(req.params.slug))) { res.status(404).json({ error: 'That app is already gone.' }); return; }

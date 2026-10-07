@@ -43,7 +43,7 @@ export async function appLinks(kidId: string, app: ShelfApp, httpsPort: number) 
   const path = `/apps/${kidId}/${app.slug}/`;
   const ip = homeAddresses()[0];
   const homeUrl = ip ? `https://${ip}:${httpsPort}${path}` : null;
-  return { ...app, path, homeUrl, qr: homeUrl ? await QRCode.toDataURL(homeUrl, { margin: 1, width: 240 }) : null, hasPlan: plansOf(kidId, app).length > 0 };
+  return { ...app, path, iconUrl: app.icon ? `${path}icon.svg` : null, homeUrl, qr: homeUrl ? await QRCode.toDataURL(homeUrl, { margin: 1, width: 240 }) : null, hasPlan: plansOf(kidId, app).length > 0 };
 }
 
 /** What the screen needs to pick up where the kid left off (getSession). */
@@ -69,7 +69,7 @@ export function snapshot(p: Project) {
     docs: Object.values(p.docs).filter((d) => !!d).map((d) => ({ kind: d!.kind, markdown: d!.markdown, status: d!.status })),
     shipped: !!p.shipped,
     checklist: null,
-    app: latest ? { version: latest.n, html: latest.html } : null, stepsBuilt: 0, pendingChanges: p.pendingChanges ?? [],
+    app: latest ? { version: latest.n, html: latest.html } : null, stepsBuilt: 0, pendingChanges: p.pendingChanges ?? [], appEmojis: p.appEmojis ?? [],
   };
 }
 
@@ -182,7 +182,9 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
 
   // Ship: the kid names the app; it goes on their shelf (final).
   r.post('/ship', (req, res) => withProject(req, res, 'chat', async (p, s) => {
-    const out = shipApp(p, String(req.body?.name ?? ''));
+    const raw = req.body?.icon;
+    const choice = raw?.kind === 'drawing' ? { kind: 'drawing' as const } : raw?.kind === 'emoji' && typeof raw.emoji === 'string' ? { kind: 'emoji' as const, emoji: raw.emoji } : undefined;
+    const out = shipApp(p, String(req.body?.name ?? ''), choice);
     if (!out.ok) throw new TurnError(409, out.error);
     // The parent report, once the ship is saved (it runs in the background: Opus takes a minute).
     setTimeout(() => void makeReport(s.kid.id, p.id, { finished: true, pass: s.pass }).catch((e) => console.error('[report]', e)), 100);

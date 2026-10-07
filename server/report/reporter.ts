@@ -5,6 +5,8 @@
 // the safety lines, "worth a chat?" and the conversation starters. Saved as report-data/<id>.json
 // (for All reports) and as a self-contained HTML file in Reports\ that opens without the app.
 
+import { appIcon } from '../journey/apps.js';
+import { svgDataUrl } from '../journey/appIcon.js';
 import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, renameSync, rmdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -26,7 +28,7 @@ export interface ReportData {
   finished: boolean; createdAt: number; startedAt: number; endedAt: number;
   activeMinutes: number; passMinutes: number | null; rounds: number; device: string; answered: 'talking' | 'typing';
   stoppedAt?: string;
-  app: { name: string; path: string; url: string; emoji: string; description: string } | null;
+  app: { name: string; path: string; url: string; emoji: string; icon?: string; description: string } | null;
   usage: UsageInfo | LegacyUsage;
   flags: { at: number; stage: string; verdict: string; category: string; text: string; headline: string; guideDid: string; kidReaction: string }[];
   checks: { personal: { ok: boolean; text: string }; output: { ok: boolean; text: string }; onTopic: { ok: boolean; text: string } };
@@ -291,7 +293,7 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
       rounds: (p.versions ?? []).filter((v) => v.mode === 'edit').length,
       device: p.device ?? pass?.device ?? 'Unknown device', answered: p.profile.inputMode === 'talk' ? 'talking' : 'typing',
       ...(opts.finished ? {} : { stoppedAt: STEP[p.stage] }),
-      app: shelfApp ? { name: shelfApp.name, path: `/apps/${kidId}/${shelfApp.slug}/`, url: `http://localhost:${appPort}/apps/${kidId}/${shelfApp.slug}/`, emoji: shelfApp.emoji, description: ai?.appDescription ?? '' } : null,
+      app: shelfApp ? { name: shelfApp.name, path: `/apps/${kidId}/${shelfApp.slug}/`, url: `http://localhost:${appPort}/apps/${kidId}/${shelfApp.slug}/`, emoji: shelfApp.emoji, ...(shelfApp.icon && appIcon(kidId, shelfApp.slug) ? { icon: svgDataUrl(appIcon(kidId, shelfApp.slug)!) } : {}), description: ai?.appDescription ?? '' } : null,
       usage, flags, ...(p.laterIdeas?.length ? { laterIdeas: p.laterIdeas } : {}),
       checks: ai?.checks ?? {
         personal: { ok: !p.flags.some((f) => f.verdict === 'personal'), text: p.flags.some((f) => f.verdict === 'personal') ? 'A personal detail came up; it was hidden.' : 'No personal details shared.' },

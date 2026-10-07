@@ -62,7 +62,7 @@ export default function MyApps({ name, onClose }: { name: string; onClose: () =>
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {apps.map(a => (
             <li key={a.slug} className="flex flex-col gap-3 rounded-3xl border-2 border-line bg-surface p-5">
-              <div className="text-5xl" aria-hidden>{a.emoji}</div>
+              {a.iconUrl ? <img src={a.iconUrl} alt="" width={64} height={64} className="rounded-2xl" /> : <div className="text-5xl" aria-hidden>{a.emoji}</div>}
               <div>
                 <p className="text-xl font-extrabold text-ink">{a.name}</p>
                 <p className="text-sm text-muted">{new Date(a.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</p>

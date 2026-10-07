@@ -3,7 +3,7 @@
 // Ported from Build With Me's ShipScreen (whose public share links are gone: apps stay at home).
 import { useEffect, useRef, useState } from 'react';
 import VisualPane from '../components/VisualPane';
-import { limitMessage, myApps, newApp, passEnded, shipApp, type ShelfApp } from '../lib/api';
+import { limitMessage, myApps, newApp, passEnded, shipApp, type IconChoice, type ShelfApp } from '../lib/api';
 import { themeById } from '../themes/themes';
 import { speak, stopSpeaking } from '../lib/voice';
 import { pauseFor, useSpeech } from '../lib/speech';
@@ -13,6 +13,7 @@ interface Props {
   profile: Profile;
   html: string;
   alreadyShipped?: boolean; // resumed after shipping
+  appEmojis?: string[]; // icon choices from the guide
   onBack: () => void;
   onShipped?: () => void;
   voiceOn?: boolean;
@@ -20,6 +21,22 @@ interface Props {
 }
 
 type Shipped = ShelfApp & { url: string };
+
+/** The builder's drawn icon (<svg id="bwm-icon">) as an image address, or null. Shown only as an
+ *  <img>, so nothing in it can run; the server checks it again when the app ships. */
+function drawnIcon(html: string): string | null {
+  const svg = html.match(/<svg\b[^>]*\bid\s*=\s*["']bwm-icon["'][^>]*>[\s\S]*?<\/svg>/i)?.[0];
+  if (!svg || svg.length > 8000 || /<\s*(script|foreignObject|image|a|use|style)\b|\son[a-z]+\s*=|javascript:|https?:|\bhref\s*=/i.test(svg)) return null;
+  const clean = svg.replace(/\sstyle\s*=\s*["'][^"']*["']/i, '').replace(/^<svg\b/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(clean)}`;
+}
+
+/** Shows an icon choice: the drawing, or an emoji. */
+export function IconView({ choice, drawing, size }: { choice: IconChoice; drawing: string | null; size: number }) {
+  return choice.kind === 'drawing' && drawing
+    ? <img src={drawing} alt="" width={size} height={size} className="rounded-2xl" />
+    : <span style={{ fontSize: size * 0.8, lineHeight: 1 }} aria-hidden>{choice.kind === 'emoji' ? choice.emoji : '✨'}</span>;
+}
 
 /** A starting name: the app's own page title, if it has one. */
 function suggestedName(html: string): string {
@@ -46,7 +63,7 @@ export function spokenName(said: string): string {
     .slice(0, 60);
 }
 
-export default function ShipScreen({ profile, html, alreadyShipped = false, onBack, onShipped, voiceOn = false, onPassEnded }: Props) {
+export default function ShipScreen({ profile, html, alreadyShipped = false, appEmojis = [], onBack, onShipped, voiceOn = false, onPassEnded }: Props) {
   const young = profile.ageGroup === 'kid' || (profile.ageGroup === 'teen' && profile.experience <= 1);
   const theme = themeById(profile.theme);
   const suggested = suggestedName(html);
@@ -56,12 +73,21 @@ export default function ShipScreen({ profile, html, alreadyShipped = false, onBa
   const [error, setError] = useState<string | null>(null);
   const [shipped, setShipped] = useState<Shipped | null>(null);
   const [shelfApps, setShelfApps] = useState<ShelfApp[]>([]);
+  // The app's icon (family trial): its own drawing first, then emojis that fit it. 🎲 tries the
+  // next one; tapping one picks it.
+  const drawing = drawnIcon(html);
+  const choices: IconChoice[] = [
+    ...(drawing ? [{ kind: 'drawing' } as const] : []),
+    ...[...new Set([...appEmojis, theme.emoji])].map(emoji => ({ kind: 'emoji', emoji }) as const),
+  ];
+  const [pick, setPick] = useState(0);
+  const icon = choices[pick % choices.length];
 
   async function ship(withName?: string) {
     setBusy(true);
     setError(null);
     try {
-      const result = await shipApp(withName ?? '');
+      const result = await shipApp(withName ?? '', icon);
       setShipped({ ...result, url: new URL(result.path, location.origin).href });
       onShipped?.();
       // Talk mode: a spoken "it's shipped" moment (QA round 3).
@@ -140,6 +166,24 @@ export default function ShipScreen({ profile, html, alreadyShipped = false, onBa
                 placeholder={suggested ? `Like "${suggested}"` : `Like "${EXAMPLE_NAME[profile.ageGroup ?? 'adult']}"`} onKeyDown={e => { if (e.key === 'Enter' && finalName) void ship(finalName); }}
                 className="rounded-2xl border-2 border-line bg-surface px-4 py-3 text-lg text-ink outline-none focus:border-accent" />
             </label>
+            <section aria-label="Your app's icon">
+              <p className="font-bold text-ink">{young ? "Your app's picture" : 'App icon'}</p>
+              <div className="mt-2 flex items-center gap-4">
+                <div className="flex h-24 w-24 items-center justify-center rounded-3xl border-2 border-line bg-surface-2"><IconView choice={icon} drawing={drawing} size={80} /></div>
+                {choices.length > 1 && <button disabled={busy} onClick={() => setPick(n => (n + 1) % choices.length)} className="min-h-11 rounded-full border-2 border-line bg-surface px-4 font-bold text-ink hover:border-accent disabled:opacity-40">🎲 Try another</button>}
+              </div>
+              {choices.length > 1 && (
+                <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-label="Pick an icon">
+                  {choices.map((c, i) => (
+                    <button key={c.kind === 'emoji' ? c.emoji : 'drawing'} role="radio" aria-checked={i === pick % choices.length} disabled={busy} onClick={() => setPick(i)}
+                      aria-label={c.kind === 'drawing' ? 'The drawing' : c.emoji}
+                      className={`flex h-12 w-12 items-center justify-center rounded-2xl border-2 ${i === pick % choices.length ? 'border-accent bg-accent-soft' : 'border-line bg-surface'}`}>
+                      <IconView choice={c} drawing={drawing} size={36} />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
             <div className="flex flex-wrap gap-2">
               <button disabled={busy || !finalName} onClick={() => void ship(finalName)} className={button}>
                 {busy ? (young ? 'Shipping…' : 'Shipping…') : '🚀 Ship it!'}
@@ -157,7 +201,7 @@ export default function ShipScreen({ profile, html, alreadyShipped = false, onBa
         ) : (
           <>
             <div>
-              <p className="text-5xl" aria-hidden>{theme.motifs.slice(0, 3).join(' ')}</p>
+              {shipped.iconUrl ? <img src={shipped.iconUrl} alt="" width={72} height={72} className="rounded-2xl" /> : <p className="text-5xl" aria-hidden>{shipped.emoji}</p>}
               <h2 className={`mt-2 font-extrabold text-ink ${young ? 'text-3xl' : 'text-2xl'}`}>{shipped.name} is on your shelf!</h2>
               <p className="mt-1 text-muted">{young ? 'Show it to your family. Open it any time you have a pass.' : 'It lives on this computer: open it here, or on a device on your home Wi-Fi.'}</p>
             </div>
@@ -175,7 +219,7 @@ export default function ShipScreen({ profile, html, alreadyShipped = false, onBa
                 <h3 className="font-extrabold text-ink">My apps</h3>
                 <ul className="mt-1 space-y-1">
                   {others.slice(0, 8).map(a => (
-                    <li key={a.slug}><a href={a.path} target="_blank" rel="noopener noreferrer" className="font-semibold text-ink underline">{a.emoji} {a.name}</a></li>
+                    <li key={a.slug}><a href={a.path} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-semibold text-ink underline">{a.iconUrl ? <img src={a.iconUrl} alt="" width={24} height={24} className="rounded-md" /> : a.emoji} {a.name}</a></li>
                   ))}
                 </ul>
               </section>

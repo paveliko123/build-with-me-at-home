@@ -16,7 +16,7 @@ import { hostAllowed, isLoopback, isParent, isThisComputer, originAllowed } from
 import { parentRoutes } from './parentRoutes.js';
 import { kidRoutes } from './kidRoutes.js';
 import { journeyRoutes, shelfRoutes } from './journey/routes.js';
-import { APP_CSP, servedApp } from './journey/apps.js';
+import { APP_CSP, appIcon, servedApp } from './journey/apps.js';
 import { watchPassesForReports } from './report/reporter.js';
 import { kidSession } from './passes.js';
 import { setupTabletPage } from './tabletSetupPage.js';
@@ -93,6 +93,14 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
 
   // ---- shipped apps (prd.md > My Apps): this laptop, or a live pass for that kid ----
   // (Express matches the address with and without the final slash.)
+  app.get('/apps/:kid/:slug/icon.svg', (req, res) => {
+    const kid = String(req.params.kid), slug = String(req.params.slug);
+    const session = kidSession(req);
+    const allowed = isParent(req) || (session ? session.live && session.kid.id === kid : isThisComputer(req));
+    const svg = allowed ? appIcon(kid, slug) : null;
+    if (!svg) { res.status(404).end(); return; }
+    res.set('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'").set('X-Content-Type-Options', 'nosniff').set('Cache-Control', 'no-store').type('image/svg+xml').send(svg);
+  });
   app.get('/apps/:kid/:slug', (req, res) => {
     const kid = String(req.params.kid), slug = String(req.params.slug);
     // The parent, or this laptop without a pass, can open any kid's app. A device holding a

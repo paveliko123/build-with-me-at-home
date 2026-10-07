@@ -60,7 +60,8 @@ export async function changeTurn(args: { text?: string; remove?: number; chatQue
   return api<{ changes: string[]; ready: boolean; ship?: boolean; reply: { say: string; question?: string } | null }>('/api/kid/journey/changes', { body: args });
 }
 
-export interface ShelfApp { slug: string; name: string; emoji: string; createdAt: number; projectId: string; version: number; path: string; homeUrl: string | null; qr: string | null; hasPlan?: boolean }
+export interface ShelfApp { slug: string; name: string; emoji: string; icon?: boolean; iconUrl?: string | null; createdAt: number; projectId: string; version: number; path: string; homeUrl: string | null; qr: string | null; hasPlan?: boolean }
+export type IconChoice = { kind: 'drawing' } | { kind: 'emoji'; emoji: string };
 
 /** "📄 How I planned it": a teen's approved plans for one shipped app. */
 export async function appPlan(slug: string) {
@@ -68,8 +69,8 @@ export async function appPlan(slug: string) {
 }
 
 /** Ship: final. Returns the app as it sits on the kid's shelf. */
-export async function shipApp(name: string) {
-  return api<ShelfApp>('/api/kid/journey/ship', { body: { name } });
+export async function shipApp(name: string, icon?: IconChoice) {
+  return api<ShelfApp>('/api/kid/journey/ship', { body: { name, icon } });
 }
 
 /** This kid's "My apps" shelf, newest first. */

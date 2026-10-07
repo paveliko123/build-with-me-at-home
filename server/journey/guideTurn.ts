@@ -3,6 +3,7 @@
 // "I don't know", plain words, re-asks) are kept as they were tuned in live testing; only the
 // storage (Firestore → the project file) and the model calls (API → the parent's Claude Code)
 // changed, plus the pass's step for the parent's Active passes card.
+import { oneEmoji } from './appIcon.js';
 import { callDocWriter, callGuide, GuideError, type CallMeta } from './claude.js';
 import { buildContents, buildSystemInstruction, stageKickoff, type StoredMessage } from './prompt/buildPrompt.js';
 import { AI_DISCLOSURE, PERSONAL_NOTE, personText, REDIRECT_REPLY, WELLBEING_REPLY } from './prompt/safety.js';
@@ -160,6 +161,10 @@ function cleanReply(reply: GuideReply, profile: Profile, probeFirst: boolean, un
   if (reply.techSummary) clean.techSummary = String(reply.techSummary).slice(0, 300);
   if (reply.tooBig) clean.tooBig = true;
   if (typeof reply.laterIdea === 'string' && reply.laterIdea.trim()) clean.laterIdea = personText(reply.laterIdea).trim().slice(0, 140);
+  if (Array.isArray(reply.appEmojis)) {
+    const emojis = [...new Set(reply.appEmojis.map(oneEmoji).filter((e): e is string => !!e))].slice(0, 6);
+    if (emojis.length) clean.appEmojis = emojis;
+  }
   return clean;
 }
 
@@ -375,6 +380,8 @@ export async function guideTurn(project: Project, rawText?: string): Promise<Gui
         reply = { say: REDIRECT_REPLY, question: sameQuestion, stageComplete: false };
       }
     }
+
+    if (reply.appEmojis?.length) session.appEmojis = reply.appEmojis;
 
     // Waiting chat: keep the kid's idea so the app can offer it when the build is ready
     // (family trial: ideas asked "for later" were lost). Only from a real answer.

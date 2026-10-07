@@ -127,7 +127,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
   );
 }
 
-interface KidApp { slug: string; name: string; emoji: string; createdAt: number; path: string }
+interface KidApp { slug: string; name: string; emoji: string; iconUrl?: string | null; createdAt: number; path: string }
 
 interface KidData { apps: number; projects: number; reports: number; livePass: boolean }
 const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -198,7 +198,7 @@ function KidsManage({ kids, apps, reload, onClose }: { kids: Kid[]; apps: Record
         {removing === k.id && <RemoveKid kid={k} onCancel={() => setRemoving(null)} onRemoved={() => { setRemoving(null); reload(); }} />}
         {(apps[k.id] ?? []).map((a) => (
           <div className="row" key={a.slug} style={{ paddingLeft: 28 }}>
-            <div>{a.emoji} {a.name} <span className="muted" style={{ fontSize: 13 }}>· {new Date(a.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>{a.iconUrl ? <img src={a.iconUrl} alt="" width={22} height={22} style={{ borderRadius: 6 }} /> : a.emoji} {a.name} <span className="muted" style={{ fontSize: 13 }}>· {new Date(a.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span></div>
             <div style={{ display: 'flex', gap: 6 }}>
               <a className="ghost" style={{ textDecoration: 'none' }} href={a.path} target="_blank" rel="noopener">Open</a>
               <button className="ghost danger" onClick={async () => {

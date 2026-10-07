@@ -160,6 +160,37 @@ async function main() {
     const r2 = await kid.call('/api/kid/apps/biscuit-feeder/plan');
     const r3 = await kid.call('/api/kid/apps/rocket-dodge/plan');
     add('"How I planned it" returns only approved plans, only to that teen', r.status === 200 && r.body.docs.map((d: any) => d.kind).join(',') === 'scope,prd' && r2.status === 404 && r3.status === 404, `teen ${r.status} ${r.body.docs?.map((d: any) => d.kind)} · kid's own ${r2.status} · another kid's ${r3.status}`);
+
+    // ---------- batch 3: each app's own icon ----------
+    const { extractIcon, oneEmoji } = await import('../server/journey/appIcon.js');
+    const ICON = '<svg id="bwm-icon" viewBox="0 0 64 64" style="display:none" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#ffd166"/><circle cx="32" cy="34" r="16" fill="#8d5524"/></svg>';
+    const bad = ['<script>x()</script>', '<image href="https://t.example/p.png"/>', '<circle onclick="x()" r="3"/>', '<a href="https://x"><circle r="3"/></a>', '<foreignObject><div>hi</div></foreignObject>'];
+    const refused = bad.filter((b) => extractIcon(`<svg id="bwm-icon" viewBox="0 0 64 64"><rect width="64" height="64"/>${b}</svg>`) === null).length;
+    const good = extractIcon(`<body>${ICON}</body>`);
+    add('the builder\'s drawn icon is taken only when it\'s a plain drawing', !!good && good.startsWith('<svg xmlns=') && !good.includes('display:none') && refused === bad.length, `plain drawing kept · ${refused}/${bad.length} unsafe ones refused`);
+    add('an emoji choice must be one emoji', oneEmoji('🐉') === '🐉' && oneEmoji('👩‍🚀') === '👩‍🚀' && oneEmoji('hi') === null && oneEmoji('🐉🐉') === null && oneEmoji('<b>') === null, '🐉 and 👩‍🚀 yes · text, two emojis, markup no');
+
+    // Maya ships a new version that has a drawn icon, picking the drawing.
+    const withIcon = APP.replace('<body>', `<body>${ICON}`);
+    writeFileSync(join(dir, 'versions', 'v2.html'), withIcon);
+    const p2 = JSON.parse(readFileSync(join(dir, 'project.json'), 'utf8'));
+    p2.versions.push({ n: 2, mode: 'edit', note: 'icon', at: now }); p2.appEmojis = ['🐶', '🦴'];
+    writeFileSync(join(dir, 'project.json'), JSON.stringify(p2));
+    r = await kid.call('/api/kid/journey');
+    add('the resumed project carries the emojis that fit the app', JSON.stringify(r.body.project?.appEmojis) === JSON.stringify(['🐶', '🦴']), JSON.stringify(r.body.project?.appEmojis));
+    r = await kid.call('/api/kid/journey/ship', { name: 'Biscuit Time', icon: { kind: 'drawing' } });
+    const iconUrl = r.body.iconUrl as string;
+    add('shipping with the drawing saves it as the app\'s icon (and the guide\'s emoji as backup)', r.status === 200 && r.body.icon === true && /\/apps\/.+\/biscuit-time\/icon\.svg$/.test(iconUrl ?? '') && r.body.emoji === '🐶', `${r.status} · ${iconUrl} · ${r.body.emoji}`);
+    const svgRes = await kid.call(iconUrl);
+    const other = await teen.call(iconUrl);
+    add('the icon is served as an image, only to this kid (or the laptop and parent)', svgRes.status === 200 && svgRes.text.startsWith('<svg') && other.status === 404, `Maya ${svgRes.status} · Leo's pass ${other.status}`);
+    r = await kid.call(`/apps/${maya.id}/biscuit-time/`);
+    add('the opened app uses its icon in the browser tab', /<link rel="icon" href="data:image\/svg\+xml;base64,/.test(r.text), 'tab icon set');
+    const shelfNow = (await kid.call('/api/kid/apps')).body as any[];
+    add('My apps shows the icon', shelfNow.find((a) => a.slug === 'biscuit-time')?.iconUrl === iconUrl, 'iconUrl on the shelf');
+    const reportHtml = renderReport({ ...base0, app: { name: 'Biscuit Time', path: '/x/', url: 'http://localhost/x/', emoji: '🐶', icon: `data:image/svg+xml;base64,${Buffer.from(good!).toString('base64')}`, description: 'd' } } as any);
+    const forged = renderReport({ ...base0, app: { name: 'X', path: '/x/', url: 'http://localhost/x/', emoji: '🐶', icon: 'javascript:alert(1)', description: 'd' } } as any);
+    add('the report shows the app\'s icon (only a real image address)', reportHtml.includes('<img class="e" src="data:image/svg+xml;base64,') && !forged.includes('javascript:') && forged.includes('🐶'), 'drawn icon shown · a forged address falls back to the emoji');
   } finally {
     await server.close();
   }

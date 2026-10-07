@@ -5,6 +5,7 @@
 // of its own and a strict Content-Security-Policy (no network, no outside files, no navigation),
 // and its saved data lives in the wrapper's own key space on that device.
 
+import { extractIcon, faviconFor, oneEmoji } from './appIcon.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { dataPath, readJson, writeJson, removePath } from '../store.js';
@@ -13,11 +14,21 @@ import { latestVersion } from './build.js';
 import { leaveCurrent, type Project } from './project.js';
 import { themeEmoji } from './themeEmoji.js';
 
-export interface ShelfApp { slug: string; name: string; emoji: string; createdAt: number; projectId: string; version: number }
+export interface ShelfApp { slug: string; name: string; emoji: string; icon?: boolean; createdAt: number; projectId: string; version: number }
+/** The icon the kid picked at Ship: the app's own drawing, or an emoji. */
+export type IconChoice = { kind: 'drawing' } | { kind: 'emoji'; emoji: string };
 
 const SAFE = /^[A-Za-z0-9_-]{1,60}$/;
 const shelfFile = (kidId: string) => `kids/${kidId}/apps.json`;
 const appFile = (kidId: string, slug: string) => `kids/${kidId}/apps/${slug}/index.html`;
+const iconFile = (kidId: string, slug: string) => `kids/${kidId}/apps/${slug}/icon.svg`;
+
+/** A shipped app's drawn icon (SVG text), or null. */
+export function appIcon(kidId: string, slug: string): string | null {
+  if (!SAFE.test(kidId) || !SAFE.test(slug)) return null;
+  const file = dataPath(iconFile(kidId, slug));
+  return existsSync(file) ? readFileSync(file, 'utf8') : null;
+}
 
 export function shelf(kidId: string): ShelfApp[] {
   if (!SAFE.test(kidId)) return [];
@@ -68,7 +79,7 @@ export function shippedHtml(html: string, name: string): string {
 export type ShipResult = { ok: true; app: ShelfApp } | { ok: false; error: string };
 
 /** Ship: final. A second call returns the same app. */
-export function shipApp(p: Project, rawName: string): ShipResult {
+export function shipApp(p: Project, rawName: string, choice?: IconChoice): ShipResult {
   if (p.shipped) {
     const app = shelf(p.kidId).find((a) => a.slug === p.shipped!.slug);
     if (app) return { ok: true, app };
@@ -86,7 +97,12 @@ export function shipApp(p: Project, rawName: string): ShipResult {
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, shippedHtml(latest.html, name), 'utf8');
   const now = Date.now();
-  const app: ShelfApp = { slug, name, emoji: themeEmoji(p.profile.theme), createdAt: now, projectId: p.id, version: latest.n };
+  // The icon (family trial): the builder's drawing if the kid picked it and it's a plain drawing,
+  // and always an emoji too (for places that show one): theirs, or the guide's best fit.
+  const drawing = choice?.kind === 'drawing' ? extractIcon(latest.html) : null;
+  if (drawing) writeFileSync(dataPath(iconFile(p.kidId, slug)), drawing, 'utf8');
+  const emoji = (choice?.kind === 'emoji' && oneEmoji(choice.emoji)) || p.appEmojis?.[0] || themeEmoji(p.profile.theme);
+  const app: ShelfApp = { slug, name, emoji, ...(drawing ? { icon: true } : {}), createdAt: now, projectId: p.id, version: latest.n };
   writeJson(shelfFile(p.kidId), { apps: [app, ...apps] });
   p.shipped = { name, slug, at: now };
   p.stage = 'ship';
@@ -132,13 +148,13 @@ function scriptLiteral(value: string): string {
   return JSON.stringify(value).replace(/</g, '\\u003c');
 }
 
-export function wrapperPage(id: string, title: string, html: string): string {
+export function wrapperPage(id: string, title: string, html: string, favicon?: string): string {
   const script = WRAPPER_SCRIPT
     .replace('__ID__', () => scriptLiteral(id))
     .replace('__SHIM__', () => scriptLiteral(SHIM))
     .replace('__HTML__', () => scriptLiteral(html));
   const name = escapeHtml(title || 'Made with Build With Me');
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${name}</title>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${name}</title>${favicon ? `<link rel="icon" href="${favicon}">` : ''}
 <style>html,body{margin:0;height:100%;background:#fff}body{display:flex;flex-direction:column}iframe{border:0;width:100%;flex:1;min-height:0;display:block}
 .bar{display:flex;align-items:center;gap:12px;height:44px;padding:0 12px;background:#1f2430;color:#fff;font:600 16px system-ui,sans-serif}
 .bar a{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:6px 14px;font-size:15px}
@@ -150,5 +166,5 @@ export function servedApp(kidId: string, slug: string): { html: string; name: st
   const file = appPath(kidId, slug);
   const app = shelf(kidId).find((a) => a.slug === slug);
   if (!file || !app) return null;
-  return { html: wrapperPage(`${kidId}-${slug}`, app.name, readFileSync(file, 'utf8')), name: app.name };
+  return { html: wrapperPage(`${kidId}-${slug}`, app.name, readFileSync(file, 'utf8'), faviconFor(app.icon ? appIcon(kidId, slug) : null, app.emoji)), name: app.name };
 }

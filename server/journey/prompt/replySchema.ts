@@ -31,9 +31,10 @@ export const REPLY_SCHEMA = {
     },
     techSummary: { type: 'string' },
     tooBig: { type: 'boolean' },
+    appEmojis: { type: 'array', maxItems: 6, items: { type: 'string' }, description: 'When the app idea is clear or changes (from the end of the Idea stage on): 4 to 6 single emojis that fit the app (its main character, object or mood), best first.' },
     laterIdea: { type: 'string', description: 'Waiting chat only: the idea in the person\'s latest answer, as a short change in their own words (e.g. "add a night mode with stars"). Leave it out when their answer has no idea for the app.' },
     stageComplete: { type: 'boolean' },
   },
   required: ['say', 'stageComplete'],
-  propertyOrdering: ['say', 'question', 'cards', 'visualHtml', 'doc', 'techSummary', 'tooBig', 'laterIdea', 'stageComplete'],
+  propertyOrdering: ['say', 'question', 'cards', 'visualHtml', 'doc', 'techSummary', 'tooBig', 'appEmojis', 'laterIdea', 'stageComplete'],
 } as const;

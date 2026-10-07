@@ -85,6 +85,8 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
   // Shipped apps are on the shelf: "New app" then needs no question (family trial).
   const [shipped, setShipped] = useState(false);
   const [askNew, setAskNew] = useState(false);
+  // Emojis that fit the app, from the guide: the icon choices at Ship (family trial).
+  const [appEmojis, setAppEmojis] = useState<string[]>([]);
   const [shelfOpen, setShelfOpen] = useState(false);
   // prd.md > Limit Reached: a friendly screen when the parent's plan limit is hit; the work is saved.
   const [limited, setLimited] = useState(false);
@@ -99,6 +101,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
 
   function resume(s: SessionSnapshot) {
     setShipped(!!s.shipped);
+    setAppEmojis(s.appEmojis ?? []);
     setProfile(s.profile);
     setVoiceOn(s.profile.inputMode === 'talk');
     voiceRef.current = s.profile.inputMode === 'talk';
@@ -130,6 +133,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
   function settle(r: GuideTurnResult) {
     setReply(r.reply);
     if (r.reply.techSummary) setTechSummary(r.reply.techSummary);
+    if (r.reply.appEmojis?.length) setAppEmojis(r.reply.appEmojis);
     setStage(r.stage);
     if (r.reply.visualHtml) { setVisual(r.reply.visualHtml); setPane('picture'); }
     const doc = r.reply.doc;
@@ -301,7 +305,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
             </div>
           )}
           {stage === 'ship' && shipHtml && (
-            <ShipScreen profile={profile} html={shipHtml} onBack={() => setStage('build')} onShipped={() => setShipped(true)} voiceOn={voiceOn} onPassEnded={onPassEnded} />
+            <ShipScreen profile={profile} html={shipHtml} appEmojis={appEmojis} onBack={() => setStage('build')} onShipped={() => setShipped(true)} voiceOn={voiceOn} onPassEnded={onPassEnded} />
           )}
         </div>
       )}
