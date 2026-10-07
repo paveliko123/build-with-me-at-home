@@ -68,3 +68,7 @@ body { margin: 0; }
 @media (max-width:1023px){.bwm-convo>*{scroll-margin-bottom:calc(var(--bwm-bar,0px) + 12px)}}
 /* "How I planned it" prints cleanly: no countdown, white page, cards kept whole. */
 @media print{.bwm-countdown{display:none!important}.bwm-journey{background:#fff!important}.bwm-print section{break-inside:avoid}}
+/* "💡 Show me ideas" glows after a quiet moment (family trial). */
+@keyframes bwm-glow{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--color-accent,#6c5ce7) 55%,transparent)}50%{box-shadow:0 0 0 12px color-mix(in srgb,var(--color-accent,#6c5ce7) 0%,transparent)}}
+.bwm-glow{animation:bwm-glow 1.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.bwm-glow{animation:none;outline:3px solid var(--color-accent,#6c5ce7);outline-offset:3px}}

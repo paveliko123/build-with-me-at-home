@@ -26,6 +26,7 @@
     "verify:7": "tsx scripts/verify-7.ts",
     "verify:security": "tsx scripts/verify-security.ts",
     "verify:revisions": "tsx scripts/verify-revisions.ts",
+    "ideas:page": "node scripts/idea-page.mjs",
     "e3": "tsx scripts/usage-experiment.ts"
   },
   "devDependencies": {

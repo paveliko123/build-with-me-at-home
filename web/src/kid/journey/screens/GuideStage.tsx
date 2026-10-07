@@ -13,6 +13,12 @@ import { replySpeech, speak, stopSpeaking } from '../lib/voice';
 import { pauseFor } from '../lib/speech';
 import type { DocKind, GuideReply, Profile, StageDoc } from '../types';
 import { keepNewestInView } from '../lib/scroll';
+import IdeaPicker from '../components/IdeaPicker';
+import { getIdeas, type IdeaCard } from '../lib/api';
+
+// "💡 Show me ideas": a stuck answer opens the ideas at once; quiet this long makes the button glow.
+const STUCK = /^\s*(i\s*(do\s*n[o'’]?t|dont|dunno)(\s*know)?|idk|dunno|no\s*idea|not\s*sure|nothing|help|hmm+|um+|uh+|\?+|you\s*(choose|pick)|anything|i\s*(do\s*n[o'’]?t|dont)\s*have\s*(an?\s*)?ideas?)\s*[.!?…]*\s*$/i;
+const QUIET_MS = 20_000;
 
 export type Pane = 'picture' | DocKind;
 const DOC_ORDER: DocKind[] = ['learner-profile', 'scope', 'prd', 'spec', 'checklist'];
@@ -35,11 +41,13 @@ interface Props {
   error: string | null;
   onSend: (text: string) => void;
   onRetry: () => void;
+  ideasOn?: boolean; // the Idea stage: "💡 Show me ideas" is there (family trial)
+  onIdea?: (idea: IdeaCard) => void;
   voiceOn: boolean; // read replies aloud, then listen (talk mode)
   controls?: React.ReactNode; // type/talk switch, voice settings and toggle (above the answer box)
 }
 
-export default function GuideStage({ profile, reply, history, visual, docs, pane, onPane, busy, error, onSend, onRetry, voiceOn, controls }: Props) {
+export default function GuideStage({ profile, reply, history, visual, docs, pane, onPane, busy, error, onSend, onRetry, ideasOn = false, onIdea, voiceOn, controls }: Props) {
   const young = profile.experience <= 1;
   const showReply = reply && !busy;
   const shownDocs = profile.experience >= 2 ? DOC_ORDER.filter(k => docs[k]) : [];
@@ -75,6 +83,50 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  // "💡 Show me ideas" (family trial): very light. The button is always there at the Idea stage; a
+  // stuck answer ("I don't know", "idk", "help"…) opens the ideas at once instead of asking
+  // again; and after about 20 seconds with no answer the button glows (in talk mode the guide
+  // also asks gently). Ideas come from the idea library: no Claude call.
+  const [ideas, setIdeas] = useState<IdeaCard[] | null | false>(false); // false: closed, null: loading
+  const seenIdeas = useRef<string[]>([]);
+  const [glow, setGlow] = useState(false);
+  const [nudged, setNudged] = useState(false);
+  const quietTimer = useRef(0);
+  const showIdeas = async () => {
+    setGlow(false);
+    setIdeas(null);
+    try {
+      const got = await getIdeas(seenIdeas.current);
+      seenIdeas.current = [...seenIdeas.current, ...got.map(i => i.id)];
+      setIdeas(got);
+      if (voiceOn) speak(`Here are some ideas: ${got.map(i => i.title).join(', ')}. Or something else!`, profile.theme, profile.ageGroup ?? 'adult');
+    } catch { setIdeas(false); }
+  };
+  const restartQuiet = () => {
+    window.clearTimeout(quietTimer.current);
+    setGlow(false);
+    if (!ideasOn || busy || ideas !== false) return;
+    quietTimer.current = window.setTimeout(() => {
+      setGlow(true);
+      if (voiceOn && !nudged) { setNudged(true); speak('Want some ideas? Tap the light bulb!', profile.theme, profile.ageGroup ?? 'adult'); }
+    }, QUIET_MS);
+  };
+  useEffect(() => { restartQuiet(); return () => window.clearTimeout(quietTimer.current); }, [reply, busy, ideasOn, ideas === false]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!ideasOn) setIdeas(false); }, [ideasOn]);
+  // The idea cards scroll into view when they open (they sit under the question card).
+  useEffect(() => { if (ideas) keepNewestInView(scroller.current); }, [ideas]);
+  const send = (text: string) => {
+    if (ideasOn && STUCK.test(text)) { void showIdeas(); return; }
+    setIdeas(false);
+    onSend(text);
+  };
+  const pickIdea = (idea: IdeaCard) => { setIdeas(false); stopSpeaking(); onIdea?.(idea); };
+  const ownIdea = () => {
+    setIdeas(false);
+    const box = bar.current?.querySelector<HTMLTextAreaElement | HTMLInputElement>('textarea, input[type=text]');
+    box?.focus();
+  };
 
   // ✏️ Change something: the answer box asks what to change (family trial).
   const [changing, setChanging] = useState(false);
@@ -122,6 +174,12 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
                 {reply.tooBig && <p className="mt-4 rounded-2xl bg-accent-soft px-4 py-3 font-bold text-ink">🐘 That one's too big to build in one go, so let's shrink it!</p>}
                 {reply.techSummary && <p className="mt-4 rounded-2xl bg-accent-soft px-4 py-3 font-bold text-ink">🛠️ {reply.techSummary}</p>}
                 {draft && <button onClick={seePlan} className="mt-4 min-h-11 rounded-full border-2 border-accent bg-surface px-5 font-bold text-ink lg:hidden">📋 See your plan</button>}
+                {ideasOn && ideas === false && onIdea && (
+                  young
+                    ? <button onClick={() => void showIdeas()} className={`mt-4 min-h-12 rounded-full bg-accent px-6 text-lg font-extrabold text-white shadow ${glow ? 'bwm-glow' : ''}`}>💡 Show me ideas</button>
+                    : <button onClick={() => void showIdeas()} className={`mt-4 min-h-11 rounded-full border-2 border-accent bg-surface px-4 font-bold text-ink ${glow ? 'bwm-glow' : ''}`}>💡 Need inspiration?</button>
+                )}
+                {glow && voiceOn && ideas === false && <p className="mt-2 font-bold text-muted">Want some ideas? Tap the light bulb!</p>}
               </>
             )}
             {error && !busy && (error.startsWith('LIMIT:')
@@ -134,10 +192,11 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
               ))}
           </div>
 
+          {ideasOn && ideas !== false && <IdeaPicker ideas={ideas} young={young} onPick={pickIdea} onMore={() => void showIdeas()} onOwn={ownIdea} />}
           {showReply && reply.cards && reply.cards.length > 0 && (
             <div className="grid gap-3 sm:grid-cols-2">
               {reply.cards.map(card => (
-                <button key={card.label} onClick={() => onSend(card.label)}
+                <button key={card.label} onClick={() => send(card.label)}
                   className="rounded-3xl border-2 border-line bg-surface p-4 text-left transition hover:border-accent hover:shadow-md">
                   <span className="text-4xl" aria-hidden>{card.emoji}</span>
                   <span className="mt-1 block text-xl font-extrabold text-ink">{card.label}</span>
@@ -152,7 +211,7 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
           {controls && <div className="relative flex flex-wrap items-center gap-2 pt-2">{controls}</div>}
           {showReply && (
             <div className="pt-2">
-              <AnswerBox inputMode={profile.inputMode} onSend={onSend} placeholder={placeholder}
+              <AnswerBox inputMode={profile.inputMode} onSend={send} onType={restartQuiet} placeholder={placeholder}
                 listenToken={heard.reply === reply ? heard.n : 0} handsFree={voiceOn} silenceMs={pauseFor(profile.ageGroup)} />
             </div>
           )}

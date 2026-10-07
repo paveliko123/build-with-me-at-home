@@ -4,6 +4,7 @@
   "ideas": [
     {
       "id": "arcade-glow-worm",
+      "emoji": "🐛",
       "title": "Glow Worm",
       "pitch": "Steer a glowing worm to eat light dots and grow longer without bumping into yourself.",
       "kind": "game",
@@ -35,6 +36,7 @@
     },
     {
       "id": "arcade-neon-brick-bounce",
+      "emoji": "🧱",
       "title": "Neon Brick Bounce",
       "pitch": "Bounce a glowing ball off your paddle to break all the bright bricks.",
       "kind": "game",
@@ -65,6 +67,7 @@
     },
     {
       "id": "arcade-pixel-art-studio",
+      "emoji": "🎨",
       "title": "Pixel Art Studio",
       "pitch": "Paint tiny square pixels to make your own game characters and pictures.",
       "kind": "creative",
@@ -96,6 +99,7 @@
     },
     {
       "id": "arcade-bonk-the-blobs",
+      "emoji": "🫧",
       "title": "Bonk the Blobs",
       "pitch": "Tap the silly blobs as they pop out of their glowing holes.",
       "kind": "game",
@@ -124,6 +128,7 @@
     },
     {
       "id": "arcade-pixel-hop",
+      "emoji": "🐸",
       "title": "Pixel Hop",
       "pitch": "Tap to make your pixel hero jump over things as the world rushes by.",
       "kind": "game",
@@ -153,6 +158,7 @@
     },
     {
       "id": "arcade-glow-pad-memory",
+      "emoji": "🟪",
       "title": "Glow Pad Memory",
       "pitch": "Watch the pads light up and play the same pattern back.",
       "kind": "game",
@@ -182,6 +188,7 @@
     },
     {
       "id": "arcade-maze-key-dash",
+      "emoji": "🗝️",
       "title": "Maze Key Dash",
       "pitch": "Race through a glowing maze to grab the keys and reach the door before time runs out.",
       "kind": "game",
@@ -210,6 +217,7 @@
     },
     {
       "id": "arcade-family-scoreboard",
+      "emoji": "🏆",
       "title": "Neon Scoreboard",
       "pitch": "Keep score for family games on a flashy arcade high-score board.",
       "kind": "tool",
@@ -241,6 +249,7 @@
     },
     {
       "id": "arcade-reflex-duel",
+      "emoji": "⚡",
       "title": "Reflex Duel",
       "pitch": "Two players race to tap their button the moment the light turns green.",
       "kind": "game",
@@ -270,6 +279,7 @@
     },
     {
       "id": "arcade-platform-level-maker",
+      "emoji": "🕹️",
       "title": "Platform Level Maker",
       "pitch": "Design your own jump-and-run level, then play it to see if it is possible.",
       "kind": "creative",
@@ -299,6 +309,7 @@
     },
     {
       "id": "arcade-beat-lane-tapper",
+      "emoji": "🎶",
       "title": "Beat Lane Tapper",
       "pitch": "Tap the lanes in time as glowing notes fall to the beat.",
       "kind": "game",
@@ -329,6 +340,7 @@
     },
     {
       "id": "arcade-light-trail-racers",
+      "emoji": "🏍️",
       "title": "Light Trail Racers",
       "pitch": "Two racers leave glowing trails, and you must not crash into any trail.",
       "kind": "game",
@@ -359,6 +371,7 @@
     },
     {
       "id": "cars-car-designer",
+      "emoji": "🚗",
       "title": "Dream Car Garage",
       "pitch": "Design your own car with cool wheels, colors and stickers, then take it for a test drive!",
       "kind": "creative",
@@ -387,6 +400,7 @@
     },
     {
       "id": "cars-car-wash",
+      "emoji": "🧽",
       "title": "Bubble Car Wash",
       "pitch": "Muddy cars roll into your car wash, and you scrub, rinse and dry them until they sparkle!",
       "kind": "game",
@@ -416,6 +430,7 @@
     },
     {
       "id": "cars-lane-dodge",
+      "emoji": "🛣️",
       "title": "Lane Zoom",
       "pitch": "Zoom down the road and switch lanes to dodge cones and grab stars!",
       "kind": "game",
@@ -445,6 +460,7 @@
     },
     {
       "id": "cars-traffic-lights",
+      "emoji": "🚦",
       "title": "Traffic Light Boss",
       "pitch": "Be in charge of the traffic lights and let cars, buses and ducks cross the crossroads safely!",
       "kind": "game",
@@ -474,6 +490,7 @@
     },
     {
       "id": "cars-parking-counting",
+      "emoji": "🅿️",
       "title": "Number Parking Lot",
       "pitch": "Solve the number on each car and park it in the spot with the answer!",
       "kind": "learning",
@@ -502,6 +519,7 @@
     },
     {
       "id": "cars-draw-a-track",
+      "emoji": "🏁",
       "title": "Draw-a-Track Racer",
       "pitch": "Draw any road you like with your finger, then watch your car race along it!",
       "kind": "creative",
@@ -533,6 +551,7 @@
     },
     {
       "id": "cars-parking-puzzle",
+      "emoji": "🚙",
       "title": "Traffic Jam Escape",
       "pitch": "Slide the cars and trucks out of the way so your car can drive out of the jam!",
       "kind": "game",
@@ -563,6 +582,7 @@
     },
     {
       "id": "cars-tap-race",
+      "emoji": "🏎️",
       "title": "Two-Player Turbo Race",
       "pitch": "Race a friend on the same screen by tapping your button as fast as you can!",
       "kind": "game",
@@ -594,6 +614,7 @@
     },
     {
       "id": "cars-road-trip-story",
+      "emoji": "🗺️",
       "title": "Road Trip Adventure",
       "pitch": "Pick which way to drive on a road trip and see what fun surprises you find!",
       "kind": "story",
@@ -625,6 +646,7 @@
     },
     {
       "id": "cars-pit-stop-strategy",
+      "emoji": "🔧",
       "title": "Pit Crew Boss",
       "pitch": "Plan tires, fuel and pit stops to help your racing team win the big race.",
       "kind": "game",
@@ -655,6 +677,7 @@
     },
     {
       "id": "cars-speed-lab",
+      "emoji": "📈",
       "title": "Car Speed Lab",
       "pitch": "Experiment with engine power, weight and tires to see how they change speed and braking.",
       "kind": "learning",
@@ -685,6 +708,7 @@
     },
     {
       "id": "cars-lap-timer",
+      "emoji": "⏱️",
       "title": "Lap Timer Pro",
       "pitch": "Time your laps for toy car races, bike rides or running, and see your best lap.",
       "kind": "tool",
@@ -715,6 +739,7 @@
     },
     {
       "id": "music-animal-orchestra",
+      "emoji": "🐸",
       "title": "Animal Orchestra",
       "pitch": "Tap the animals to wake them up and they sing together in a silly band.",
       "kind": "creative",
@@ -744,6 +769,7 @@
     },
     {
       "id": "music-rainbow-xylophone",
+      "emoji": "🌈",
       "title": "Rainbow Xylophone",
       "pitch": "Play a rainbow xylophone and follow the glowing bars to learn a song.",
       "kind": "creative",
@@ -773,6 +799,7 @@
     },
     {
       "id": "music-copy-cat-tunes",
+      "emoji": "🐱",
       "title": "Copy Cat Tunes",
       "pitch": "Listen to the birds sing, then sing it back by tapping the same birds.",
       "kind": "game",
@@ -802,6 +829,7 @@
     },
     {
       "id": "music-high-or-low",
+      "emoji": "🚀",
       "title": "Rocket High Low",
       "pitch": "Listen to two sounds and help the rocket fly up for high or down for low.",
       "kind": "learning",
@@ -831,6 +859,7 @@
     },
     {
       "id": "music-freeze-dance",
+      "emoji": "💃",
       "title": "Freeze Dance Party",
       "pitch": "Tap to dance while the music plays, and freeze fast when it stops.",
       "kind": "game",
@@ -860,6 +889,7 @@
     },
     {
       "id": "music-beat-grid",
+      "emoji": "🥁",
       "title": "Beat Grid Maker",
       "pitch": "Tap squares on a grid to build your own drum beat that loops forever.",
       "kind": "creative",
@@ -891,6 +921,7 @@
     },
     {
       "id": "music-falling-notes",
+      "emoji": "🎵",
       "title": "Falling Notes",
       "pitch": "Notes fall down the screen and you tap them right when they reach the line.",
       "kind": "game",
@@ -922,6 +953,7 @@
     },
     {
       "id": "music-practice-pal",
+      "emoji": "🎻",
       "title": "Practice Pal",
       "pitch": "A helper that times your music practice, ticks a beat, and gives you stars.",
       "kind": "tool",
@@ -953,6 +985,7 @@
     },
     {
       "id": "music-band-on-tour",
+      "emoji": "🚌",
       "title": "Band on Tour",
       "pitch": "Help a little band travel to new towns and fix each town's music problem.",
       "kind": "story",
@@ -984,6 +1017,7 @@
     },
     {
       "id": "music-chord-explorer",
+      "emoji": "🎹",
       "title": "Chord Explorer",
       "pitch": "Build chords on a piano, hear how they feel, and chain them into a song.",
       "kind": "learning",
@@ -1013,6 +1047,7 @@
     },
     {
       "id": "music-synth-lab",
+      "emoji": "🎛️",
       "title": "Synth Lab",
       "pitch": "Make your own electronic sound with knobs and see the wave move as you play.",
       "kind": "creative",
@@ -1043,6 +1078,7 @@
     },
     {
       "id": "music-beat-runner",
+      "emoji": "🏃",
       "title": "Beat Runner",
       "pitch": "Run and jump over blocks that pop up right on the beat of the music.",
       "kind": "game",
@@ -1073,6 +1109,7 @@
     },
     {
       "id": "nature-busy-bee",
+      "emoji": "🐝",
       "title": "Busy Bee Dash",
       "pitch": "Fly a little bee to the flowers and bring the nectar home to the hive.",
       "kind": "game",
@@ -1102,6 +1139,7 @@
     },
     {
       "id": "nature-garden-painter",
+      "emoji": "🌷",
       "title": "Magic Garden Painter",
       "pitch": "Stamp flowers, trees and animals to make your own garden picture.",
       "kind": "creative",
@@ -1131,6 +1169,7 @@
     },
     {
       "id": "nature-animal-homes",
+      "emoji": "🦉",
       "title": "Who Lives Here?",
       "pitch": "Help each animal find its home, like the bird to its nest.",
       "kind": "learning",
@@ -1159,6 +1198,7 @@
     },
     {
       "id": "nature-ocean-cleanup",
+      "emoji": "🐢",
       "title": "Ocean Clean-Up Crew",
       "pitch": "Steer a little boat and scoop up trash to make the sea sparkle.",
       "kind": "game",
@@ -1188,6 +1228,7 @@
     },
     {
       "id": "nature-lost-ducklings",
+      "emoji": "🦆",
       "title": "The Lost Ducklings",
       "pitch": "Help Mama Duck find her five little ducklings in a picture story.",
       "kind": "story",
@@ -1216,6 +1257,7 @@
     },
     {
       "id": "nature-tiny-terrarium",
+      "emoji": "🪴",
       "title": "Tiny Terrarium",
       "pitch": "Build a little world in a glass jar and watch the critters move around.",
       "kind": "creative",
@@ -1246,6 +1288,7 @@
     },
     {
       "id": "nature-weather-maker",
+      "emoji": "🌦️",
       "title": "Weather Maker",
       "pitch": "Slide the sun, clouds and wind and see what weather you make.",
       "kind": "learning",
@@ -1276,6 +1319,7 @@
     },
     {
       "id": "nature-lily-pad-hop",
+      "emoji": "🐸",
       "title": "Lily Pad Hop",
       "pitch": "Hop a frog across the moving lily pads to reach the other side of the pond.",
       "kind": "game",
@@ -1307,6 +1351,7 @@
     },
     {
       "id": "nature-wildlife-spotter",
+      "emoji": "🦊",
       "title": "Wildlife Spotter Journal",
       "pitch": "Tick off the birds, bugs and animals you see outside and collect badges.",
       "kind": "tool",
@@ -1337,6 +1382,7 @@
     },
     {
       "id": "nature-meadow-balance",
+      "emoji": "🦋",
       "title": "Meadow Balance",
       "pitch": "Run a meadow where grass grows and rabbits munch, and keep it all in balance.",
       "kind": "learning",
@@ -1366,6 +1412,7 @@
     },
     {
       "id": "nature-plant-care-log",
+      "emoji": "🌱",
       "title": "Plant Care Buddy",
       "pitch": "Keep track of when you watered your plants so none of them get thirsty.",
       "kind": "tool",
@@ -1396,6 +1443,7 @@
     },
     {
       "id": "nature-rewild-valley",
+      "emoji": "🌲",
       "title": "Rewild the Valley",
       "pitch": "Plant trees, ponds and meadows on a map to bring animals back to the valley.",
       "kind": "game",
@@ -1425,6 +1473,7 @@
     },
     {
       "id": "office-lemonade-stand",
+      "emoji": "🍋",
       "title": "Lemonade Stand Boss",
       "pitch": "Run your own lemonade stand: make lemonade, pick a price, and sell cups.",
       "kind": "game",
@@ -1454,6 +1503,7 @@
     },
     {
       "id": "office-post-office-sort",
+      "emoji": "📮",
       "title": "Pretend Post Office",
       "pitch": "Sort the letters and parcels into the right mailboxes before the belt runs out.",
       "kind": "game",
@@ -1483,6 +1533,7 @@
     },
     {
       "id": "office-chore-spinner",
+      "emoji": "🎡",
       "title": "Chore Spinner Chart",
       "pitch": "Spin the wheel to pick a job, do it, and add a sticker to your chart.",
       "kind": "tool",
@@ -1511,6 +1562,7 @@
     },
     {
       "id": "office-shop-cashier",
+      "emoji": "🛒",
       "title": "Corner Shop Cashier",
       "pitch": "Be the shop cashier: add up the prices and give the right change.",
       "kind": "learning",
@@ -1541,6 +1593,7 @@
     },
     {
       "id": "office-focus-desk",
+      "emoji": "⏳",
       "title": "Focus Desk Timer",
       "pitch": "Start a focus timer, and each time you finish, your desk gets a new cool item.",
       "kind": "tool",
@@ -1571,6 +1624,7 @@
     },
     {
       "id": "office-typing-inbox",
+      "emoji": "⌨️",
       "title": "Inbox Zero Typing",
       "pitch": "Type the words on the letters fast to file them before the inbox overflows.",
       "kind": "learning",
@@ -1602,6 +1656,7 @@
     },
     {
       "id": "office-desk-designer",
+      "emoji": "🪑",
       "title": "Dream Desk Designer",
       "pitch": "Design your dream office room by dragging in desks, plants and fun stuff.",
       "kind": "creative",
@@ -1633,6 +1688,7 @@
     },
     {
       "id": "office-flashcard-boxes",
+      "emoji": "🗂️",
       "title": "Flashcard Boxes",
       "pitch": "Make your own flashcards and practice until every card moves to the top box.",
       "kind": "learning",
@@ -1662,6 +1718,7 @@
     },
     {
       "id": "office-savings-goal",
+      "emoji": "🫙",
       "title": "Savings Goal Jar",
       "pitch": "Pick something to save for and watch your jar fill up as you add money.",
       "kind": "tool",
@@ -1691,6 +1748,7 @@
     },
     {
       "id": "office-task-board",
+      "emoji": "📋",
       "title": "Project Task Board",
       "pitch": "Put your tasks on cards and drag them from To Do to Doing to Done.",
       "kind": "tool",
@@ -1720,6 +1778,7 @@
     },
     {
       "id": "office-habit-grid",
+      "emoji": "📅",
       "title": "Habit Streak Grid",
       "pitch": "Pick a few good habits and fill in a square each day you do them.",
       "kind": "tool",
@@ -1750,6 +1809,7 @@
     },
     {
       "id": "office-decision-helper",
+      "emoji": "⚖️",
       "title": "Decision Helper",
       "pitch": "Stuck between choices? List the good and bad points and see which wins.",
       "kind": "tool",
@@ -1779,6 +1839,7 @@
     },
     {
       "id": "princesses-castle-builder",
+      "emoji": "🏰",
       "title": "Build a Castle",
       "pitch": "Drag towers, walls and flags to build the castle of your dreams!",
       "kind": "creative",
@@ -1807,6 +1868,7 @@
     },
     {
       "id": "princesses-crown-designer",
+      "emoji": "👑",
       "title": "Crown Designer",
       "pitch": "Make a sparkly crown and try it on a frog, a cat or a royal knight!",
       "kind": "creative",
@@ -1835,6 +1897,7 @@
     },
     {
       "id": "princesses-jewel-sort",
+      "emoji": "💎",
       "title": "Royal Jewel Sort",
       "pitch": "Sort the shiny jewels into the right treasure chests!",
       "kind": "learning",
@@ -1863,6 +1926,7 @@
     },
     {
       "id": "princesses-moat-hopper",
+      "emoji": "🐊",
       "title": "Moat Hopper",
       "pitch": "Hop across the castle moat on lily pads without falling in the water!",
       "kind": "game",
@@ -1893,6 +1957,7 @@
     },
     {
       "id": "princesses-castle-maze",
+      "emoji": "🐱",
       "title": "Tower Kitten Rescue",
       "pitch": "Find the keys and get through the castle maze to rescue the kitten in the tower!",
       "kind": "game",
@@ -1922,6 +1987,7 @@
     },
     {
       "id": "princesses-inventor-tale",
+      "emoji": "⚙️",
       "title": "The Inventor Princess",
       "pitch": "Help a clever princess invent gadgets to fix problems all over the kingdom.",
       "kind": "story",
@@ -1953,6 +2019,7 @@
     },
     {
       "id": "princesses-tower-stack",
+      "emoji": "🗼",
       "title": "Tallest Tower Stack",
       "pitch": "Drop castle blocks to stack the tallest tower you can!",
       "kind": "game",
@@ -1984,6 +2051,7 @@
     },
     {
       "id": "princesses-quest-board",
+      "emoji": "📜",
       "title": "Royal Quest Board",
       "pitch": "Turn your to-do list into royal quests and earn crown stars for finishing them.",
       "kind": "tool",
@@ -2015,6 +2083,7 @@
     },
     {
       "id": "princesses-royal-garden",
+      "emoji": "🌸",
       "title": "Royal Garden Grower",
       "pitch": "Plant magic seeds in the castle garden and grow brand-new kinds of flowers.",
       "kind": "game",
@@ -2046,6 +2115,7 @@
     },
     {
       "id": "princesses-kingdom-council",
+      "emoji": "🏛️",
       "title": "Kingdom Council",
       "pitch": "Rule a small kingdom by making choices that keep everyone happy.",
       "kind": "game",
@@ -2076,6 +2146,7 @@
     },
     {
       "id": "princesses-secret-cipher",
+      "emoji": "🔐",
       "title": "Royal Secret Cipher",
       "pitch": "Turn messages into secret royal codes and crack codes left for you.",
       "kind": "learning",
@@ -2106,6 +2177,7 @@
     },
     {
       "id": "princesses-castle-lantern-puzzle",
+      "emoji": "🏮",
       "title": "Castle Lantern Puzzle",
       "pitch": "Tap the castle windows to turn all the lights off before bedtime.",
       "kind": "game",
@@ -2136,6 +2208,7 @@
     },
     {
       "id": "robots-robot-builder",
+      "emoji": "🤖",
       "title": "Build-a-Bot",
       "pitch": "Snap together heads, bodies, arms and wheels to make your own robot, then watch it wake up and wiggle!",
       "kind": "creative",
@@ -2165,6 +2238,7 @@
     },
     {
       "id": "robots-battery-catch",
+      "emoji": "🔋",
       "title": "Battery Catch",
       "pitch": "Slide your robot left and right to catch falling batteries before its power runs out!",
       "kind": "game",
@@ -2194,6 +2268,7 @@
     },
     {
       "id": "robots-blinky-lights",
+      "emoji": "💡",
       "title": "Blinky Light Copycat",
       "pitch": "Watch the robot's lights blink in a pattern, then tap them in the same order!",
       "kind": "game",
@@ -2223,6 +2298,7 @@
     },
     {
       "id": "robots-robot-pet",
+      "emoji": "🐶",
       "title": "Robot Pet Buddy",
       "pitch": "Take care of a little robot pet: charge it, oil its gears and play with it to keep it happy!",
       "kind": "game",
@@ -2251,6 +2327,7 @@
     },
     {
       "id": "robots-dance-party",
+      "emoji": "🕺",
       "title": "Robot Dance Party",
       "pitch": "Make your robot dance by tapping moves, then press play to watch your dance with music!",
       "kind": "creative",
@@ -2280,6 +2357,7 @@
     },
     {
       "id": "robots-code-the-robot",
+      "emoji": "🧭",
       "title": "Code the Robot",
       "pitch": "Give your robot arrow commands to walk through a maze and reach its charging station!",
       "kind": "learning",
@@ -2310,6 +2388,7 @@
     },
     {
       "id": "robots-lost-robot-trip",
+      "emoji": "🏠",
       "title": "Little Robot Goes Home",
       "pitch": "Help a small lost robot choose which way to go on its trip back home!",
       "kind": "story",
@@ -2341,6 +2420,7 @@
     },
     {
       "id": "robots-gear-garden",
+      "emoji": "⚙️",
       "title": "Gear Garden",
       "pitch": "Place gears on pegs so they turn each other and spin the big wheel to make the flowers bloom!",
       "kind": "game",
@@ -2372,6 +2452,7 @@
     },
     {
       "id": "robots-junkyard-jump",
+      "emoji": "🔩",
       "title": "Junkyard Jumper",
       "pitch": "Run and jump your robot over boxes and puddles to collect shiny bolts!",
       "kind": "game",
@@ -2403,6 +2484,7 @@
     },
     {
       "id": "robots-factory-line",
+      "emoji": "🏭",
       "title": "Robot Factory Line",
       "pitch": "Build a factory with conveyor belts and sorters that route robot parts to the right boxes.",
       "kind": "game",
@@ -2433,6 +2515,7 @@
     },
     {
       "id": "robots-binary-beeper",
+      "emoji": "🔢",
       "title": "Robot Secret Code",
       "pitch": "Turn your messages into robot language with blinking lights, beeps and ones and zeros.",
       "kind": "tool",
@@ -2463,6 +2546,7 @@
     },
     {
       "id": "robots-sumo-bots",
+      "emoji": "🥊",
       "title": "Bumper Bot Ring",
       "pitch": "Two players each steer a bumper robot and try to nudge the other one out of the ring!",
       "kind": "game",
@@ -2493,6 +2577,7 @@
     },
     {
       "id": "space-star-catcher",
+      "emoji": "⭐",
       "title": "Star Catcher",
       "pitch": "Slide your little rocket to catch falling stars and dodge the space rocks.",
       "kind": "game",
@@ -2522,6 +2607,7 @@
     },
     {
       "id": "space-gentle-landing",
+      "emoji": "🌙",
       "title": "Gentle Moon Landing",
       "pitch": "Use your rocket booster to land softly on the landing pad without crashing.",
       "kind": "game",
@@ -2552,6 +2638,7 @@
     },
     {
       "id": "space-planet-parade",
+      "emoji": "🪐",
       "title": "Planet Parade",
       "pitch": "Put the planets in the right line from the Sun and hear a fun fact about each one.",
       "kind": "learning",
@@ -2580,6 +2667,7 @@
     },
     {
       "id": "space-moon-phase-wheel",
+      "emoji": "🌓",
       "title": "Moon Phase Wheel",
       "pitch": "Move the Moon around the Earth and watch how its shape changes in the sky.",
       "kind": "learning",
@@ -2611,6 +2699,7 @@
     },
     {
       "id": "space-alien-friend-maker",
+      "emoji": "👽",
       "title": "Make an Alien Friend",
       "pitch": "Build your own funny alien by picking eyes, colors and antennas, then give it a name.",
       "kind": "creative",
@@ -2640,6 +2729,7 @@
     },
     {
       "id": "space-connect-the-stars",
+      "emoji": "✨",
       "title": "Connect the Stars",
       "pitch": "Tap stars to join them with glowing lines and make your own picture in the sky.",
       "kind": "creative",
@@ -2670,6 +2760,7 @@
     },
     {
       "id": "space-rock-zapper",
+      "emoji": "☄️",
       "title": "Space Rock Zapper",
       "pitch": "Tap the space rocks to zap them before they bump into your space station.",
       "kind": "game",
@@ -2699,6 +2790,7 @@
     },
     {
       "id": "space-lost-little-astronaut",
+      "emoji": "👩‍🚀",
       "title": "Lost Little Astronaut",
       "pitch": "Help a little astronaut find the way home by choosing where to go next.",
       "kind": "story",
@@ -2727,6 +2819,7 @@
     },
     {
       "id": "space-rocket-countdown-timer",
+      "emoji": "🚀",
       "title": "Rocket Countdown Timer",
       "pitch": "Set a timer for a job, and when time is up your rocket blasts off.",
       "kind": "tool",
@@ -2758,6 +2851,7 @@
     },
     {
       "id": "space-gravity-slingshot",
+      "emoji": "🌍",
       "title": "Gravity Slingshot",
       "pitch": "Fling a space probe so the planets' pull curves it into the target.",
       "kind": "game",
@@ -2787,6 +2881,7 @@
     },
     {
       "id": "space-mars-base-builder",
+      "emoji": "🔴",
       "title": "Mars Base Builder",
       "pitch": "Build a little base on Mars and keep power, water and food in balance.",
       "kind": "game",
@@ -2817,6 +2912,7 @@
     },
     {
       "id": "space-solar-system-scale-trip",
+      "emoji": "🔭",
       "title": "Scale Trip to Neptune",
       "pitch": "Scroll across a solar system drawn to true distance and see how far apart the planets really are.",
       "kind": "learning",
@@ -2846,6 +2942,7 @@
     },
     {
       "id": "sports-penalty-kick",
+      "emoji": "⚽",
       "title": "Penalty Kick Hero",
       "pitch": "Pick a spot, kick the ball, and try to sneak it past the goalie.",
       "kind": "game",
@@ -2875,6 +2972,7 @@
     },
     {
       "id": "sports-mini-golf",
+      "emoji": "⛳",
       "title": "Silly Mini Golf",
       "pitch": "Pull back and let go to roll the ball past silly obstacles into the hole.",
       "kind": "game",
@@ -2904,6 +3002,7 @@
     },
     {
       "id": "sports-trophy-maker",
+      "emoji": "🏆",
       "title": "Trophy Maker",
       "pitch": "Design your very own shiny trophy and put it on your trophy shelf.",
       "kind": "creative",
@@ -2932,6 +3031,7 @@
     },
     {
       "id": "sports-animal-sports-day",
+      "emoji": "🐘",
       "title": "Animal Sports Day",
       "pitch": "Help a little animal try three fun events at the big sports day.",
       "kind": "story",
@@ -2961,6 +3061,7 @@
     },
     {
       "id": "sports-hoop-math",
+      "emoji": "🏀",
       "title": "Hoop Math",
       "pitch": "Make baskets worth 1, 2, or 3 points and add up your score.",
       "kind": "learning",
@@ -2989,6 +3090,7 @@
     },
     {
       "id": "sports-team-scoreboard",
+      "emoji": "📊",
       "title": "Big Team Scoreboard",
       "pitch": "Keep score for any game in the yard with a big, loud scoreboard.",
       "kind": "tool",
@@ -3020,6 +3122,7 @@
     },
     {
       "id": "sports-hoop-shot",
+      "emoji": "🏀",
       "title": "Flick Hoop Shot",
       "pitch": "Flick the ball up into the hoop and score as many as you can in a minute.",
       "kind": "game",
@@ -3051,6 +3154,7 @@
     },
     {
       "id": "sports-skill-tracker",
+      "emoji": "🎯",
       "title": "Skill Streak Tracker",
       "pitch": "Write down your practice and watch your skills and streaks grow.",
       "kind": "tool",
@@ -3082,6 +3186,7 @@
     },
     {
       "id": "sports-air-hockey",
+      "emoji": "🏒",
       "title": "Table Air Hockey",
       "pitch": "Two players hit a puck back and forth and try to slide it into the goal.",
       "kind": "game",
@@ -3113,6 +3218,7 @@
     },
     {
       "id": "sports-tournament-bracket",
+      "emoji": "🗓️",
       "title": "Tournament Bracket Builder",
       "pitch": "Make a bracket for your own tournament and tap winners until one champion is left.",
       "kind": "tool",
@@ -3143,6 +3249,7 @@
     },
     {
       "id": "sports-coach-playbook",
+      "emoji": "📝",
       "title": "Coach Playbook",
       "pitch": "Draw plays on a field, move players step by step, and watch the play run.",
       "kind": "creative",
@@ -3173,6 +3280,7 @@
     },
     {
       "id": "sports-pocket-season",
+      "emoji": "🧢",
       "title": "Pocket Coach Season",
       "pitch": "Coach your own made-up team through a whole season and try to lift the cup.",
       "kind": "game",
@@ -3202,6 +3310,7 @@
     },
     {
       "id": "unicorns-rainbow-sky-run",
+      "emoji": "🦄",
       "title": "Rainbow Sky Run",
       "pitch": "Tap to make your unicorn jump over clouds and grab shiny stars!",
       "kind": "game",
@@ -3231,6 +3340,7 @@
     },
     {
       "id": "unicorns-star-catcher",
+      "emoji": "🌟",
       "title": "Falling Star Catcher",
       "pitch": "Slide your unicorn left and right to catch falling stars in a basket.",
       "kind": "game",
@@ -3261,6 +3371,7 @@
     },
     {
       "id": "unicorns-sparkle-painter",
+      "emoji": "✨",
       "title": "Sparkle Trail Painter",
       "pitch": "Draw with your finger and leave a trail of rainbow sparkles!",
       "kind": "creative",
@@ -3289,6 +3400,7 @@
     },
     {
       "id": "unicorns-color-lab",
+      "emoji": "🧪",
       "title": "Rainbow Color Lab",
       "pitch": "Mix two paint colors and see what new color you make!",
       "kind": "learning",
@@ -3317,6 +3429,7 @@
     },
     {
       "id": "unicorns-unicorn-maker",
+      "emoji": "🦄",
       "title": "Make a Unicorn",
       "pitch": "Build your very own unicorn and give it a name!",
       "kind": "creative",
@@ -3345,6 +3458,7 @@
     },
     {
       "id": "unicorns-stable-care",
+      "emoji": "🥕",
       "title": "Unicorn Stable Care",
       "pitch": "Take care of a baby unicorn: feed it, brush it, and play with it!",
       "kind": "game",
@@ -3376,6 +3490,7 @@
     },
     {
       "id": "unicorns-rainbow-echo",
+      "emoji": "🌈",
       "title": "Rainbow Echo",
       "pitch": "Watch the rainbow light up, then tap the colors in the same order!",
       "kind": "game",
@@ -3407,6 +3522,7 @@
     },
     {
       "id": "unicorns-cloud-quest",
+      "emoji": "☁️",
       "title": "The Lost Rainbow",
       "pitch": "Help a unicorn find the lost colors of the rainbow by choosing where to go.",
       "kind": "story",
@@ -3438,6 +3554,7 @@
     },
     {
       "id": "unicorns-sparkle-synth",
+      "emoji": "🎼",
       "title": "Sparkle Synth",
       "pitch": "Tap glowing stars to make your own twinkly music loop.",
       "kind": "creative",
@@ -3469,6 +3586,7 @@
     },
     {
       "id": "unicorns-prism-puzzle",
+      "emoji": "🔷",
       "title": "Prism Light Puzzle",
       "pitch": "Turn magic crystals to bounce a light beam into every sleeping gem.",
       "kind": "game",
@@ -3499,6 +3617,7 @@
     },
     {
       "id": "unicorns-rainbow-streaks",
+      "emoji": "📆",
       "title": "Rainbow Streak Tracker",
       "pitch": "Track the good habits you want to build, and grow a rainbow each week you keep them.",
       "kind": "tool",
@@ -3529,6 +3648,7 @@
     },
     {
       "id": "unicorns-sparkle-shop",
+      "emoji": "🧴",
       "title": "Sparkle Potion Shop",
       "pitch": "Run a magic potion stand: buy ingredients, set your prices, and grow your shop.",
       "kind": "game",
@@ -3556,6 +3676,318 @@
       ],
       "teenTwist": "Model a small economy: price elasticity, ingredient spoilage, upgrade payback time, and a chart of profit per day so you can test strategies.",
       "buildNotes": "Turn-based simulation with a simple demand formula (price, weather, quality) and seeded randomness; SVG scene with CSS animations for walking customers. Save the game in localStorage; Web Audio for coin jingles."
+    },
+    {
+      "id": "classic-coloring-book",
+      "emoji": "🖍️",
+      "title": "My Coloring Book",
+      "kind": "creative",
+      "ages": [
+        "kid"
+      ],
+      "themes": [
+        "unicorns",
+        "princesses",
+        "robots",
+        "cars",
+        "space",
+        "arcade",
+        "music",
+        "sports",
+        "nature",
+        "office"
+      ],
+      "size": "small",
+      "pitch": "Pick a crayon and tap inside the lines to color a picture!",
+      "howItWorks": "The app shows a picture drawn with thick outlines, where every part (a hat, a wing, a wheel) is its own shape. The kid picks a color from a big crayon box and taps a part to fill it. There are several pictures to choose from, an undo button, and finished pages are saved in a little gallery on the device.",
+      "lookAndFeel": "Bold black outlines on white, drawn as SVG shapes so each part fills cleanly. A wooden crayon box with chunky colored crayons along the side, a soft \"swish\" sound when a part fills, and a sparkle burst when every part has a color.",
+      "makeItYours": [
+        "What are the pictures of: animals, castles, rockets, or cars?",
+        "How many pictures: 3, 5, or 8?",
+        "What colors are in your crayon box: rainbow, pastel, or glow-in-the-dark?",
+        "What happens when a picture is done: sparkles, a happy song, or it dances?",
+        "Is there a magic button: random colors, a rainbow fill, or a pattern fill?"
+      ],
+      "levelUp": [
+        "Patterns to fill with (stripes, dots, stars)",
+        "A \"color by number\" mode with a key",
+        "Draw your own picture to color later"
+      ],
+      "buildNotes": "Each picture is an inline SVG whose parts are separate shapes with ids; clicking a shape sets its fill. Gallery and progress saved as JSON in localStorage; Web Audio for the fill sound."
+    },
+    {
+      "id": "classic-spot-the-difference",
+      "emoji": "🔍",
+      "title": "Spot the Difference",
+      "kind": "game",
+      "ages": [
+        "kid",
+        "teen"
+      ],
+      "themes": [
+        "nature",
+        "unicorns",
+        "princesses",
+        "robots",
+        "cars",
+        "space",
+        "arcade",
+        "music",
+        "sports",
+        "office"
+      ],
+      "size": "medium",
+      "pitch": "Two pictures look the same, but they are not! Find all the differences.",
+      "howItWorks": "Two copies of a drawn scene sit side by side (or one above the other on a phone). The app changes 5 to 7 small things in the second copy: a color, a missing star, a bigger hat, a flipped arrow. Tapping a difference circles it in both pictures; a hint button gently glows near one. Because the app draws the scene itself, it shuffles new differences every round.",
+      "lookAndFeel": "A cheerful scene made of SVG shapes (a garden, a castle courtyard, a space station), with soft colors so the changes are fair to spot. Found differences get a bouncing circle and a \"ding\"; a counter shows \"3 of 6 found\".",
+      "makeItYours": [
+        "What is the scene: a garden, a castle, a space station, or a race track?",
+        "How many differences: 5 easy ones or 7 tricky ones?",
+        "Is there a timer: no timer, a relaxed one, or a race against the clock?",
+        "What is the hint: a glowing spot, a little friend who points, or no hints?",
+        "What happens when you find them all: fireworks, a trophy, or a new scene?"
+      ],
+      "levelUp": [
+        "Levels where the differences get smaller",
+        "A two-player mode taking turns",
+        "A best-time board saved on the device"
+      ],
+      "teenTwist": "Build a difference generator: each round the app picks random objects and random kinds of change (color, size, position, missing), with difficulty settings and a best-time leaderboard.",
+      "buildNotes": "Render one scene from a data list of objects into two SVGs; clone the list and mutate 5–7 random objects for the second. Hit-test taps against the changed objects with a forgiving radius; localStorage for best times."
+    },
+    {
+      "id": "classic-memory-match",
+      "emoji": "🃏",
+      "title": "Memory Match",
+      "kind": "game",
+      "ages": [
+        "kid",
+        "teen"
+      ],
+      "themes": [
+        "arcade",
+        "unicorns",
+        "princesses",
+        "robots",
+        "cars",
+        "space",
+        "music",
+        "sports",
+        "nature",
+        "office"
+      ],
+      "size": "small",
+      "pitch": "Flip two cards at a time and find all the matching pairs!",
+      "howItWorks": "A grid of face-down cards hides pairs of pictures. The player flips two cards; a match stays open, a miss flips back after a moment. The game counts moves and time, and celebrates when every pair is found. Bigger grids make it harder.",
+      "lookAndFeel": "Cards with a patterned back that flip over with a smooth 3D turn, each face showing a drawn picture. A happy chime for a match, a soft \"whoosh\" for a miss, and confetti at the end.",
+      "makeItYours": [
+        "What is on the cards: animals, planets, robots, or emojis?",
+        "How big is the board: 8 cards, 12 cards, or 20 cards?",
+        "What is on the back of the cards: stars, stripes, or a secret logo?",
+        "Should it be one player or two players taking turns?",
+        "What is the reward: stars, a trophy, or a silly dance?"
+      ],
+      "levelUp": [
+        "A two-player mode with scores",
+        "Levels that get bigger each time",
+        "Best score and fewest moves saved"
+      ],
+      "teenTwist": "Add a \"triples\" mode, a timed challenge with a combo multiplier, and a stats page showing your best runs per board size.",
+      "buildNotes": "Shuffle a doubled list of card faces (Fisher–Yates), render as CSS grid buttons with a 3D flip transform; lock input while two cards are open; localStorage for best moves and times."
+    },
+    {
+      "id": "classic-sliding-puzzle",
+      "emoji": "🧩",
+      "title": "Slide Puzzle",
+      "kind": "game",
+      "ages": [
+        "kid",
+        "teen"
+      ],
+      "themes": [
+        "robots",
+        "unicorns",
+        "princesses",
+        "cars",
+        "space",
+        "arcade",
+        "music",
+        "sports",
+        "nature",
+        "office"
+      ],
+      "size": "small",
+      "pitch": "Slide the tiles back into place to fix the picture!",
+      "howItWorks": "A picture drawn by the app is cut into square tiles with one empty space, then mixed up. The player taps a tile next to the empty space to slide it. When every tile is back in place, the picture comes alive with a little animation. Easy mode has 3×3 tiles, harder modes 4×4.",
+      "lookAndFeel": "Tiles with rounded corners and a soft shadow, sliding smoothly. The picture is a bold SVG scene; tiles show tiny numbers in easy mode. A click sound per slide and a cheerful tune when solved.",
+      "makeItYours": [
+        "What is the picture: a robot, a rocket, a castle, or a race car?",
+        "How many tiles: 3 by 3 or 4 by 4?",
+        "Should the tiles show numbers to help?",
+        "What happens when it is solved: the picture moves, fireworks, or a song?",
+        "Is there a move counter or a timer?"
+      ],
+      "levelUp": [
+        "Several pictures to unlock",
+        "A \"shuffle again\" button and best moves saved",
+        "A picture you design yourself"
+      ],
+      "teenTwist": "Make sure every shuffle can be solved (only legal moves from the solved state), add a move-count goal, and show how close you are to the fewest possible moves.",
+      "buildNotes": "Shuffle by applying random legal moves to a solved board; draw tiles as SVG viewBox windows of one picture; CSS transitions for sliding; localStorage for best moves."
+    },
+    {
+      "id": "classic-word-search",
+      "emoji": "🔤",
+      "title": "Word Search",
+      "kind": "learning",
+      "ages": [
+        "kid",
+        "teen"
+      ],
+      "themes": [
+        "office",
+        "unicorns",
+        "princesses",
+        "robots",
+        "cars",
+        "space",
+        "arcade",
+        "music",
+        "sports",
+        "nature"
+      ],
+      "size": "medium",
+      "pitch": "Find the hidden words in a grid of letters!",
+      "howItWorks": "The app hides a list of words across, down, or diagonally in a grid of letters and fills the rest with random letters. The player drags (or taps the first and last letter) to mark a word; found words get crossed off the list. Each new game makes a new grid.",
+      "lookAndFeel": "A clean grid of big, rounded letters on a soft card, with found words highlighted in bright colors. A word list beside the grid with checkmarks. A \"pop\" sound for each word and a happy jingle at the end.",
+      "makeItYours": [
+        "What are the words about: animals, space, sports, or your own list?",
+        "How big is the grid: small 8 by 8 or big 12 by 12?",
+        "Can words go backwards too?",
+        "What colors do found words turn?",
+        "Is there a timer or a relaxed mode?"
+      ],
+      "levelUp": [
+        "Type in your own word list (saved on the device)",
+        "Levels with longer words",
+        "A hint that shows the first letter"
+      ],
+      "teenTwist": "Let the player type a list (spelling words, vocabulary for a test) and generate a fresh puzzle each time, with a timer and difficulty settings for directions.",
+      "buildNotes": "Place words with retries in random directions on a 2D array, fill blanks with random letters; pointer events for drag selection along a straight line; localStorage for custom word lists."
+    },
+    {
+      "id": "classic-dress-up",
+      "emoji": "👗",
+      "title": "Dress-Up Friend",
+      "kind": "creative",
+      "ages": [
+        "kid"
+      ],
+      "themes": [
+        "princesses",
+        "unicorns",
+        "robots",
+        "cars",
+        "space",
+        "arcade",
+        "music",
+        "sports",
+        "nature",
+        "office"
+      ],
+      "size": "small",
+      "pitch": "Pick clothes, hats, and fun things to dress up your character!",
+      "howItWorks": "A character stands in the middle of the screen, with rows of choices beside it: hats, outfits, shoes, and fun extras. Tapping a choice puts it on the character; tapping again takes it off. A \"random\" button makes a surprise outfit, and the kid can save favorite looks in a little wardrobe.",
+      "lookAndFeel": "A friendly character drawn in SVG with layers for each item, so outfits stack neatly. A wardrobe of chunky buttons with little previews, a \"ta-da\" sound for a new outfit, and a spotlight that sparkles when you save a look.",
+      "makeItYours": [
+        "Who are you dressing up: a robot, a unicorn, a knight, or a pet?",
+        "What kinds of things can they wear: hats, capes, sneakers, or space suits?",
+        "Where do they stand: a stage, a garden, or a spaceship?",
+        "What does the random button do: silly outfits or matching outfits?",
+        "What happens when you save a look: a photo frame, a bow, or a cheer?"
+      ],
+      "levelUp": [
+        "Change the colors of each item",
+        "Different characters to choose from",
+        "A fashion show that shows saved looks one by one"
+      ],
+      "buildNotes": "One SVG character with item layers toggled by id; items in a data list by category; saved looks as JSON in localStorage; Web Audio for the ta-da."
+    },
+    {
+      "id": "classic-hidden-objects",
+      "emoji": "🧸",
+      "title": "Find the Hidden Things",
+      "kind": "game",
+      "ages": [
+        "kid"
+      ],
+      "themes": [
+        "space",
+        "unicorns",
+        "princesses",
+        "robots",
+        "cars",
+        "arcade",
+        "music",
+        "sports",
+        "nature",
+        "office"
+      ],
+      "size": "small",
+      "pitch": "Look closely and find all the hidden things in a busy picture!",
+      "howItWorks": "A busy drawn scene hides small things (a key, a star, a sock, a tiny frog). A list at the bottom shows what to find, with pictures for kids who can't read yet. Tapping a hidden thing makes it jump and checks it off. New rounds move the things to new places.",
+      "lookAndFeel": "A colorful scene full of drawn objects, with the hidden things blending in but fair to spot. A gentle \"boop\" when you find one, and a magnifying glass button that makes a small area bigger.",
+      "makeItYours": [
+        "Where is the scene: a messy bedroom, a spaceship, a jungle, or a toy shop?",
+        "What is hidden: keys, stars, animals, or socks?",
+        "How many things to find: 3, 5, or 8?",
+        "Is there a helper: a magnifying glass, a sniffing dog, or none?",
+        "What happens at the end: a party, a treasure chest, or a new scene?"
+      ],
+      "levelUp": [
+        "A second scene to unlock",
+        "A \"night mode\" where you use a flashlight",
+        "A timer and best time"
+      ],
+      "buildNotes": "Scene drawn as SVG with hidden objects placed at random positions from a list each round; tap hit-testing with a forgiving radius; picture list for non-readers."
+    },
+    {
+      "id": "classic-dot-to-dot",
+      "emoji": "✏️",
+      "title": "Dot to Dot",
+      "kind": "learning",
+      "ages": [
+        "kid"
+      ],
+      "themes": [
+        "nature",
+        "unicorns",
+        "princesses",
+        "robots",
+        "cars",
+        "space",
+        "arcade",
+        "music",
+        "sports",
+        "office"
+      ],
+      "size": "small",
+      "pitch": "Connect the numbered dots to discover a secret picture!",
+      "howItWorks": "Numbered dots sit on the screen. The kid taps (or drags) from 1 to 2 to 3 and so on, and a line draws between them. When the last dot connects, the shape fills with color and comes alive with a small animation. Several pictures, from easy (10 dots) to harder (30 dots).",
+      "lookAndFeel": "Big round dots with clear numbers, a crayon-like line that draws smoothly, and a surprise reveal: the finished shape fills with color and wiggles. A rising note for each dot so the kid hears progress.",
+      "makeItYours": [
+        "What are the secret pictures: animals, rockets, castles, or cars?",
+        "Count by ones, twos, or letters A to Z?",
+        "How many dots: 10, 20, or 30?",
+        "What happens when it is done: it moves, it sings, or it flies away?",
+        "What color is the line?"
+      ],
+      "levelUp": [
+        "Counting by twos or fives",
+        "Pictures that unlock one by one",
+        "A \"make your own dot picture\" mode"
+      ],
+      "buildNotes": "Pictures as lists of points; draw dots and the growing polyline in SVG; on completion fill a hidden closed path; Web Audio notes rising in pitch per dot."
     }
   ]
 }

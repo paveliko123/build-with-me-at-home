@@ -34,6 +34,7 @@ export interface ReportData {
   checks: { personal: { ok: boolean; text: string }; output: { ok: boolean; text: string }; onTopic: { ok: boolean; text: string } };
   badge: Badge; title: string; summary: string; ideasShareKid: number | null; ideasNote: string; worthAChat: string; starters: string[];
   laterIdeas?: string[]; // ideas the kid had in the waiting chat (a fact from the project)
+  ideaSource?: string; // the idea-list idea the kid started from, if any
   timeline: { at: number; label: string; text: string }[];
   transcript: ReportLine[];
   writer: 'opus' | 'facts-only';
@@ -244,6 +245,7 @@ function bundle(p: Project, kidName: string, appName: string | null, finished: b
     stoppedAtStep: finished ? null : STEP[p.stage], theme: p.profile.theme,
     plans: Object.fromEntries(Object.values(p.docs).filter((d) => d?.status === 'approved').map((d) => [d!.kind, d!.markdown.slice(0, 4000)])),
     changeRounds: changes, flags,
+    ...(p.ideaSource ? { startedFromIdeaList: `${kidName} tapped "Show me ideas" and picked "${p.ideaSource.title}" from the app's idea list as a starting point; count only what they chose or changed after that as their ideas.` } : {}),
   }, null, 1) + `\n\nTHE CONVERSATION (oldest first):\n${convo}`;
 }
 
@@ -294,7 +296,7 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
       device: p.device ?? pass?.device ?? 'Unknown device', answered: p.profile.inputMode === 'talk' ? 'talking' : 'typing',
       ...(opts.finished ? {} : { stoppedAt: STEP[p.stage] }),
       app: shelfApp ? { name: shelfApp.name, path: `/apps/${kidId}/${shelfApp.slug}/`, url: `http://localhost:${appPort}/apps/${kidId}/${shelfApp.slug}/`, emoji: shelfApp.emoji, ...(shelfApp.icon && appIcon(kidId, shelfApp.slug) ? { icon: svgDataUrl(appIcon(kidId, shelfApp.slug)!) } : {}), description: ai?.appDescription ?? '' } : null,
-      usage, flags, ...(p.laterIdeas?.length ? { laterIdeas: p.laterIdeas } : {}),
+      usage, flags, ...(p.laterIdeas?.length ? { laterIdeas: p.laterIdeas } : {}), ...(p.ideaSource ? { ideaSource: p.ideaSource.title } : {}),
       checks: ai?.checks ?? {
         personal: { ok: !p.flags.some((f) => f.verdict === 'personal'), text: p.flags.some((f) => f.verdict === 'personal') ? 'A personal detail came up; it was hidden.' : 'No personal details shared.' },
         output: { ok: !p.flags.some((f) => f.direction !== 'input'), text: 'Based on the automatic checks of what the guide said and built.' },

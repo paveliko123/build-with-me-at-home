@@ -73,6 +73,7 @@ export function renderReport(r: ReportData): string {
   const check = (c: { ok: boolean; text: string }) => `<li><span class="pill ${c.ok ? 'ok' : 'warn'}">${c.ok ? 'OK' : 'Look'}</span> ${esc(c.text)}</li>`;
   const ideas = r.ideasShareKid === null ? '<p class="muted" style="margin:0">Not estimated (the report writer did not run).</p>'
     : `<div class="bar"><i style="width:${r.ideasShareKid}%;background:var(--kid)"></i><i style="width:${100 - r.ideasShareKid}%;background:var(--brand)"></i></div><div class="legend"><span style="--c:var(--kid)">${esc(r.kidName)}'s ideas: ${r.ideasShareKid}%</span><span style="--c:var(--brand)">Guide's suggestions: ${100 - r.ideasShareKid}%</span></div><p class="muted" style="margin:8px 0 0">${esc(r.ideasNote)} <i>(an estimate)</i></p>`;
+  const fromList = r.ideaSource ? `<p style="margin:10px 0 0">${esc(r.kidName)} started from an idea from the idea list, <q>${esc(r.ideaSource)}</q>, and made it their own.</p>` : '';
   const waitIdeas = r.laterIdeas?.length ? `<p style="margin:10px 0 0">Ideas ${esc(r.kidName)} had while the app was building: ${r.laterIdeas.map((i) => `<q>${esc(i)}</q>`).join(', ')}.</p>` : '';
   const timeline = r.timeline.map((t) => `<li><span class="when">${time(t.at)} ${esc(t.label)}</span><span>${esc(t.text) || '&nbsp;'}</span></li>`).join('');
   const convo = r.transcript.map((l) => `<div class="quote"><b>${l.who === 'kid' ? esc(r.kidName) : 'Guide'} · ${time(l.at)}</b>${esc(l.text)}</div>`).join('');
@@ -105,7 +106,7 @@ export function renderReport(r: ReportData): string {
     <ul style="margin:10px 0 0">${check(r.checks.personal)}${check(r.checks.output)}${check(r.checks.onTopic)}</ul>
     ${r.worthAChat ? `<p class="note">Worth a chat? ${esc(r.worthAChat)}</p>` : ''}
   </div>
-  <div class="card"><h2>Whose ideas?</h2>${ideas}${waitIdeas}</div>
+  <div class="card"><h2>Whose ideas?</h2>${ideas}${fromList}${waitIdeas}</div>
   <div class="card"><h2>How it went</h2><ul class="timeline">${timeline}</ul></div>
   <div class="card"><h2>Talk about it together</h2>
     ${r.starters.length ? `<ul style="margin:0">${r.starters.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>` : '<p class="muted" style="margin:0">Ask them to show you what they made.</p>'}

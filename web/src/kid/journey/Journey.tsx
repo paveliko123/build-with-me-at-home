@@ -12,7 +12,7 @@ import BuildScreen, { type Resume } from './screens/BuildScreen';
 import ShipScreen from './screens/ShipScreen';
 import MyApps from './screens/MyApps';
 import Welcome from './screens/Welcome';
-import { getJourney, guideTurn, limitMessage, newApp, passEnded, setInputMode as saveInputMode, startJourney } from './lib/api';
+import { getJourney, guideTurn, limitMessage, newApp, passEnded, setInputMode as saveInputMode, startJourney, type IdeaCard } from './lib/api';
 import { speechSupported } from './lib/speech';
 import { defaultSpeed, deviceVoices, setVoiceName, setVoiceSpeed, SPEEDS, stopSpeaking, voiceSupported } from './lib/voice';
 import { DEFAULT_THEME, themeStyle } from './themes/themes';
@@ -140,14 +140,15 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
     if (doc) { setDocs(d => ({ ...d, [doc.kind]: doc })); setPane(doc.kind); }
   }
 
-  async function turn(text?: string, who: ProfileT | null = profile, retry = false) {
+  async function turn(text?: string, who: ProfileT | null = profile, retry = false, idea?: IdeaCard) {
     setBusy(true);
     setError(null);
     setLastText(text);
     // Echo the answer (card picks included) under the question it answers.
-    if (text && !retry) setHistory(h => [...h, ...(reply ? [{ from: 'guide' as const, text: guideLine(reply) }] : []), { from: 'me', text }]);
+    const echo = idea ? `${idea.emoji} ${idea.title}` : text;
+    if (echo && !retry) setHistory(h => [...h, ...(reply ? [{ from: 'guide' as const, text: guideLine(reply) }] : []), { from: 'me', text: echo }]);
     try {
-      let result = await guideTurn(text);
+      let result = await guideTurn(idea ? undefined : text, idea?.id);
       settle(result);
       // A finished stage hands over to the next one, which the guide opens itself.
       while (result.stageChanged && GUIDE_STAGES.includes(result.stage)) {
@@ -295,7 +296,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
           )}
           {GUIDE_STAGES.includes(stage) && (
             <GuideStage profile={profile} reply={reply} history={history} visual={visual} docs={docs} pane={pane} onPane={setPane}
-              controls={controls} busy={busy} error={error} onSend={text => (error && /^\W*(try (it |that )?again|again|retry)\b/i.test(text) ? turn(lastText, profile, true) : turn(text))} onRetry={() => turn(lastText, profile, true)} voiceOn={voiceOn} />
+              controls={controls} busy={busy} error={error} ideasOn={stage === 'idea'} onIdea={idea => turn(undefined, profile, false, idea)} onSend={text => (error && /^\W*(try (it |that )?again|again|retry)\b/i.test(text) ? turn(lastText, profile, true) : turn(text))} onRetry={() => turn(lastText, profile, true)} voiceOn={voiceOn} />
           )}
           {/* The Build screen stays mounted (hidden) on the Ship screen, so "Keep building" returns to the same chat. */}
           {(stage === 'build' || (stage === 'ship' && !!shipHtml)) && (

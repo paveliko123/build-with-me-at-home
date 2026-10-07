@@ -3,6 +3,7 @@
 // "I don't know", plain words, re-asks) are kept as they were tuned in live testing; only the
 // storage (Firestore → the project file) and the model calls (API → the parent's Claude Code)
 // changed, plus the pass's step for the parent's Active passes card.
+import { ideaById, ideaNote } from './ideas.js';
 import { oneEmoji } from './appIcon.js';
 import { callDocWriter, callGuide, GuideError, type CallMeta } from './claude.js';
 import { buildContents, buildSystemInstruction, stageKickoff, type StoredMessage } from './prompt/buildPrompt.js';
@@ -182,8 +183,11 @@ export class TurnError extends Error {
 }
 
 /** One turn. The project is changed in place; the caller saves it (also after an error). */
-export async function guideTurn(project: Project, rawText?: string): Promise<GuideTurnResult> {
-  const typed = typeof rawText === 'string' ? personText(rawText.trim().slice(0, MAX_TEXT)) : '';
+export async function guideTurn(project: Project, rawText?: string, opts: { ideaId?: string } = {}): Promise<GuideTurnResult> {
+  // "💡 Show me ideas": a picked idea is the kid's answer, and the guide gets its details (ideas.ts).
+  const idea = opts.ideaId && project.stage === 'idea' ? ideaById(opts.ideaId) : undefined;
+  const typed = idea ? `Let's make "${idea.title}"! ${idea.pitch}`
+    : typeof rawText === 'string' ? personText(rawText.trim().slice(0, MAX_TEXT)) : '';
   // spec.md > Safety: obvious personal details are hidden before anything is saved or sent.
   const instant = maskPersonal(typed);
   let text = instant.text;
@@ -206,6 +210,10 @@ export async function guideTurn(project: Project, rawText?: string): Promise<Gui
     if (messages.length === 0) newMessages.push({ role: 'user', text: stageKickoff(stage, waiting) });
     else if (waiting && !text) newMessages.push({ role: 'user', text: '[app] The app is being built again (a new step or a change). Say one short friendly line about it and ask one new question (ideas for later).' });
     if (text) newMessages.push({ role: 'user', text });
+    if (idea) {
+      newMessages.push({ role: 'user', text: ideaNote(idea, ageGroupOf(session.profile)) });
+      session.ideaSource = { id: idea.id, title: idea.title, at: Date.now() };
+    }
     if (newMessages.length === 0) throw new TurnError(400, 'text is required after the stage has started.');
 
     const approvedDocs = STAGE_ORDER

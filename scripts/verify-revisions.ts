@@ -191,6 +191,36 @@ async function main() {
     const reportHtml = renderReport({ ...base0, app: { name: 'Biscuit Time', path: '/x/', url: 'http://localhost/x/', emoji: '🐶', icon: `data:image/svg+xml;base64,${Buffer.from(good!).toString('base64')}`, description: 'd' } } as any);
     const forged = renderReport({ ...base0, app: { name: 'X', path: '/x/', url: 'http://localhost/x/', emoji: '🐶', icon: 'javascript:alert(1)', description: 'd' } } as any);
     add('the report shows the app\'s icon (only a real image address)', reportHtml.includes('<img class="e" src="data:image/svg+xml;base64,') && !forged.includes('javascript:') && forged.includes('🐶'), 'drawn icon shown · a forged address falls back to the emoji');
+
+    // ---------- batch 4: "💡 Show me ideas" ----------
+    const { pickIdeas, ideaNote, ideaById } = await import('../server/journey/ideas.js');
+    const lib = JSON.parse(readFileSync(join(process.cwd(), 'server', 'journey', 'ideaLibrary.json'), 'utf8')).ideas as any[];
+    const classics = lib.filter((i) => i.id.startsWith('classic-'));
+    add('the idea library has 128 ideas, each with an emoji; the 8 classics fit every theme', lib.length === 128 && lib.every((i) => i.emoji) && classics.length === 8 && classics.every((i) => i.themes.length === 10), `${lib.length} ideas · classics: ${classics.map((i) => i.emoji).join('')}`);
+    let themedOk = 0, ageOk = true;
+    for (let k = 0; k < 20; k++) {
+      const three = pickIdeas('kid', 'space');
+      if (three.filter((c: any) => ideaById(c.id)!.themes.includes('space')).length >= 2) themedOk++;
+      if (!three.every((c: any) => ideaById(c.id)!.ages.includes('kid'))) ageOk = false;
+    }
+    const teenOk = Array.from({ length: 20 }, () => pickIdeas('teen', 'office')).flat().every((c: any) => ideaById(c.id)!.ages.includes('teen'));
+    add('three ideas at a time: right age group, mostly the theme\'s mood', themedOk === 20 && ageOk && teenOk, `${themedOk}/20 draws had ≥2 space ideas · kid-only ${ageOk} · teen-only ${teenOk}`);
+    const seen: string[] = [];
+    let repeats = 0;
+    for (let k = 0; k < 6; k++) { const got = pickIdeas('kid', 'space', seen); for (const c of got) { if (seen.includes(c.id)) repeats++; seen.push(c.id); } }
+    add('"More ideas" doesn\'t repeat ideas already shown', repeats === 0 && seen.length === 18, `${seen.length} ideas over 6 rounds, ${repeats} repeats`);
+    const duck = ideaById('nature-lost-ducklings')!;
+    const note = ideaNote(duck, 'kid');
+    add('a picked idea reaches the guide as a starting point with its "make it yours" questions', note.startsWith('[app]') && note.includes(duck.makeItYours[0]) && note.includes('use only their answers') && !note.includes('For a teen'), duck.makeItYours[0]);
+    // A kid at the Idea stage (Leo's teen pass is on a shipped project: start one for Maya).
+    await kid.call('/api/kid/journey/new', {});
+    await kid.call('/api/kid/journey/start', { theme: 'nature', inputMode: 'type' });
+    r = await kid.call('/api/kid/journey/ideas');
+    const r4 = await kid.call(`/api/kid/journey/ideas?exclude=${r.body.ideas.map((i: any) => i.id).join(',')}`);
+    const overlap = r4.body.ideas.filter((i: any) => r.body.ideas.some((j: any) => j.id === i.id)).length;
+    add('the kid screen gets three idea cards (emoji, title, pitch) instantly, and new ones on "More ideas"', r.status === 200 && r.body.ideas.length === 3 && r.body.ideas.every((i: any) => i.emoji && i.title && i.pitch && !i.buildNotes) && overlap === 0, r.body.ideas.map((i: any) => `${i.emoji} ${i.title}`).join(' · '));
+    const reportIdea = renderReport({ ...base0, ideaSource: 'The Lost Ducklings' } as any);
+    add('the parent report says the kid started from an idea-list idea', reportIdea.includes('started from an idea from the idea list') && reportIdea.includes('The Lost Ducklings'), 'in "Whose ideas?"');
   } finally {
     await server.close();
   }

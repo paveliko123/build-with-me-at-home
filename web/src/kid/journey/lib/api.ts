@@ -12,8 +12,14 @@ export async function startJourney(choice: { theme: Profile['theme']; inputMode:
   return api<SessionSnapshot>('/api/kid/journey/start', { body: choice });
 }
 
-export async function guideTurn(text?: string) {
-  return api<GuideTurnResult>('/api/kid/journey/turn', { body: text === undefined ? {} : { text } });
+export async function guideTurn(text?: string, ideaId?: string) {
+  return api<GuideTurnResult>('/api/kid/journey/turn', { body: ideaId ? { ideaId } : text === undefined ? {} : { text } });
+}
+
+/** "💡 Show me ideas": three ideas from the idea library (instant, no Claude call). */
+export interface IdeaCard { id: string; emoji: string; title: string; pitch: string }
+export async function getIdeas(exclude: string[] = []) {
+  return (await api<{ ideas: IdeaCard[] }>(`/api/kid/journey/ideas?exclude=${encodeURIComponent(exclude.join(','))}`)).ideas;
 }
 
 /** "⌨️ Type instead" / "🎤 Talk instead": remembered for this project (and the guide's reply length). */
