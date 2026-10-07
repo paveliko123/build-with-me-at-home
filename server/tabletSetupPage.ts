@@ -27,7 +27,7 @@ h1{font-size:24px;margin:0 0 4px}.muted{color:var(--muted)}
 .path{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
 .path span{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-weight:700;font-size:16px}
 .path i{color:var(--muted);font-style:normal}
-.tip{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:10px 12px;font-size:15px;font-weight:600;margin-top:10px}
+.tip{background:var(--warn-soft);color:#8a5a12;border-radius:12px;padding:10px 12px;font-size:15px;font-weight:600;margin-top:10px}
 .nav{display:flex;gap:10px;margin-top:auto;padding-top:18px}
 button.go,a.go{flex:1;text-align:center;background:var(--btn);color:var(--on-btn);text-decoration:none;border:none;border-radius:14px;padding:14px 16px;font:inherit;font-weight:800;cursor:pointer}
 button.back{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font:inherit;font-weight:700;cursor:pointer}
@@ -38,8 +38,8 @@ button.back{background:var(--card);color:var(--ink);border:1px solid var(--line)
 [hidden]{display:none!important}
 </style></head><body><main>
 <h1>📱 Set up this device for talking</h1>
-<p class="muted">One time per tablet or laptop, about 2 minutes. Devices only let <b>you</b> approve this, in their Settings, which keeps everyone safe. The certificate only works for your home network.</p>
-<div class="tip">This page shows “Not secure”. That’s expected: it’s the page that teaches this device to trust your computer. Kids’ pages will be secure once setup is done.</div>
+<p class="muted" id="intro">One time per tablet or laptop, about 2 minutes. Devices only let <b>you</b> approve this, in their Settings, which keeps everyone safe. The certificate only works for your home network.</p>
+<div class="tip" id="intro-tip">This page shows “Not secure”. That’s expected: it’s the page that teaches this device to trust your computer. Kids’ pages will be secure once setup is done.</div>
 <div class="tabs" id="tabs">
   <button data-p="ipad">iPad / iPhone</button>
   <button data-p="pixel">Android (Pixel & most)</button>
@@ -107,6 +107,7 @@ function detect(ua, touch) {
 }
 let plat = detect(navigator.userAgent, 'ontouchend' in document);
 let step = 0;
+let rendered = false;
 try { const s = JSON.parse(localStorage.getItem('bwm-tablet-setup') || '{}'); if (s.plat && P[s.plat]) { plat = s.plat; step = s.step || 0; } } catch {}
 function save() { try { localStorage.setItem('bwm-tablet-setup', JSON.stringify({ plat, step })); } catch {} }
 function render() {
@@ -115,15 +116,20 @@ function render() {
   const s = steps[step];
   let h = '<div class="stepno">Step ' + (step + 1) + ' of ' + steps.length + '</div><h2>' + s.t + '</h2>';
   if (s.check) {
-    h += '<p>Let’s see if this device trusts your computer now.</p><button class="go" id="check">Check</button><div id="res"></div>';
+    h += '<p>Let’s see if this device trusts your computer now.</p><button class="go" id="check">Check</button><div id="res" aria-live="polite"></div>';
   } else {
     if (s.b) h += '<p>' + s.b + '</p>';
     if (s.path) h += '<div class="path">' + s.path.map((p) => '<span>' + esc(p) + '</span>').join('<i>›</i>') + '</div>';
     if (s.tip) h += '<div class="tip">' + s.tip + '</div>';
-    if (s.btn) h += '<p><a class="go" style="display:block" href="' + s.btn[1] + '">' + s.btn[0] + '</a></p>';
+    if (s.btn) h += '<p><a class="go" style="display:block" id="dl" href="' + s.btn[1] + '">' + s.btn[0] + '</a></p>';
   }
-  h += '<div class="nav">' + (step > 0 ? '<button class="back" id="back">Back</button>' : '') + (s.check ? '' : '<button class="go" id="next">Done, next</button>') + '</div>';
+  h += '<div class="nav">' + (step > 0 ? '<button class="back" id="back">Back</button>' : '') + (s.check ? '' : '<button class="' + (s.btn ? 'back' : 'go') + '" id="next">Done, next</button>') + '</div>';
   document.getElementById('card').innerHTML = h;
+  document.getElementById('intro').hidden = step > 0;
+  document.getElementById('intro-tip').hidden = step > 0;
+  document.getElementById('dl')?.addEventListener('click', () => { const n = document.getElementById('next'); if (n) n.className = 'go'; });
+  const h2 = document.querySelector('#card h2'); if (h2 && rendered) { h2.setAttribute('tabindex', '-1'); h2.focus(); }
+  rendered = true;
   document.getElementById('dots').innerHTML = steps.map((_, i) => '<i class="' + (i <= step ? 'on' : '') + '"></i>').join('');
   document.getElementById('back')?.addEventListener('click', () => { step--; render(); });
   document.getElementById('next')?.addEventListener('click', () => { step++; render(); });

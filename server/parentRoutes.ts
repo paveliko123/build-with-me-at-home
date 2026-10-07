@@ -38,6 +38,16 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
     res.json({ hasPin: !!f.pin, kids: f.kids.length, unlocked: isParent(req) });
   });
 
+  // First-run step 1 (UI review P1): is Claude Code here and signed in? Same check as the status
+  // strip, before a PIN exists (afterwards it's /status, behind the PIN).
+  r.get('/claude-check', async (req, res) => {
+    if (!isLoopback(req)) { res.status(403).json({ error: 'laptop-only' }); return; }
+    if (readFamily().pin) { res.status(409).json({ error: 'already-set-up' }); return; }
+    if (!findClaude()) { res.json({ found: false, signedIn: false }); return; }
+    const usage = await currentUsage(req.query.fresh ? 0 : 60_000);
+    res.json({ found: true, signedIn: !/not logged in|please run \/login/i.test(usage.raw) });
+  });
+
   // First-run: create the PIN and the first kids. Only allowed while no PIN exists.
   r.post('/setup', async (req, res) => {
     if (!isLoopback(req)) { res.status(403).json({ error: 'laptop-only' }); return; }

@@ -6,7 +6,7 @@ export function PinPad({ value, onChange, onEnter, max = 8 }: { value: string; o
     const onKey = (e: KeyboardEvent) => {
       if (/^\d$/.test(e.key) && value.length < max) onChange(value + e.key);
       else if (e.key === 'Backspace') onChange(value.slice(0, -1));
-      else if (e.key === 'Enter') onEnter?.();
+      else if (e.key === 'Enter' && !(document.activeElement instanceof HTMLButtonElement)) onEnter?.();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

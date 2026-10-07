@@ -7,12 +7,17 @@ export function Opening({ onUnlocked }: { onUnlocked: () => void }) {
   const [pin, setPin] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  // UI review P6: the parent area locks itself when a kid's pass opens on this laptop; say so.
+  const [lockedBy] = useState(() => {
+    try { const v = JSON.parse(localStorage.getItem('bwm-locked-by') ?? 'null'); return v && Date.now() - v.at < 12 * 60 * 60_000 ? String(v.name) : null; } catch { return null; }
+  });
 
   const enter = async () => {
     if (busy || pin.length < 4) return;
     setBusy(true); setErr('');
     try {
       await api('/api/parent/unlock', { body: { pin } });
+      try { localStorage.removeItem('bwm-locked-by'); } catch { /* fine */ }
       onUnlocked();
     } catch (e) {
       const b = e instanceof ApiError ? e.body : null;
@@ -28,6 +33,7 @@ export function Opening({ onUnlocked }: { onUnlocked: () => void }) {
       <div className="logo">🛠️✨</div>
       <h1>Build With Me at Home</h1>
       <div className="resp">{RESPONSIBILITY}</div>
+      {lockedBy && <p className="muted" style={{ fontWeight: 600 }}>🔒 Locked because {lockedBy}'s pass was opened on this laptop.</p>}
       <p className="muted">Grown-ups only. Enter your parent PIN.</p>
       <PinPad value={pin} onChange={setPin} onEnter={enter} />
       <p className="err" role="alert">{err}</p>

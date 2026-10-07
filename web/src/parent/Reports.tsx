@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { api } from '../lib/api';
 
 // prd.md > The Parent Report, Limit Reached, Screens and Layout (All reports, One report),
@@ -48,11 +49,11 @@ export function LatestReports({ reports, onOpen, onAll }: { reports: ReportItem[
       {!reports.length && <div className="empty">Reports appear after your kids finish an app.</div>}
       {reports.slice(0, 3).map((r) => (
         <div className="row clickable" key={r.id} onClick={() => onOpen(r.id)}>
-          <div><b>{r.finished ? r.what : '(not finished)'}</b> · {r.kidName}<br /><span className="muted">{dayOf(r.createdAt)}{r.fiveHourPct !== null ? ` · ${r.fiveHourPct < 1 ? '<1' : Math.round(r.fiveHourPct)}% of 5-hr limit` : ''}</span></div>
+          <div><button className="linkish" onClick={(e) => { e.stopPropagation(); onOpen(r.id); }}><b>{r.finished ? r.what : '(not finished)'}</b></button> · {r.kidName}<br /><span className="muted">{dayOf(r.createdAt)}{r.fiveHourPct !== null ? ` · ≈${r.fiveHourPct < 1 ? '<1' : Math.round(r.fiveHourPct)}% of your 5-hour limit (this app)` : ''}</span></div>
           <Badge r={r} />
         </div>
       ))}
-      {!!reports.length && <div style={{ marginTop: 12 }}><a href="#" onClick={(e) => { e.preventDefault(); onAll(); }}>All reports →</a> <span className="muted" style={{ fontSize: 13 }}>· also in your Build With Me\Reports folder</span></div>}
+      {!!reports.length && <div style={{ marginTop: 12 }}><button className="linkish" onClick={onAll}>All reports →</button> <span className="muted" style={{ fontSize: 13 }}>· also in your Build With Me\Reports folder</span></div>}
     </div>
   );
 }
@@ -72,7 +73,7 @@ export function AllReports({ reports, onOpen, onBack }: { reports: ReportItem[];
                   <tr key={r.id} className="clickable" onClick={(e) => { if ((e.target as HTMLElement).tagName !== 'A') onOpen(r.id); }}>
                     <td>{dayOf(r.createdAt)}<br /><span className="muted">{timeOf(r.startedAt)}–{timeOf(r.endedAt)}</span></td>
                     <td>{r.kidName} <span className={`pill ${r.group === 'teen' ? 't' : 'k'}`}>{r.group === 'teen' ? 'Teen' : 'Kid'}</span></td>
-                    <td><b>{r.finished ? r.what : '(not finished)'}</b><br /><span className="muted">{r.description}</span></td>
+                    <td><button className="linkish" onClick={(e) => { e.stopPropagation(); onOpen(r.id); }}><b>{r.finished ? r.what : '(not finished)'}</b></button><br /><span className="muted">{r.description}</span></td>
                     <td><Badge r={r} /></td>
                     <td>{r.appPath ? <a href={r.appPath} target="_blank" rel="noopener">Open ↗</a> : <span className="muted">—</span>}</td>
                   </tr>
@@ -86,11 +87,15 @@ export function AllReports({ reports, onOpen, onBack }: { reports: ReportItem[];
   );
 }
 
+// UI review R3: the report is as tall as its content (one scroll, the page's), with no second
+// "Parent report" title around it.
 export function ReportView({ id, onBack }: { id: string; onBack: () => void }) {
+  const [height, setHeight] = useState(800);
+  const fit = (f: HTMLIFrameElement) => { try { const h = f.contentDocument?.documentElement.scrollHeight; if (h) setHeight(h + 8); } catch { /* keep the default */ } };
   return (
     <main>
-      <div className="top"><h1>Parent report</h1><button className="ghost" onClick={onBack}>← Back</button></div>
-      <iframe className="reportframe" title="Parent report" src={`/api/parent/reports/${encodeURIComponent(id)}/html`} />
+      <div className="top"><button className="ghost" onClick={onBack}>← Back</button></div>
+      <iframe className="reportframe" title="Parent report" style={{ height }} onLoad={(e) => { const f = e.currentTarget; fit(f); window.setTimeout(() => fit(f), 400); }} src={`/api/parent/reports/${encodeURIComponent(id)}/html`} />
     </main>
   );
 }

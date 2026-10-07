@@ -5,8 +5,8 @@
 import { usageInfo, type ReportData } from './reporter.js';
 
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
-const time = (t: number) => new Date(t).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(' ', ' ').toLowerCase();
-const day = (t: number) => new Date(t).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+const time = (t: number) => new Date(t).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+const day = (t: number) => new Date(t).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const mins = (m: number) => (m >= 60 ? `${Math.floor(m / 60)} hr${m % 60 ? ` ${m % 60} min` : ''}` : `${m} min`);
 const pct = (x: number | null) => (x === null ? '—' : x < 1 ? '&lt;1%' : `${Math.round(x)}%`);
 const plus = (x: number | null) => (x !== null && x >= 1 ? `+${pct(x)}` : pct(x));
@@ -29,7 +29,7 @@ h1{font-size:26px;margin:0 0 4px} h2{font-size:17px;margin:0 0 10px} h3{font-siz
 .app{display:grid;grid-template-columns:200px 1fr;gap:18px;align-items:start}
 @media (max-width:640px){.app{grid-template-columns:1fr}}
 .shot{aspect-ratio:4/3;border-radius:12px;background:linear-gradient(135deg,#7b5cff,#3a8ee2);display:grid;place-items:center;color:#fff;font-weight:800;text-align:center;padding:10px}
-.shot .e{font-size:44px;display:block}
+.shot .e{font-size:72px;display:block;margin:auto}
 a{color:var(--kid)}
 .flag{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:8px;margin:8px 0}
 .flag.look{border-color:var(--bad);background:var(--bad-soft)}
@@ -43,7 +43,9 @@ a{color:var(--kid)}
 .legend{font-size:13px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
 .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle;background:var(--c)}
 details{margin-top:10px} summary{cursor:pointer;font-weight:600}
-.quote{background:var(--bg);border-radius:8px;padding:8px 12px;margin:6px 0}
+.quote{background:var(--bg);border-radius:8px;padding:8px 12px;margin:6px 0;white-space:pre-wrap}
+@media (max-width:480px){.timeline li{grid-template-columns:1fr;gap:2px}}
+@media print{body{background:#fff}.card{break-inside:avoid;border-color:#ccc}details>*{display:block}}
 .quote b{font-size:12px;color:var(--muted);display:block}
 .note{font-size:13px;color:var(--muted);margin:10px 0 0}`;
 
@@ -67,7 +69,7 @@ export function renderReport(r: ReportData): string {
     u.note && !a ? `${esc(u.note)}${u.own === null ? ' Showing Claude Code\'s token count instead; the app\'s own share appears once Build With Me has learned the rate on your plan.' : ''}` : '',
   ].filter(Boolean).join(' ');
   const shown = r.app
-    ? `<div class="app"><div class="shot"><span>${r.app.icon && /^data:image\/svg\+xml;base64,[A-Za-z0-9+/=]+$/.test(r.app.icon) ? `<img class="e" src="${r.app.icon}" alt="" width="64" height="64">` : `<span class="e">${esc(r.app.emoji)}</span>`}${esc(r.app.name)}</span></div><div><h3>${esc(r.app.name)}</h3><p class="muted" style="margin:0 0 8px">${esc(r.app.description)}</p><p style="margin:0"><a href="${esc(r.app.url)}" target="_blank" rel="noopener">Open the app ↗</a> &nbsp;·&nbsp; <span class="muted">works on this computer and on home Wi-Fi while Build With Me is running</span></p></div></div>`
+    ? `<div class="app"><div class="shot"><span>${r.app.icon && /^data:image\/svg\+xml;base64,[A-Za-z0-9+/=]+$/.test(r.app.icon) ? `<img class="e" src="${r.app.icon}" alt="" width="96" height="96">` : `<span class="e">${esc(r.app.emoji)}</span>`}</span></div><div><h3>${esc(r.app.name)}</h3><p class="muted" style="margin:0 0 8px">${esc(r.app.description)}</p><p style="margin:0"><a href="${esc(r.app.url)}" target="_blank" rel="noopener">Open the app ↗</a> &nbsp;·&nbsp; <span class="muted">works on this computer and on home Wi-Fi while Build With Me is running</span></p></div></div>`
     : `<p style="margin:0">Not finished: stopped at <b>${esc(r.stoppedAt ?? '')}</b>. It's saved, and ${esc(r.kidName)} picks up there with the next pass.</p>`;
   const flags = r.flags.map((f) => `<div class="flag${r.badge === 'look' ? ' look' : ''}"><b>⚠ ${esc(f.headline)}</b> <span class="muted">· ${time(f.at)} · ${esc(f.stage)} step</span><p style="margin:6px 0 0">${esc(r.kidName)} said: <q>${esc(f.text)}</q>. ${esc(f.guideDid)}${f.kidReaction ? ` ${esc(f.kidReaction)}` : ''}</p></div>`).join('');
   const check = (c: { ok: boolean; text: string }) => `<li><span class="pill ${c.ok ? 'ok' : 'warn'}">${c.ok ? 'OK' : 'Look'}</span> ${esc(c.text)}</li>`;

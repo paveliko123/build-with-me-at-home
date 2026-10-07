@@ -34,7 +34,9 @@ export function kidRoutes(): Router {
 
   // Live updates. Parent: "passes changed". Kid: their pass (extended, ended, over).
   r.get('/events', (req: Request, res: Response) => {
-    const parent = isParent(req);
+    // ?as=kid: the kid page asks for its pass stream even when the parent cookie is also here
+    // (same browser on the laptop; UI review K3: End now didn't reach the kid tab).
+    const parent = req.query.as !== 'kid' && isParent(req);
     const kid = parent ? null : kidSession(req);
     if (!parent && !kid) { res.status(401).json({ error: 'no-pass' }); return; }
     res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive', 'X-Accel-Buffering': 'no' });

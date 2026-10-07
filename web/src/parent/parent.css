@@ -31,6 +31,16 @@
 .parent .danger-box input{width:100%;max-width:260px;margin-top:4px}
 .parent .ghost{background:transparent;border:1px solid var(--line);color:var(--ink);padding:7px 12px;border-radius:9px;font:inherit;font-weight:600;cursor:pointer}
 .parent .ghost:hover{border-color:var(--brand)}
+/* UI review A8: 44 px tap targets; A13: in-text actions in the brand color; A9: questions in the card. */
+.parent .ghost,.parent .dur button,.parent .emojis button,.parent .alert .ghost{min-height:44px}
+.parent .emojis button{min-width:44px}
+.parent .linkish{background:none;border:0;padding:0;font:inherit;color:var(--btn);cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:2px}
+.parent .linkish b{color:var(--ink)}
+.parent a{color:var(--btn)}
+.parent .confirm{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--warn-soft);color:var(--ink)}
+.parent .confirm .acts{display:flex;gap:8px;flex-wrap:wrap}
+.parent .qrbox .qr.big{width:220px;height:220px}
+.parent .typed.big{font-size:28px;margin-top:4px}
 .parent .danger{color:var(--bad)}
 .parent .pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px}
 .parent .k{background:var(--kid-soft);color:var(--kid-ink)} .parent .t{background:var(--teen-soft);color:var(--teen-ink)}
@@ -101,6 +111,12 @@
 
 /* kid screens (slice 4 placeholders; the ported journey screens arrive in slice 5) */
 .parent .kidwrap{max-width:520px;margin:0 auto;padding:40px 16px;text-align:center}
+/* UI review K7: the kid's simple screens use the kid's theme and big friendly type. */
+.parent.kidsimple,.parent.kidsimple *{--bg:var(--t-bg);--card:var(--t-surface);--ink:var(--t-ink);--muted:var(--t-muted);--line:var(--t-line);--brand:var(--t-accent)}
+.parent.kidsimple{min-height:100vh;background:var(--t-bg);color:var(--t-ink);font-family:var(--font-sans)}
+.parent.kidsimple .kidwrap h1{font-size:34px;font-weight:800;line-height:1.15}
+.parent.kidsimple .kidwrap .muted,.parent.kidsimple .kidwrap p{font-size:19px}
+.parent.kidsimple .bigbtn{background:var(--t-accent);color:#fff;border-radius:999px}
 .parent .kidwrap h1{font-size:28px}
 .parent .bigemoji{font-size:64px;line-height:1.1}
 .parent .kidcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 20px;margin-top:18px}
@@ -122,4 +138,4 @@
 .parent table.reports{width:100%;border-collapse:collapse}
 .parent table.reports th,.parent table.reports td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 .parent table.reports th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-.parent .reportframe{width:100%;height:calc(100vh - 120px);border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.parent .reportframe{width:100%;min-height:400px;border:0;background:transparent;display:block}

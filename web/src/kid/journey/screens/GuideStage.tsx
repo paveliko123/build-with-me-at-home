@@ -174,6 +174,10 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
                 {reply.tooBig && <p className="mt-4 rounded-2xl bg-accent-soft px-4 py-3 font-bold text-ink">🐘 That one's too big to build in one go, so let's shrink it!</p>}
                 {reply.techSummary && <p className="mt-4 rounded-2xl bg-accent-soft px-4 py-3 font-bold text-ink">🛠️ {reply.techSummary}</p>}
                 {draft && <button onClick={seePlan} className="mt-4 min-h-11 rounded-full border-2 border-accent bg-surface px-5 font-bold text-ink lg:hidden">📋 See your plan</button>}
+                {!draft && reply.visualHtml && (
+                  <button onClick={() => { onPane('picture'); window.setTimeout(() => document.getElementById('bwm-aside')?.scrollIntoView({ block: 'start' }), 50); }}
+                    className="mt-4 min-h-11 rounded-full border-2 border-accent bg-surface px-5 font-bold text-ink lg:hidden">🖼️ See the picture</button>
+                )}
                 {ideasOn && ideas === false && onIdea && (
                   young
                     ? <button onClick={() => void showIdeas()} className={`mt-4 min-h-12 rounded-full bg-accent px-6 text-lg font-extrabold text-white shadow ${glow ? 'bwm-glow' : ''}`}>💡 Show me ideas</button>
@@ -218,7 +222,9 @@ export default function GuideStage({ profile, reply, history, visual, docs, pane
         </div>
       </section>
 
-      <aside className="flex min-h-[420px] flex-col gap-2 lg:min-h-0">
+      {/* UI review K6: on phones and portrait tablets the empty picture box sat under the answer
+          box; it now appears only once there's a picture or a plan to show. */}
+      <aside id="bwm-aside" className={`${!visual && !shownDocs.length ? 'hidden lg:flex' : 'flex'} min-h-[420px] flex-col gap-2 lg:min-h-0`}>
         {chips.length > 1 && (
           <div className="flex flex-wrap gap-2" role="tablist" aria-label="What to show">
             {chips.map(p => (

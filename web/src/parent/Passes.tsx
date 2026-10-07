@@ -34,16 +34,18 @@ export function GivePass({ kids, passes, shown, setShown, onAddKid, reload }: {
     ? [...passes].filter((p) => !p.usedAt).sort((a, b) => b.createdAt - a.createdAt)[0]
     : passes.find((p) => p.id === shown);
 
+  // UI review A9: questions in the card, not the browser's confirm() box.
+  const [replaceAsk, setReplaceAsk] = useState<{ name: string; until: number } | null>(null);
   const create = async (replace = false) => {
     if (!kidId) return;
-    setBusy(true); setErr('');
+    setBusy(true); setErr(''); setReplaceAsk(null);
     try {
       const p = await api<ActivePass>('/api/parent/passes', { body: { kidId, minutes, replace } });
       setShown(p.id); reload();
     } catch (e) {
       if (e instanceof ApiError && e.body?.code === 'kid-has-pass') {
         const name = kids.find((k) => k.id === kidId)?.nickname ?? 'This kid';
-        if (confirm(`${name} already has a pass until ${timeOfDay(e.body.endsAt)}. End it and make a new one?`)) { setBusy(false); return create(true); }
+        setReplaceAsk({ name, until: e.body.endsAt });
       } else setErr((e as Error).message);
     }
     setBusy(false);
@@ -71,6 +73,12 @@ export function GivePass({ kids, passes, shown, setShown, onAddKid, reload }: {
         <span className="muted">min</span>
       </div>
       <button className="btn" disabled={busy || !kidId || !(minutes >= 1 && minutes <= 1440)} onClick={() => create()}>Create pass</button>
+      {replaceAsk && (
+        <div className="confirm" role="alertdialog" aria-label="Replace the pass?">
+          <span>{replaceAsk.name} already has a pass until {timeOfDay(replaceAsk.until)}. End it and make a new one?</span>
+          <span className="acts"><button className="btn" onClick={() => void create(true)}>End it, make a new one</button><button className="ghost" onClick={() => setReplaceAsk(null)}>Cancel</button></span>
+        </div>
+      )}
       <p className="err">{err}</p>
       {pass && <PassCode pass={pass} onClose={() => setShown('hidden')} />}
     </div>
@@ -82,16 +90,19 @@ function PassCode({ pass, onClose }: { pass: ActivePass; onClose: () => void }) 
   if (pass.usedAt) {
     return <div className="qrbox"><div>✅ <b>{name}'s pass is open</b> on {pass.device ?? 'a device'}. <button className="ghost" onClick={onClose}>OK</button></div></div>;
   }
+  // UI review A3: the QR code big, the typed code big, then one line per way to open it.
   return (
     <div className="qrbox">
-      {pass.qr && <img className="qr" src={pass.qr} alt={`QR code for ${name}'s pass`} />}
+      <div className="top" style={{ width: '100%', marginBottom: 0 }}><b>{name}'s pass · {lengthText(pass.minutes)}</b><button className="ghost" onClick={onClose}>Hide</button></div>
+      {pass.qr && <img className="qr big" src={pass.qr} alt={`QR code for ${name}'s pass`} />}
       <div style={{ flex: 1, minWidth: 240 }}>
-        <div className="top" style={{ marginBottom: 6 }}><b>{name}'s pass · {lengthText(pass.minutes)}</b><button className="ghost" onClick={onClose}>Hide</button></div>
-        <p className="label" style={{ margin: '8px 0 6px' }}>Open it on one device</p>
+        <p className="label" style={{ margin: '0 0 6px' }}>Open it on one device</p>
         {pass.qr && <div className="way">📱 <span><b>Tablet or phone:</b> scan the code with the camera</span></div>}
-        <div className="way">💻 <span><b>This laptop:</b> <a className="btn" style={{ display: 'inline-block', textDecoration: 'none', padding: '6px 12px', margin: '2px 4px' }} href={pass.laptopUrl} target="_blank" rel="noopener">Open on this laptop</a><span className="muted" style={{ fontSize: 13 }}>(locks the parent area here)</span></span></div>
-        {pass.typeAt && <div className="way">🧑‍💻 <span><b>Kid's own laptop or Chromebook</b> (not this one): open <code>{pass.typeAt}</code> and type <span className="typed">{pass.typedCode}</span></span></div>}
-        <span className="muted" style={{ fontSize: 13, display: 'block', marginTop: 8 }}>One use only: the first device that opens it gets the pass. Works on home Wi-Fi until {timeOfDay(pass.endsAt)}. A device that isn't set up for talking may show a security warning first: set it up with 📱 below.</span>
+        {pass.typeAt && <div className="way">🧑‍💻 <span><b>Kid's own laptop or Chromebook:</b> open <code>{pass.typeAt}</code> and type<br /><span className="typed big">{pass.typedCode}</span></span></div>}
+        <div className="way">💻 <span><b>This laptop:</b></span></div>
+        <a className="btn" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }} href={pass.laptopUrl} target="_blank" rel="noopener">Open on this laptop</a>
+        <span className="muted" style={{ fontSize: 13, display: 'block', marginTop: 4 }}>This locks the parent area on this laptop.</span>
+        <span className="muted" style={{ fontSize: 13, display: 'block', marginTop: 8 }}>One use only: the first device that opens it gets the pass. Works on home Wi-Fi until {timeOfDay(pass.endsAt)}. A device that isn't set up for talking may show a security warning first: set it up with 📱 Set up a tablet (in Kids &amp; their apps).</span>
       </div>
     </div>
   );
@@ -99,9 +110,11 @@ function PassCode({ pass, onClose }: { pass: ActivePass; onClose: () => void }) 
 
 export function ActivePasses({ passes, onShow, reload }: { passes: ActivePass[]; onShow: (id: string) => void; reload: () => void }) {
   const now = useNow();
+  const [ending, setEnding] = useState<string | null>(null);
+  const [err, setErr] = useState('');
   const act = async (p: ActivePass, what: 'extend' | 'end', minutes?: number) => {
-    if (what === 'end' && !confirm(`End ${p.kid?.nickname ?? 'this'}'s pass now? Their work is saved.`)) return;
-    await api(`/api/parent/passes/${p.id}/${what}`, { body: minutes ? { minutes } : {} }).catch((e) => alert((e as Error).message));
+    setEnding(null); setErr('');
+    await api(`/api/parent/passes/${p.id}/${what}`, { body: minutes ? { minutes } : {} }).catch((e) => setErr((e as Error).message));
     reload();
   };
   return (
@@ -120,11 +133,18 @@ export function ActivePasses({ passes, onShow, reload }: { passes: ActivePass[];
             <div className="acts">
               <button className="ghost" onClick={() => act(p, 'extend', 30)}>+30 min</button>
               <button className="ghost" onClick={() => act(p, 'extend', 60)}>+1 hr</button>
-              <button className="ghost danger" onClick={() => act(p, 'end')}>End now</button>
+              <button className="ghost danger" onClick={() => setEnding(p.id)}>End now</button>
             </div>
+            {ending === p.id && (
+              <div className="confirm" role="alertdialog" aria-label="End the pass?" style={{ width: '100%' }}>
+                <span>End {p.kid?.nickname ?? 'this'}'s pass now? Their work is saved.</span>
+                <span className="acts"><button className="btn danger-fill" onClick={() => void act(p, 'end')}>End now</button><button className="ghost" onClick={() => setEnding(null)}>Cancel</button></span>
+              </div>
+            )}
           </div>
         );
       })}
+      {err && <p className="err" role="alert">{err}</p>}
     </div>
   );
 }

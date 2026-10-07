@@ -1,3 +1,5 @@
+import { THEMES, themeStyle } from './journey/themes/themes';
+import type { ThemeId } from './journey/types';
 import { createPortal } from 'react-dom';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError, clock, timeOfDay, type KidSessionView, type PassPeek } from '../lib/api';
@@ -40,12 +42,19 @@ export function KidApp() {
     const t = setInterval(load, 5000); return () => clearInterval(t);
   }, [s, load]);
 
+  // Coming back to the tab (or the tablet waking up): check the pass again (UI review K3).
+  useEffect(() => {
+    const again = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', again);
+    return () => document.removeEventListener('visibilitychange', again);
+  }, [load]);
+
   // Live updates for this pass (extended, ended). A dropped stream for more than ~8 s
   // shows "Can't reach"; it clears itself when the computer is back.
   const live = s && typeof s === 'object' && s.state === 'live';
   useEffect(() => {
     if (!live) return;
-    const es = new EventSource('/api/events');
+    const es = new EventSource('/api/events?as=kid');
     let timer: number | undefined;
     es.addEventListener('pass', (ev) => { const v = JSON.parse((ev as MessageEvent).data) as KidSessionView; setOffset(v.now - Date.now()); setS(v); });
     es.addEventListener('hello', () => { if (timer) { clearTimeout(timer); timer = undefined; } setLost(false); });
@@ -53,15 +62,15 @@ export function KidApp() {
     return () => { es.close(); if (timer) clearTimeout(timer); };
   }, [live]);
 
-  if (s === null) return <div className="parent"><div className="kidwrap"><p className="muted">Loading…</p></div></div>;
-  if (s === 'unreachable') return <div className="parent"><CantReach /></div>;
-  if (s === 'none') return <div className="parent"><NoPass onOpened={load} /></div>;
-  if (s.state === 'over') return <div className="parent"><TimesUp name={s.kid.nickname} onOpened={load} /></div>;
+  if (s === null) return <KidShell><div className="kidwrap"><p className="muted">Loading…</p></div></KidShell>;
+  if (s === 'unreachable') return <KidShell><CantReach /></KidShell>;
+  if (s === 'none') return <KidShell><NoPass onOpened={load} /></KidShell>;
+  if (s.state === 'over') return <KidShell><TimesUp name={s.kid.nickname} onOpened={load} /></KidShell>;
   return (
     <>
       <Journey name={s.kid.nickname} onPassEnded={load} />
       <Countdown endsAt={s.endsAt} offset={offset} onZero={load} />
-      {lost && <div className="bwm-overlay"><div className="parent"><CantReach /></div></div>}
+      {lost && <div className="bwm-overlay"><KidShell><CantReach /></KidShell></div>}
     </>
   );
 }
@@ -133,6 +142,14 @@ function CantReach() {
   );
 }
 
+/** The simple kid screens (pass, Time's up, no pass, can't reach) in the kid's own look: the
+ *  theme they used last, big friendly type (UI review K7: they used the parent's grey styles). */
+export function KidShell({ children }: { children: React.ReactNode }) {
+  let theme: ThemeId = 'space';
+  try { const t = localStorage.getItem('bwm-last-theme'); if (t && THEMES.some((x) => x.id === t)) theme = t as ThemeId; } catch { /* default */ }
+  return <div className="parent kidsimple bwm-journey" style={themeStyle(theme)}>{children}</div>;
+}
+
 /** /p/<code>: shows whose pass it is, and uses it up only when the kid taps Start. */
 export function PassOpen({ code }: { code: string }) {
   const [peek, setPeek] = useState<PassPeek | null | 'unreachable'>(null);
@@ -145,7 +162,12 @@ export function PassOpen({ code }: { code: string }) {
   }, [code]);
   const start = async () => {
     setBusy(true); setErr('');
-    try { await api('/api/pass/open', { body: { code } }); location.replace('/kid'); }
+    try {
+      await api('/api/pass/open', { body: { code } });
+      // The parent area on this laptop locks itself; the PIN screen says why (UI review P6).
+      if (['localhost', '127.0.0.1'].includes(location.hostname)) try { localStorage.setItem('bwm-locked-by', JSON.stringify({ name: peek && peek !== 'unreachable' && peek.state === 'ready' ? peek.kid.nickname : 'a kid', at: Date.now() })); } catch { /* fine */ }
+      location.replace('/kid');
+    }
     catch (e) { setErr(openError(e)); setBusy(false); }
   };
   if (peek === null) return <div className="kidwrap"><p className="muted">Loading…</p></div>;
@@ -157,7 +179,7 @@ export function PassOpen({ code }: { code: string }) {
     <div className="kidwrap">
       <div className="bigemoji">{peek.kid.emoji}</div>
       <h1>{peek.kid.nickname}'s pass 🎟️</h1>
-      <p className="muted">Good until {timeOfDay(peek.endsAt)}. Only one device can use it.</p>
+      <p className="muted">This pass is yours until {timeOfDay(peek.endsAt)}. Tap Start on the device you'll use.</p>
       <button className="bigbtn" onClick={start} disabled={busy}>Start</button>
       <p className="err">{err}</p>
     </div>

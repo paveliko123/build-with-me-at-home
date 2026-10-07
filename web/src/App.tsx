@@ -3,7 +3,7 @@ import { api, ApiError, type ParentState } from './lib/api';
 import { FirstRun } from './parent/FirstRun';
 import { Opening } from './parent/Opening';
 import { ParentHome } from './parent/ParentHome';
-import { KidApp, PassOpen } from './kid/KidApp';
+import { KidApp, KidShell, PassOpen } from './kid/KidApp';
 import './parent/parent.css';
 
 // Routing: /p/<code> opens a pass; /kid is the kid side (the laptop uses it after "open on
@@ -13,7 +13,7 @@ type View = 'loading' | 'first-run' | 'new-pin' | 'opening' | 'home' | 'kid' | '
 
 export default function App() {
   const passCode = location.pathname.match(/^\/p\/([A-Za-z0-9_-]{8,64})\/?$/)?.[1];
-  if (passCode) return <div className="parent"><PassOpen code={passCode} /></div>;
+  if (passCode) return <KidShell><PassOpen code={passCode} /></KidShell>;
   if (location.pathname.startsWith('/kid')) return <KidApp />;
   return <ParentApp />;
 }

@@ -1,15 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { AgeGroup } from '../lib/api';
 
 export const EMOJIS = ['🦄', '🚀', '🐱', '🐶', '🦖', '🌈', '⚽', '🎨', '🎸', '🤖', '🦊', '🐼'];
 export interface KidDraft { nickname: string; group: AgeGroup | ''; emoji: string }
 
 // Nickname + Kid/Teen + emoji. The age group is only ever set here, by the parent.
-export function KidForm({ initial, submitLabel, onSubmit, onCancel }: {
+// UI review P2: a real form (Enter adds), "Add" can be secondary, and the parent screen can see a
+// nickname that was typed but not added yet.
+export function KidForm({ initial, submitLabel, onSubmit, onCancel, onDraft, secondary = false }: {
   initial?: KidDraft; submitLabel: string; onSubmit: (k: KidDraft) => Promise<void> | void; onCancel?: () => void;
+  onDraft?: (k: KidDraft) => void; secondary?: boolean;
 }) {
   const [k, setK] = useState<KidDraft>(initial ?? { nickname: '', group: '', emoji: EMOJIS[0] });
   const [err, setErr] = useState('');
+  useEffect(() => { onDraft?.(k); }, [k, onDraft]);
   const submit = async () => {
     if (!k.nickname.trim()) return setErr('Add a nickname (no full names needed).');
     if (!k.group) return setErr('Pick Kid (under 13) or Teen (13–17).');
@@ -18,7 +22,7 @@ export function KidForm({ initial, submitLabel, onSubmit, onCancel }: {
     catch (e) { setErr((e as Error).message); }
   };
   return (
-    <div style={{ display: 'grid', gap: 10 }}>
+    <form style={{ display: 'grid', gap: 10 }} onSubmit={(e) => { e.preventDefault(); void submit(); }}>
       <div className="kidform">
         <input type="text" placeholder="Nickname" maxLength={24} value={k.nickname} onChange={(e) => setK({ ...k, nickname: e.target.value })} aria-label="Nickname" />
         <div className="seg" role="group" aria-label="Age group">
@@ -30,10 +34,10 @@ export function KidForm({ initial, submitLabel, onSubmit, onCancel }: {
         {EMOJIS.map((e) => <button key={e} type="button" aria-pressed={k.emoji === e} onClick={() => setK({ ...k, emoji: e })}>{e}</button>)}
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
-        <button className="btn" type="button" onClick={submit}>{submitLabel}</button>
+        <button className={secondary ? 'ghost' : 'btn'} type="submit">{submitLabel}</button>
         {onCancel && <button className="ghost" type="button" onClick={onCancel}>Cancel</button>}
       </div>
       <p className="err" role="alert">{err}</p>
-    </div>
+    </form>
   );
 }

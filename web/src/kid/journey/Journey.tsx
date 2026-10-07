@@ -33,6 +33,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
   const [screen, setScreen] = useState<Screen>('loading');
   const [inputMode, setInputMode] = useState<ProfileT['inputMode']>('type');
   const [theme, setTheme] = useState<ThemeId>(DEFAULT_THEME);
+  useEffect(() => { try { localStorage.setItem('bwm-last-theme', theme); } catch { /* fine */ } }, [theme]);
   const [profile, setProfile] = useState<ProfileT | null>(null);
   const [stage, setStage] = useState<Stage>('start');
   const [reply, setReply] = useState<GuideReply | null>(null);
