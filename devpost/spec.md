@@ -394,6 +394,16 @@ Three fresh read-only reviews (a parent before installing, network and security,
 - **Smaller:** a chime and a 💛 title for wellbeing alerts, also on the PIN page (`urgent` in `/api/parent/state`); the kid's wellbeing reply names the local emergency number; speech is 2 recordings at a time per pass (only its own) and 12 finishes a minute; repair builds accept only real browser error messages (masked); the 10 KB limit no longer runs in front of the journey's 64 KB one; young kids are never asked about their life at Start; the setup skill no longer pre-approves `npm`.
 - **Checks:** `npm run verify:revisions` (60), `verify:security` (23, the speech check updated for the per-device limit).
 
+### Safety Review Round 2
+Three more fresh read-only reviews (a parent before installing, an attacker, a child-safety red team) found no hidden behaviour and confirmed the first round's fixes; the learner chose to fix priorities 1-2. Implements the `(safety review 2)` checks in `prd.md`.
+- **A hurting kid can't be missed:** `hurtingWins` (`safetyCheck.ts`) turns an unsuitable verdict in a self-harm, abuse, grooming or neglect category, a refusal, or a check that couldn't run into wellbeing when `mayBeHurting` matches (a wider word list); the kid gets `WELLBEING_REPLY` and the gentle `WELLBEING_QUESTION`. A limit (the plan's or the pass's) still runs the word list and alerts. The instant mask (`personal.ts`) only takes capitalised words or numbers after "I live in", "my school is" and "I'm called".
+- **The check's rules:** wellbeing names grooming, neglect and hopelessness, and "something bad happening to the person" is always wellbeing; the text is sent as a JSON string, so it can't close its own quotes; `SAFETY_LAYER` tells the guide to answer distress with the grown-up message.
+- **What gets checked** (`words.ts`): `appWords` keeps every quoted string with a letter or emoji, event-handler strings, CSS `content:` text, single-quoted and `data-*` attributes, and decodes `&#…;` and `\u…` escapes; pictures use the same reading, and `withoutScripts` removes scripts and handlers from them. Pieces overlap by 200 characters; more than 12 pieces is held back. Items the builder couldn't make are checked with the app.
+- **Alerts and reports:** wellbeing alerts are worded by who (kid, guide, app) and quote the piece that was judged; the pass-end report also counts flags; three or more unsuitable requests from the kid make the badge Needs a look; the transcript goes to the report writer as one JSON object per message.
+- **Smaller:** guide text links render as plain words (`Md.tsx`); a guide that didn't answer for a technical reason is "try again" (`GuideError.refused` only for a real refusal); the Parent area's own presence stream (`?screen=home`) locks it 15 seconds after it closes, whatever is running.
+- **Deferred (priority 3):** a second secret for the parent cookie (other programs on the laptop), `tablet-setup` as a POST, unlocking in a browser with a kid's pass, a trace when the PIN is reset, telemetry opt-outs for kids' runs, narrowing `Bash(node:*)`, a few README disclosures, unchecked app emojis, personal-life starter ideas.
+- **Checks:** `npm run verify:revisions` (67).
+
 ## Data Model
 
 Everything lives in **`<home>\Build With Me`**, unless noted:

@@ -234,6 +234,7 @@ Feedback and fixes (final review, started 2026-10-07):
 - [x] The ⏻ Stop button was out of sight inside Settings: moved to the top of the Parent area; then replaced (below).
 - [ ] Learner decision: **keep the window open.** Closing the PIN page or the Parent area stops the app about a minute later; both say so in bold; kids' screens show a countdown; the Stop button is gone; missed reports are written at the next start. Built and checked (`verify:revisions` 42/42, live on a launcher-style test server). Waiting for the learner to retry it on the real app.
 - [x] Three more safety reviews (learner request): fixed priorities 1-3, see `spec.md > Safety Review Round` (`verify:revisions` 60/60, `verify:security` 23/23).
+- [x] A second round of three safety reviews (learner request): fixed priorities 1-2, priority 3 deferred (see `spec.md > Safety Review Round 2`, `verify:revisions` 67/67). The README's "check it before you install" prompt is now a short is-it-safe check, not a full audit (learner request).
 - [ ] Still to try on real devices: talking in a quiet room, Show me ideas in the middle of a step, two rounds of changes, the build view.
 
 ## Code Tour and App Map

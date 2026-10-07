@@ -119,6 +119,7 @@ Source: `scope.md > The POC Boundary`, `scope.md > Terms Check`.
   - [ ] **🔒 Lock** returns to the opening screen.
   - [ ] The Parent area locks itself after 15 idle minutes and when its window closes. Wrong PINs lock the PIN pad for longer each time (1, 5, 15, 60, then 240 minutes), kept on disk; after unlocking, the parent sees how many wrong tries there were. `/build-with-me:reset-pin` also clears the lockout and locks open Parent areas. *(safety review)*
   - [ ] Only this app's own pages may talk to it (the whole address, port included). Other devices reach it only while a pass is live or tablet setup is open; otherwise a "resting" page. Tablet setup works only while its window is open on the laptop and shows the certificate's fingerprint to compare. *(safety review)*
+  - [ ] Closing the Parent area locks it about 15 seconds later, even while an app is building or a PIN page is open in another tab. *(safety review 2)*
   - [ ] The app never asks for or shows a Claude password or sign-in. The Claude sign-in stays in Claude Code.
 
 ### First-Run Setup
@@ -222,6 +223,10 @@ Source: `scope.md > The POC Boundary` (three safety layers). Everything runs on 
    - [ ] Everything the kid sees is checked before it's shown: the guide's words, pictures, plans and build steps, the change list, the app's name, and every word the finished app can show (checked last, exactly as it's saved). A check answer that can't be read is "couldn't run", never "ok". When more than one applies, unsuitable beats personal. *(safety review)*
    - [ ] "+ New app" writes a report for the app being left. The report's check marks come from the flags, and each flag says who said it (the kid, the guide or the app). *(safety review)*
    - [ ] A wellbeing alert comes with a chime and shows on the PIN page too; it still reaches the parent if the plan limit is hit or the check can't run. *(safety review)*
+   - [ ] Words that may mean the kid is hurting always count as wellbeing: when the check calls them unsuitable (self-harm, abuse), refuses to judge them, or can't run, the kid gets the "trusted grown-up" reply and the parent is alerted; a limit reached at that moment still alerts the parent. The instant personal-detail mask only hides names and numbers, so it never hides what a kid says about being hurt. *(safety review 2)*
+   - [ ] The check knows grooming (a stranger asking for photos, secrets or to meet), neglect and hopelessness, and the guide answers distress with the grown-up message, not the app. *(safety review 2)*
+   - [ ] Everything an app or a picture can show is checked: one-word strings, emoji, style text, event handlers, single-quoted labels and spelled-out letters; text too long to check is held back; the guide's pictures never run scripts; website addresses in the guide's messages aren't clickable. *(safety review 2)*
+   - [ ] A pass whose only activity was blocked attempts still gets its report; three or more unsuitable requests from the kid mean Needs a look; wellbeing alerts say who said it (the kid, the guide or an app) and quote the part that was judged; a Wi-Fi hiccup is "try again", never a flag on the kid. *(safety review 2)*
 3. **The parent report** (below) is the backstop.
 
 ### Limit Reached
