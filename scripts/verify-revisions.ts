@@ -260,6 +260,16 @@ async function main() {
     prog.startProgress('replay2', 'full', 30_000, []);
     prog.onText('replay2', '<script>function killAll(){} function spawnStar(){} function shootDown(){}');
     add('part names with unkind words are never shown', prog.getProgress('replay2')!.part === 'spawnStar', `shown: ${prog.getProgress('replay2')!.part}()`);
+    // Learner: one list. The look step ticks when the styles are finished; every step once the
+    // code is being checked.
+    prog.startProgress('look1', 'full', 30_000, [{ step: 'the pastel sky', word: 'sky', kind: 'look' }, { step: 'the dots', word: 'dots', kind: 'drawing' }] as any);
+    prog.onText('look1', '<!doctype html><style>body{background:pink}');
+    const lookBefore = prog.getProgress('look1')!.steps[0].done;
+    prog.onText('look1', '</style><script>');
+    const afterStyle = prog.getProgress('look1')!.steps.map((s: any) => s.done);
+    prog.setPhase('look1', 'checking');
+    const atCheck = prog.getProgress('look1')!.steps.every((s: any) => s.done);
+    add('the look step ticks when the styles are done, and every step once the code is checked', !lookBefore && afterStyle.join() === 'true,false' && atCheck, `before </style>: ${lookBefore} · after: ${afterStyle.join(', ')} · checking: ${atCheck}`);
     r = await kid.call('/api/kid/journey/progress');
     add('the kid screen asks for progress (nothing while no build runs)', r.status === 200 && r.body.progress === null, JSON.stringify(r.body));
   } finally {

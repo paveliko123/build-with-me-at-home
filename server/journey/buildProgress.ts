@@ -54,7 +54,9 @@ export function setPhase(projectId: string, phase: Phase): void {
   if (!t) return;
   t.phase = phase;
   t.updatedAt = Date.now();
-  if (phase === 'done') for (const s of t.steps) s.done = true;
+  // All the code is written once it's being checked: every plan step is ticked (learner: an
+  // unticked step next to a finished build read as missing).
+  if (phase === 'checking' || phase === 'safety' || phase === 'verifying' || phase === 'done') for (const s of t.steps) s.done = true;
   if (phase === 'done' || phase === 'failed') setTimeout(() => { if (trackers.get(projectId) === t) trackers.delete(projectId); }, 60_000).unref();
 }
 
@@ -69,6 +71,8 @@ export function onText(projectId: string, chunk: string): void {
   t.updatedAt = Date.now();
   const recent = t.text.slice(from);
   for (const m of MILESTONES) if (!t.milestones.includes(m) && SEEN[m].test(t.text.slice(Math.max(0, from - 200)))) t.milestones.push(m);
+  // A "look" step has no function to watch for: it ticks when the styles are finished.
+  if (/<\/style>/i.test(t.text.slice(Math.max(0, from - 200)))) t.steps.forEach((s) => { if (s.kind === 'look') s.done = true; });
   for (const match of recent.matchAll(PART)) {
     const name = match[1] ?? match[2];
     if (!name) continue;

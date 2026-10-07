@@ -79,7 +79,7 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
         ? { from: 'guide', text: `Building from your checklist: ${plan.steps.length} steps, ${plan.mode} mode. Step 1 is on its way!` }
         : plan
           ? { from: 'guide', text: `Your checklist has ${plan.steps.length} steps. Before I start: learn mode or fast mode? In learn mode I pause after each step so you can try it. In fast mode I build every step and you review at the end.` }
-          : { from: 'guide', text: 'Building your app now. This usually takes a minute or two!' },
+          : { from: 'guide', text: 'Building your app now! It takes a few minutes, so let’s chat while you wait.' },
     ]);
   const [stepDone, setStepDone] = useState(resume?.stepsBuilt ?? 0); // how many checklist steps are built
   const [awaitingNext, setAwaitingNext] = useState(!!resume && !!plan && (resume.stepsBuilt ?? 0) < plan.steps.length);
@@ -502,7 +502,7 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
           <div className="absolute inset-0 flex overflow-y-auto rounded-3xl border-2 border-line bg-surface/95">
             {choosingMode
               ? <p className="m-auto px-6 text-center text-2xl font-extrabold text-ink"><span className="md:hidden">↓</span><span className="hidden md:inline">←</span> Choose learn or fast mode to start building</p>
-              : <div className="m-auto flex w-full flex-col items-center gap-4 py-4"><div className="scale-75"><WaitingAnimation theme={profile.theme} /></div><BuildProgress progress={progress} young={young} fallback={buildLabel} /></div>}
+              : <div className="m-auto flex w-full flex-col items-center justify-center gap-2 py-3 lg:flex-row lg:gap-8"><div className="hidden sm:block"><WaitingAnimation theme={profile.theme} compact /></div><BuildProgress progress={progress} young={young} fallback={buildLabel} /></div>}
           </div>
         )}
         {html && building && (

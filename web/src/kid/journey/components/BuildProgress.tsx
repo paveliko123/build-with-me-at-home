@@ -50,7 +50,7 @@ export default function BuildProgress({ progress, young, fallback }: { progress:
     : writing ? Math.min(92, Math.round(5 + (p.chars / p.expected) * 87)) : 4;
   const names = young ? KID : TEEN;
   return (
-    <div className="w-full max-w-lg space-y-4 px-6" role="status" aria-live="polite">
+    <div className="w-full max-w-lg space-y-3 px-6" role="status" aria-live="polite">
       <p className={`font-extrabold text-ink ${young ? 'text-2xl' : 'text-xl'}`}>{progressLine(p, young, fallback)}</p>
       <div className="h-4 overflow-hidden rounded-full bg-accent-soft" aria-hidden>
         <div className="h-full rounded-full bg-accent transition-[width] duration-700" style={{ width: `${share}%` }} />
@@ -59,9 +59,9 @@ export default function BuildProgress({ progress, young, fallback }: { progress:
       {p && p.steps.length > 0 && (
         <section aria-label="Your plan, turning into code">
           <p className="font-bold text-muted">{young ? 'Your plan:' : 'Your plan, turning into code:'}</p>
-          <ul className="mt-1 space-y-1">
+          <ul className="mt-1 space-y-0.5">
             {p.steps.map(s => (
-              <li key={s.step} className={`flex items-center gap-2 text-lg ${s.done ? 'font-bold text-ink' : 'text-muted'}`}>
+              <li key={s.step} className={`flex items-center gap-2 ${young ? 'text-lg' : ''} ${s.done ? 'font-bold text-ink' : 'text-muted'}`}>
                 <span aria-hidden className="inline-block w-6 text-center">{s.done ? '✅' : '⬜'}</span>{s.step}
                 <span className="sr-only">{s.done ? '(done)' : '(not yet)'}</span>
               </li>
@@ -69,8 +69,11 @@ export default function BuildProgress({ progress, young, fallback }: { progress:
           </ul>
         </section>
       )}
-      {p && p.milestones.length > 1 && (
-        <ul className="space-y-0.5 text-sm text-muted" aria-label="Done so far">
+      {/* Learner: one list only. A second "done so far" list ticked general parts (the colors)
+          while the matching plan step stayed empty, which read as a contradiction. Without
+          plan steps (an older plan) the parts done so far are the list. */}
+      {p && !p.steps.length && p.milestones.length > 1 && (
+        <ul className="space-y-0.5 text-muted" aria-label="Done so far">
           {p.milestones.slice(0, -1).map(m => <li key={m}>✓ {names[m].replace(/^\S+\s/, '')}</li>)}
         </ul>
       )}
