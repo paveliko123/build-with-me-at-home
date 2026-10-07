@@ -118,10 +118,10 @@ The mix is one setting in `server/journey/claude.ts` (`DEFAULT_MIX`, or `BWM_MIX
   - a tablet on the same Wi-Fi at `https://<laptop's home address>:4748`
 - **Install:** paste the README's install line into Claude Code, or run the two commands yourself:
   ```
-  /plugin marketplace add paveliko123/build-with-me-at-home
+  /plugin marketplace add https://github.com/paveliko123/build-with-me-at-home.git
   /plugin install build-with-me@build-with-me-home
   ```
-  Then type `/build-with-me:start`.
+  Then type `/build-with-me:start`. The full `https://` address matters: the short `user/repo` form clones over SSH, which failed in the clean-install test on a computer without GitHub SSH keys.
 - **Start later:** the desktop shortcut, or `/build-with-me:start`.
 - **Development (the learner's machine):**
   ```bash

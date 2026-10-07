@@ -27,9 +27,11 @@ Kids (under 13) get short questions and picture cards; teens (13–17) see and a
 In Claude Code, run these two commands:
 
 ```
-/plugin marketplace add paveliko123/build-with-me-at-home
+/plugin marketplace add https://github.com/paveliko123/build-with-me-at-home.git
 /plugin install build-with-me@build-with-me-home
 ```
+
+(Use the full `https://` address: the short `paveliko123/build-with-me-at-home` form needs GitHub SSH keys, which most computers don't have.)
 
 Then start it:
 
