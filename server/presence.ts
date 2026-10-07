@@ -15,6 +15,18 @@ const FIRST_TICKS = 18; // ~3 minutes for the first window to open after a start
 let open = 0;
 let seen = false;
 let quiet = 0;
+let homeOpen = 0; // streams from an unlocked Parent area (not the PIN page)
+let lockTimer: NodeJS.Timeout | undefined;
+let LOCK_AFTER_MS = 15_000; // a reload isn't a close
+
+/** Safety review 2: the Parent area locks ~15 seconds after its last window closes, even while a
+ *  build or report runs and even if a PIN page is still open in another tab (it used to wait for
+ *  every parent window and for the work to finish). */
+function homeClosed(): void {
+  clearTimeout(lockTimer);
+  lockTimer = setTimeout(() => { if (homeOpen === 0) endAllParentSessions(); }, LOCK_AFTER_MS);
+  lockTimer.unref?.();
+}
 
 /** What the kids' screens show (learner request): null while a parent window is open, else the
  *  seconds left, or "waiting" while a build, turn or report finishes first. */
@@ -29,17 +41,21 @@ function announce(next: Closing): void {
 }
 
 /** GET /api/presence (laptop only): an event stream that stays open while the window is. */
-export function presenceStream(_req: Request, res: Response): void {
+export function presenceStream(req: Request, res: Response): void {
+  const home = req.query.screen === 'home';
   res.set({ 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
   res.flushHeaders?.();
   res.write(': open\n\n');
   open++; seen = true; quiet = 0;
+  if (home) { homeOpen++; clearTimeout(lockTimer); }
   announce(null);
   const ping = setInterval(() => res.write(': ping\n\n'), 20_000);
   res.on('close', () => {
     clearInterval(ping);
     open = Math.max(0, open - 1);
-    if (open === 0) announce({ seconds: GRACE_TICKS * TICK_MS / 1000 }); // kids hear at once
+    if (home) { homeOpen = Math.max(0, homeOpen - 1); if (homeOpen === 0) homeClosed(); }
+    // Kids hear almost at once (not when the PIN page just turned into the Parent area).
+    if (open === 0) setTimeout(() => { if (open === 0) announce({ seconds: GRACE_TICKS * TICK_MS / 1000 }); }, 2_000).unref?.();
   });
 }
 
@@ -66,5 +82,6 @@ export function stopWhenWindowCloses(busy: () => boolean, stop: () => void): voi
 }
 
 /** For the checks. */
-export const presenceState = () => ({ open, seen, quiet });
-export function resetPresenceForTests(): void { open = 0; seen = false; quiet = 0; lastClosing = null; }
+export function lockDelayForTests(ms: number): void { LOCK_AFTER_MS = ms; }
+export const presenceState = () => ({ open, seen, quiet, homeOpen });
+export function resetPresenceForTests(): void { open = 0; seen = false; quiet = 0; homeOpen = 0; clearTimeout(lockTimer); lastClosing = null; }

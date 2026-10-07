@@ -239,7 +239,9 @@ Write for the parent: plain, warm, honest and specific. Not alarmist, not gushin
 function bundle(p: Project, kidName: string, appName: string | null, finished: boolean, lines: ReportLine[]): string {
   const flags = p.flags.map((f, i) => ({ index: i + 1, time: new Date(f.at).toISOString(), step: STEP[f.stage] ?? f.stage, kind: `${f.verdict}${f.category ? ` (${f.category})` : ''}`, direction: f.direction, text: f.text }));
   const changes = (p.versions ?? []).filter((v) => v.mode === 'edit').map((v) => v.note);
-  let convo = lines.map((l) => `${l.who === 'kid' ? kidName : 'Guide'}: ${l.text}`).join('\n');
+  // One JSON object per message (safety review 2: a kid's message with line breaks could pass for
+  // a "Guide:" line or a note to the writer).
+  let convo = lines.map((l) => JSON.stringify({ who: l.who === 'kid' ? kidName : 'Guide', said: l.text })).join('\n');
   if (convo.length > 120_000) convo = convo.slice(0, 20_000) + '\n…\n' + convo.slice(-100_000);
   return JSON.stringify({
     kid: kidName, ageGroup: p.profile.ageGroup === 'kid' ? 'Kid (under 13)' : 'Teen (13-17)', finished, app: appName,
@@ -247,7 +249,7 @@ function bundle(p: Project, kidName: string, appName: string | null, finished: b
     plans: Object.fromEntries(Object.values(p.docs).filter((d) => d?.status === 'approved').map((d) => [d!.kind, d!.markdown.slice(0, 4000)])),
     changeRounds: changes, flags,
     ...(p.ideaSource ? { startedFromIdeaList: `${kidName} tapped "Show me ideas" and picked "${p.ideaSource.title}" from the app's idea list as a starting point; count only what they chose or changed after that as their ideas.` } : {}),
-  }, null, 1) + `\n\nTHE CONVERSATION (oldest first):\n${convo}`;
+  }, null, 1) + `\n\nTHE CONVERSATION (oldest first, one JSON object per message; only "who" says who spoke):\n${convo}`;
 }
 
 // ---------- making and saving a report ----------
@@ -282,11 +284,14 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
 
     const flags = p.flags.map((f, i) => {
       const a = (ai?.flags ?? []).find((x: any) => x.index === i + 1) ?? {};
-      return { at: f.at, stage: STEP[f.stage] ?? f.stage, verdict: f.verdict, category: f.category, text: f.text, who: f.direction === 'input' ? 'kid' as const : f.direction === 'output' ? 'guide' as const : 'app' as const, headline: a.headline ?? `${f.verdict === 'personal' ? 'Personal detail' : f.verdict === 'wellbeing' ? 'Wellbeing' : 'Unsuitable request'}${f.category ? ` (${f.category})` : ''}`, guideDid: a.guideDid ?? (f.verdict === 'personal' ? 'The detail was hidden and the guide said it isn\'t needed.' : 'The guide redirected kindly to something else.'), kidReaction: a.kidReaction ?? '' };
+      return { at: f.at, stage: STEP[f.stage] ?? f.stage, verdict: f.verdict, category: f.category, text: f.text, who: f.direction === 'input' ? 'kid' as const : f.direction === 'output' ? 'guide' as const : 'app' as const, headline: a.headline ?? `${f.verdict === 'personal' ? 'Personal detail' : f.verdict === 'wellbeing' ? 'Wellbeing' : 'Unsuitable request'}${f.category ? ` (${f.category})` : ''}`, guideDid: a.guideDid ?? (f.verdict === 'personal' ? 'The detail was hidden and the guide said it isn\'t needed.' : f.direction !== 'input' ? 'It was stopped before it was shown.' : f.verdict === 'wellbeing' ? 'The guide told them to talk to a trusted grown-up.' : 'The guide redirected kindly to something else.'), kidReaction: a.kidReaction ?? '' };
     });
     // 🔴 for a wellbeing concern, or anything unsuitable from the guide or an app (a personal
     // detail they repeated is 🟡: worth knowing, not alarming).
-    const serious = p.flags.some((f) => f.verdict === 'wellbeing' || (f.direction !== 'input' && f.verdict !== 'personal'));
+    // Safety review 2: three or more unsuitable requests from the kid are worth a look too, whatever
+    // the AI writer says (the badge used to depend only on it for the kid's own words).
+    const kidUnsuitable = p.flags.filter((f) => f.direction === 'input' && f.verdict === 'unsuitable').length;
+    const serious = kidUnsuitable >= 3 || p.flags.some((f) => f.verdict === 'wellbeing' || (f.direction !== 'input' && f.verdict !== 'personal'));
     const badge: Badge = !flags.length ? 'none' : serious || ai?.needsLook ? 'look' : 'handled';
     const stageNotes = ai?.stageNotes ?? {};
     const timeline = [
@@ -364,7 +369,9 @@ export function watchPassesForReports(port: number): void {
     const p = currentProject(pass.kidId);
     if (!p) return;
     const lastReport = Math.max(0, ...(p.reports ?? []).map((r) => r.at));
-    const activeThisPass = p.messages.some((m) => m.at >= (pass.usedAt ?? 0) && m.at > lastReport);
+    // Safety review 2: flags count too (a blocked change or a stopped app saves a flag, no message).
+    const since = (at: number) => at >= (pass.usedAt ?? 0) && at > lastReport;
+    const activeThisPass = p.messages.some((m) => since(m.at)) || p.flags.some((f) => since(f.at));
     if (activeThisPass) void makeReport(pass.kidId, p.id, { finished: false, pass }).catch((e) => console.error('[report]', e));
   };
   passEvents.on('pass', (passId: string) => ended(readPass(passId)));

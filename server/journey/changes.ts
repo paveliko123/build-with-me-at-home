@@ -7,7 +7,7 @@ import { CHANGES_INSTRUCTIONS } from './prompt/changesLayer.js';
 import { voiceLine } from './prompt/dial.js';
 import { LEAK, LEAK_REPLY, personText, REDIRECT_REPLY, SAFETY_LAYER, WELLBEING_REPLY } from './prompt/safety.js';
 import { maskPersonal } from './personal.js';
-import { callSafetyCheck, flag, heldBack } from './safetyCheck.js';
+import { callSafetyCheck, flag, heldBack, mayBeHurting } from './safetyCheck.js';
 import { withoutEchoedQuestion } from './echo.js';
 import { addUsage, thread, type Project } from './project.js';
 import { ageGroupOf } from './types.js';
@@ -73,16 +73,19 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
     // Checked at the same time as the list is updated: an unsuitable change never reaches the builder.
     const [checked, listed] = await Promise.allSettled([callSafetyCheck(text, 'input', ageGroupOf(p.profile), { system, turns: [...past, { role: 'user', text: ask }], schema: CHANGES_SCHEMA }), listChanges()]);
     // A wellbeing concern reaches the parent even if the list call failed (the plan limit).
-    if (listed.status === 'rejected') {
+    if (listed.status === 'rejected' || checked.status === 'rejected') {
       if (checked.status === 'fulfilled' && checked.value.verdict === 'wellbeing') flag(p, 'input', checked.value, text);
-      throw listed.reason;
+      // Safety review 2: the check hit the limit too, so the on-computer words decide.
+      else if (checked.status === 'rejected' && mayBeHurting(text)) flag(p, 'input', { verdict: 'wellbeing', category: 'words (limit reached)' }, text);
+      throw listed.status === 'rejected' ? listed.reason : (checked as PromiseRejectedResult).reason;
     }
-    if (checked.status === 'rejected') throw checked.reason;
     let check = checked.value;
     const first = listed.value;
     metas.push(...(check.metas ?? [check.meta]), ...(first instanceof GuideError ? ((first as any).metas ?? []) : [first.meta]));
     let called = first;
     if (check.failed) throw heldBack(p, 'input', text);
+    // A technical failure (offline, timed out) is "let's try that again", never a flag on the kid.
+    if (called instanceof GuideError && !called.refused && check.verdict === 'ok') throw new TurnError(503, 'The change list could not be updated; try again.');
     if (check.verdict === 'personal' && check.masked?.trim()) {
       const again = await callSafetyCheck(check.masked, 'input', ageGroupOf(p.profile));
       metas.push(...(again.metas ?? [again.meta]));
@@ -98,7 +101,10 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
       text = check.masked?.trim() ? personText(check.masked) : '(a message with a personal detail, left out)';
       ask = askFor(text);
       called = await listChanges();
-      if (called instanceof GuideError) return { changes: list, ready: false, ship: false, reply: { say: REDIRECT_REPLY } };
+      if (called instanceof GuideError) {
+        if (!called.refused) throw new TurnError(503, 'The change list could not be updated; try again.');
+        return { changes: list, ready: false, ship: false, reply: { say: REDIRECT_REPLY } };
+      }
       metas.push(called.meta);
     }
     const { result } = called;
@@ -122,7 +128,7 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
     metas.push(...(out.metas ?? [out.meta]));
     if (out.failed) throw heldBack(p, 'output', shown);
     if (out.verdict === 'unsuitable' || out.verdict === 'wellbeing') {
-      flag(p, 'output', out, shown);
+      flag(p, 'output', out, out.piece ?? shown);
       return { changes: list, ready: false, ship: false, reply: { say: REDIRECT_REPLY } };
     }
     if (out.verdict === 'personal') flag(p, 'output', out, shown);

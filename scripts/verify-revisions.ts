@@ -308,7 +308,7 @@ async function main() {
     add('a check answer that can\'t be read is "couldn\'t run" (held back), never "ok"; capitals don\'t matter', JSON.stringify(verdicts) === '["unsuitable","wellbeing","ok",null,null,null]', JSON.stringify(verdicts));
     const longText = 'a'.repeat(6000) + 'b'.repeat(6000) + 'c'.repeat(100);
     const pieces = sc.chunks(longText, 6000);
-    add('long texts are checked in pieces, all of them (not just the first 6,000 characters)', pieces.length === 3 && pieces[2] === 'c'.repeat(100), `${longText.length} characters → ${pieces.length} pieces`);
+    add('long texts are checked in pieces, all of them, overlapping so a phrase at an edge is read whole', pieces.length === 3 && pieces[2].endsWith('c'.repeat(100)) && pieces[1].startsWith('a'.repeat(200) + 'b'), `${longText.length} characters → ${pieces.length} pieces`);
     const hurting = ['I want to hurt myself', 'my dad hits me when he is angry', 'nobody loves me', 'i wish i was dead'].map(sc.mayBeHurting);
     const games = ['kill the dragon to win', 'the robot hits the ball', 'make the monster cry', 'a game about dying plants'].map(sc.mayBeHurting);
     add('when the check can\'t run, words that may mean a kid is hurting still alert the parent (game words don\'t)', hurting.every(Boolean) && !games.some(Boolean), `hurting: ${hurting.join(',')} · games: ${games.join(',')}`);
@@ -323,6 +323,26 @@ async function main() {
     add('a picture\'s words are checked too', visibleWords('<svg><text x="1">Spooky castle</text></svg><p>Boo&nbsp;!</p>') === 'Spooky castle Boo !', visibleWords('<svg><text x="1">Spooky castle</text></svg><p>Boo&nbsp;!</p>'));
     const whoHtml = renderReport({ ...base0, badge: 'look', flags: [{ at: now, stage: 'Idea', verdict: 'unsuitable', category: 'violence', text: 'blood everywhere', headline: 'h', guideDid: 'x', kidReaction: '', who: 'guide' }, { at: now, stage: 'Idea', verdict: 'personal', category: 'name', text: '[name]', headline: 'h2', guideDid: 'hidden', kidReaction: '', who: 'kid' }] } as any);
     add('the report says who said a flagged thing (the guide, the app or the kid)', whoHtml.includes('The guide was about to say (it was stopped)') && whoHtml.includes('Maya said'), 'guide and kid flags worded by source');
+
+    // ---------- safety review 2 ----------
+    const { maskPersonal } = await import('../server/journey/personal.js');
+    const keep = ['I live in fear because my dad hits me every night', 'my school is really scary because kids beat me up', "I'm called stupid every day"].map((t) => maskPersonal(t).text);
+    const hide = ['I live on 5 Oak Street', 'my school is Oak Hill Elementary', "I'm called Maya Jones", 'I live in Springfield'].map((t) => maskPersonal(t).text);
+    add('the instant mask hides real details but never swallows what a kid says about being hurt', keep[0].includes('fear because my dad hits me') && keep[1].includes('really scary') && keep[2].includes('stupid') && hide.every((t) => /\[(address|school|name)\]/.test(t) && !/Oak|Maya|Springfield/.test(t)), [...keep, ...hide].join(' · '));
+    const hw = [sc.hurtingWins({ verdict: 'unsuitable', category: 'self-harm' }, 'how do I cut'), sc.hurtingWins({ verdict: 'unsuitable', category: 'refused' }, 'I want to die'), sc.hurtingWins({ verdict: 'ok', failed: true }, 'nobody loves me'), sc.hurtingWins({ verdict: 'unsuitable', category: 'violence' }, 'add a gun to the game')].map((x) => x.verdict + (x.failed ? ' (held back)' : ''));
+    add('a kid who may be hurting gets the "trusted grown-up" reply and an alert, even when the check said unsuitable, refused or couldn\'t run', hw.join(',') === 'wellbeing,wellbeing,wellbeing,unsuitable', hw.join(', '));
+    const tooLong = await sc.callSafetyCheck('x'.repeat(100_000), 'app', 'kid');
+    add('text longer than the check can read is held back, never shown half-checked', tooLong.failed === true, `100,000 characters → ${tooLong.failed ? 'held back' : tooLong.verdict}`);
+    const tricky = `<!doctype html><html><head><style>.w::after{content:"Boo"}</style></head><body><p title='Spooky night'>&#72;&#105;</p><button onclick="say('Ouch')">x</button><script>const words = ['Dragon', 'Castle', '🐉']; const s = "\\u0057ow";</script></body></html>`;
+    const w2 = appWords(tricky);
+    add('an app\'s one-word strings, emoji, style words, handlers, single-quoted labels and spelled-out letters are checked too', ['Boo', 'Spooky night', 'Hi', 'Ouch', 'Dragon', 'Castle', '🐉', 'Wow'].every((t) => w2.includes(t)), w2);
+    const { withoutScripts } = await import('../server/journey/guideTurn.js');
+    const pic = withoutScripts('<div onclick="x()">Hi</div><script>alert(1)</script><a href="javascript:go()">go</a>');
+    add('the guide\'s pictures never run scripts', !/script|onclick|alert/i.test(pic) && pic.includes('Hi'), pic);
+    const appFlagP: any = { id: 'app-flag', kidId: maya.id, stage: 'build', flags: [] };
+    sc.flag(appFlagP, 'app', { verdict: 'wellbeing', category: 'self-harm' }, 'a sad story');
+    const appAlert = listAlerts().find((a: any) => a.kind === 'wellbeing' && a.text.includes('a sad story'));
+    add('a wellbeing alert says who said it (an app, not "your kid just said")', !!appAlert && appAlert.text.startsWith('An app Maya was building') && !appAlert.text.includes('just said'), appAlert?.text.slice(0, 80) ?? 'no alert');
 
     // ---------- security review: the parent area and who may talk to it ----------
     const raw = (path: string, method: string, headers: Record<string, string>) => new Promise<number>((resolve) => {
@@ -403,7 +423,7 @@ async function main() {
     await new Promise((r) => setTimeout(r, 200));
     const whileOpen = { ...pres.presenceState(), stops: pres.presenceTick(false), closing: pres.closingStatus() };
     (streamReq as http.ClientRequest | null)?.destroy();
-    await new Promise((r) => setTimeout(r, 300));
+    await new Promise((r) => setTimeout(r, 2300));
     const atClose = pres.closingStatus();
     const busyTicks = [1, 2, 3, 4, 5, 6, 7, 8].map(() => pres.presenceTick(true));
     const waiting = pres.closingStatus();
@@ -414,6 +434,25 @@ async function main() {
       `open: ${whileOpen.open} · first window wait: ${firstStop} ticks · busy: never stops · after close: ${graceStop} ticks of 10 s`);
     add('kids\' screens hear at once that the window closed, with the seconds left (or "finishing first")',
       JSON.stringify(atClose) === '{"seconds":60}' && JSON.stringify(waiting) === '{"waiting":true}', `at close: ${JSON.stringify(atClose)} · while busy: ${JSON.stringify(waiting)}`);
+    pres.resetPresenceForTests();
+    // Safety review 2: closing the Parent area locks it soon after, even while a PIN page stays open
+    // in another tab (and whatever is running); a PIN page closing alone doesn't lock it.
+    await parent.call('/api/parent/unlock', { pin: '4321' });
+    pres.lockDelayForTests(300);
+    const tab = (path: string) => new Promise<http.ClientRequest>((resolve) => { const q = http.get(`${base}${path}`, () => resolve(q)); });
+    const pinTab = await tab('/api/presence');
+    const homeTab = await tab('/api/presence?screen=home');
+    const pinTab2 = await tab('/api/presence');
+    pinTab2.destroy();
+    await new Promise((r) => setTimeout(r, 700));
+    const afterPinClosed = (await parent.call('/api/parent/state')).body.unlocked;
+    homeTab.destroy();
+    await new Promise((r) => setTimeout(r, 700));
+    const afterHomeClosed = (await parent.call('/api/parent/state')).body.unlocked;
+    pinTab.destroy();
+    add('closing the Parent area locks it, even with a PIN page still open elsewhere', afterPinClosed === true && afterHomeClosed === false, `a PIN tab closed: ${afterPinClosed ? 'still unlocked' : 'locked'} · the Parent area closed: ${afterHomeClosed ? 'still unlocked' : 'locked'}`);
+    pres.lockDelayForTests(15_000);
+    await new Promise((r) => setTimeout(r, 2300));
     pres.resetPresenceForTests();
 
     // Learner: no way out to a website from a kid's app.

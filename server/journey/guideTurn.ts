@@ -7,9 +7,10 @@ import { ideaById, ideaNote } from './ideas.js';
 import { oneEmoji } from './appIcon.js';
 import { callDocWriter, callGuide, GuideError, type CallMeta } from './claude.js';
 import { buildContents, buildSystemInstruction, stageKickoff, type StoredMessage } from './prompt/buildPrompt.js';
-import { AI_DISCLOSURE, PERSONAL_NOTE, personText, REDIRECT_REPLY, WELLBEING_REPLY } from './prompt/safety.js';
+import { AI_DISCLOSURE, PERSONAL_NOTE, personText, REDIRECT_REPLY, WELLBEING_QUESTION, WELLBEING_REPLY } from './prompt/safety.js';
 import { maskPersonal } from './personal.js';
-import { callSafetyCheck, flag, heldBack, type SafetyResult } from './safetyCheck.js';
+import { appWords } from './words.js';
+import { callSafetyCheck, flag, heldBack, mayBeHurting, type SafetyResult } from './safetyCheck.js';
 import { REPLY_SCHEMA } from './prompt/replySchema.js';
 import { withoutEchoedQuestion } from './echo.js';
 import { GUIDE_STAGES, nextStage, stageDocKind, STAGE_ORDER } from './stages.js';
@@ -155,7 +156,7 @@ function cleanReply(reply: GuideReply, profile: Profile, probeFirst: boolean, un
       ...(c.detail ? { detail: String(c.detail).slice(0, 200) } : {}),
     }));
   }
-  if (reply.visualHtml && reply.visualHtml.length <= MAX_VISUAL) clean.visualHtml = reply.visualHtml;
+  if (reply.visualHtml && reply.visualHtml.length <= MAX_VISUAL) clean.visualHtml = withoutScripts(reply.visualHtml);
   else if (reply.visualHtml) console.warn(JSON.stringify({ event: 'visual-too-big', length: reply.visualHtml.length }));
   if (reply.doc?.markdown) clean.doc = { ...reply.doc, markdown: scrubText(cleanMarkdown(reply.doc.markdown), plainLevel(profile)) };
   clean.say = scrubText(clean.say, plainLevel(profile));
@@ -188,14 +189,17 @@ export interface GuideTurnResult {
   checklist?: string;
 }
 
-/** The words a picture or app shows, without markup (for the safety check). */
+/** The words a picture shows (for the safety check): the same reading as an app's words. */
 export function visibleWords(html: string): string {
+  return appWords(html);
+}
+
+/** The guide's pictures never run scripts (the prompt says so; safety review 2: now enforced). */
+export function withoutScripts(html: string): string {
   return html
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&[a-z]+;|&#\d+;/gi, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+    .replace(/<script\b[\s\S]*?(<\/script\s*>|$)/gi, '')
+    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/javascript:/gi, '');
 }
 
 export class TurnError extends Error {
@@ -305,6 +309,8 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
         return await callGuide(systemInstruction, contents);
       } catch (err) {
         if (!(err instanceof GuideError)) throw err;
+        // A technical failure (offline, timed out) is "let's try that again", never a flag on the kid.
+        if (!err.refused) throw new TurnError(503, 'The guide could not answer; try again.');
         console.warn(JSON.stringify({ event: 'refusal', fn: 'guideTurn', project: session.id, stage }));
         flag(session, 'input', { verdict: 'unsuitable', category: 'refused' }, text);
         return { reply: { say: REDIRECT_REPLY, question: sameQuestion, stageComplete: false }, meta: (err as any).metas ?? [] };
@@ -317,11 +323,12 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
     ]);
     // Safety review: if the guide failed (for example the plan limit), a wellbeing concern in the
     // kid's words still reaches the parent before the error goes back.
-    if (answered.status === 'rejected') {
+    if (answered.status === 'rejected' || checked.status === 'rejected') {
       if (checked.status === 'fulfilled' && checked.value.verdict === 'wellbeing') flag(session, 'input', checked.value, text);
-      throw answered.reason;
+      // Safety review 2: the check itself hit the limit too, so the on-computer words decide.
+      else if (checked.status === 'rejected' && text && mayBeHurting(text)) flag(session, 'input', { verdict: 'wellbeing', category: 'words (limit reached)' }, text);
+      throw answered.status === 'rejected' ? answered.reason : (checked as PromiseRejectedResult).reason;
     }
-    if (checked.status === 'rejected') throw checked.reason;
     let inputCheck = checked.value;
     const firstAnswer = answered.value;
     let raw = firstAnswer.reply;
@@ -344,7 +351,9 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
     if (blocked) {
       // Never answered, never built: a kind redirect (or, if they may be hurting, a grown-up).
       flag(session, 'input', inputCheck, flagText);
-      raw = { say: inputCheck.verdict === 'wellbeing' ? WELLBEING_REPLY : REDIRECT_REPLY, question: sameQuestion, stageComplete: false };
+      // After the "trusted grown-up" reply, a gentle question (never "What would you like to make instead?").
+      const after = inputCheck.verdict === 'wellbeing' ? WELLBEING_QUESTION : sameQuestion;
+      raw = { say: inputCheck.verdict === 'wellbeing' ? WELLBEING_REPLY : REDIRECT_REPLY, question: after, stageComplete: false };
       const mine = newMessages.find(m => m.role === 'user' && m.text === text);
       if (mine) mine.text = '(A message that was left out because it was not suitable.)';
       text = '';
@@ -451,10 +460,10 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
       metas.push(...(outputCheck.metas ?? [outputCheck.meta]));
       if (outputCheck.failed) throw heldBack(session, 'output', shown);
       if (outputCheck.verdict === 'unsuitable' || outputCheck.verdict === 'wellbeing') {
-        flag(session, 'output', outputCheck, shown);
+        flag(session, 'output', outputCheck, outputCheck.piece ?? shown);
         reply = { say: REDIRECT_REPLY, question: sameQuestion, stageComplete: false };
       } else if (outputCheck.verdict === 'personal') {
-        flag(session, 'output', outputCheck, shown); // the guide repeated a personal detail: the parent sees it
+        flag(session, 'output', outputCheck, outputCheck.piece ?? shown); // the guide repeated a personal detail: the parent sees it
       }
     }
 

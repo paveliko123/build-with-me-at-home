@@ -63,7 +63,9 @@ export class LimitError extends Error {
 }
 
 /** The guide couldn't answer (no reply, or no JSON) twice in a row. */
-export class GuideError extends Error {}
+/** The guide gave no usable answer. `refused`: Claude declined (a refusal), not a technical failure
+ *  (safety review 2: a Wi-Fi hiccup used to be recorded as the kid asking for something unsuitable). */
+export class GuideError extends Error { refused = false; }
 
 /** Claude Code's --json-schema takes plain JSON Schema: closed objects, no Gemini-only keys. */
 export function claudeSchema(schema: unknown): Record<string, unknown> {
@@ -121,6 +123,7 @@ export function onRateLimit(fn: (i: RateLimitInfo) => void) { rateLimitListener 
 
 export async function callGuide(system: string, turns: Turn[]): Promise<{ reply: GuideReply; meta: CallMeta[] }> {
   const metas: CallMeta[] = [];
+  let refused = false;
   for (let attempt = 0; attempt < 2; attempt++) {
     const { r, meta } = await call('guideTurn', 'guide', system, renderTurns(turns), REPLY_SCHEMA, GUIDE_TIMEOUT_MS, rateLimitListener);
     metas.push(meta);
@@ -141,8 +144,9 @@ export async function callGuide(system: string, turns: Turn[]): Promise<{ reply:
       return { reply, meta: metas };
     }
     console.warn(JSON.stringify({ event: 'guide-no-reply', attempt, error: (r.error ?? '').slice(0, 200) }));
+    if (r.stopReason === 'refusal') refused = true;
   }
-  throw Object.assign(new GuideError('the guide did not answer'), { metas });
+  throw Object.assign(new GuideError('the guide did not answer'), { metas, refused });
 }
 
 const DOC_SCHEMA = { type: 'object', properties: { markdown: { type: 'string' } }, required: ['markdown'] };
@@ -214,7 +218,7 @@ export interface ChangesResult { say?: string; question?: string; changes?: stri
 export async function callChanges(system: string, turns: Turn[]): Promise<{ result: ChangesResult; meta: CallMeta }> {
   const { r, meta } = await call('changeTurn', 'guide', system, renderTurns(turns), CHANGES_SCHEMA, GUIDE_TIMEOUT_MS, rateLimitListener);
   const result = (r.structured ?? tryJson(r.text)) as ChangesResult | null;
-  if (!result) throw Object.assign(new GuideError('no change list'), { metas: [meta] });
+  if (!result) throw Object.assign(new GuideError('no change list'), { metas: [meta], refused: r.stopReason === 'refusal' });
   if (Array.isArray(result.changes)) result.changes = result.changes.slice(0, 12);
   return { result, meta };
 }

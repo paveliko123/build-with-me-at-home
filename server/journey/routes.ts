@@ -5,7 +5,7 @@
 // (minutes) and the kid's chat or change list can run side by side.
 // Implements prd.md > The Kid's Journey, My Apps, States and Boundaries (coming back).
 
-import { callSafetyCheck, flag, heldBack } from './safetyCheck.js';
+import { callSafetyCheck, flag, heldBack, mayBeHurting } from './safetyCheck.js';
 import { maskPersonal } from './personal.js';
 import { personText, WELLBEING_REPLY } from './prompt/safety.js';
 import { addUsage } from './project.js';
@@ -129,6 +129,10 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
         setPassStep(s.pass.id, STEP_NAMES[p.stage]);
         res.json(out);
       } catch (err) {
+        // Safety review 2: a pass limit stops the message before any check runs, so words that may
+        // mean the kid is hurting still reach the parent (the on-computer word list).
+        const said = typeof req.body?.text === 'string' ? maskPersonal(personText(req.body.text.slice(0, 2000))).text : '';
+        if (err instanceof SpendLimit && said && mayBeHurting(said)) flag(p, 'input', { verdict: 'wellbeing', category: 'words (pass limit reached)' }, said);
         commitProject(before, p); // keeps flags and usage from an operation that failed part-way
         fail(res, err, s);
       }

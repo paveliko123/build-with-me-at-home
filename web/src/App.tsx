@@ -33,12 +33,14 @@ function ParentApp() {
   // Learner decision: this window keeps Build With Me running. While a parent screen is open
   // (first run, the PIN page or the Parent area) it holds a small "I'm open" stream; when the
   // last one closes, the app stops about a minute later (server/presence.ts).
+  const atHome = view === 'home';
   const parentScreen = view === 'first-run' || view === 'new-pin' || view === 'opening' || view === 'home';
   useEffect(() => {
     if (!parentScreen) return;
-    const es = new EventSource('/api/presence');
+    // The unlocked Parent area says so: closing it locks the Parent area (server/presence.ts).
+    const es = new EventSource(atHome ? '/api/presence?screen=home' : '/api/presence');
     return () => es.close();
-  }, [parentScreen]);
+  }, [parentScreen, atHome]);
 
   if (view === 'kid') return <KidApp />;
   return (
