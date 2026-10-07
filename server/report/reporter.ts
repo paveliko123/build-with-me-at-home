@@ -253,6 +253,8 @@ function bundle(p: Project, kidName: string, appName: string | null, finished: b
 // ---------- making and saving a report ----------
 
 const writing = new Set<string>();
+/** A report is being written (the app doesn't stop in the middle of one). */
+export const reportsInProgress = () => writing.size > 0;
 
 export async function makeReport(kidId: string, projectId: string, opts: { finished: boolean; pass?: Pass }): Promise<ReportSummary | null> {
   const key = `${projectId}:${opts.finished}`;
@@ -348,15 +350,19 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
 export function watchPassesForReports(port: number): void {
   appPort = port;
   try { upgradeReports(); } catch (e) { console.error('[report] upgrade', e); }
-  passEvents.on('pass', (passId: string) => {
-    const pass = readPass(passId);
+  const ended = (pass: Pass | null | undefined) => {
     if (!pass || isLive(pass) || !pass.usedAt) return;
     const p = currentProject(pass.kidId);
     if (!p) return;
     const lastReport = Math.max(0, ...(p.reports ?? []).map((r) => r.at));
     const activeThisPass = p.messages.some((m) => m.at >= (pass.usedAt ?? 0) && m.at > lastReport);
     if (activeThisPass) void makeReport(pass.kidId, p.id, { finished: false, pass }).catch((e) => console.error('[report]', e));
-  });
+  };
+  passEvents.on('pass', (passId: string) => ended(readPass(passId)));
+  // Closing the parent's window stops the app, so a pass can end while it isn't running: on
+  // every start, catch up on passes that ended in the last two weeks without a report.
+  const since = Date.now() - 14 * 24 * 60 * 60_000;
+  for (const pass of allPasses()) if (pass.usedAt && pass.endsAt >= since) ended(pass);
 }
 
 export function listReports(): (ReportSummary & { description: string })[] {

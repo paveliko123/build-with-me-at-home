@@ -374,6 +374,14 @@ Implements the `(polish round)` checks in `prd.md > Screens and Layout` and `The
 - **Parent screens on one laptop screen** (`Opening.tsx`, `ParentHome.tsx`, `parent.css`): the PIN screen in two columns (note | PIN pad) from 821 px, smaller keys on short screens; the parent home with the status in the header row and three columns from 1180 px, tighter cards, a compact ＋ for Add a kid, and the new pass beside its QR code.
 - **Checks:** two more in `npm run verify:revisions` (32 checks): which ideas fit when, and that the kid screen learns it when it picks up again.
 
+### Final Review: the Window Keeps the App Running
+Implements `prd.md > Installing and Updating` (Keep the window open), a learner decision in the final review. It replaced a short-lived ⏻ Stop button (the app used to keep running in the background after Claude Code and the browser closed).
+- **The "I'm open" stream** (`server/presence.ts`, `GET /api/presence`, laptop only): every parent screen (first run, the PIN page, the Parent area) holds an event stream while it's open (`web/src/App.tsx`). Both the PIN page and the Parent area say in bold to keep the window open.
+- **Stopping:** when no stream is open, a 10-second clock counts to 6 ticks (about a minute; 18 before the first window ever opens) and then stops the server the same way as Ctrl+C. Ticks only count while the laptop is awake (timers don't run during sleep), a reload reconnects before the minute is up, and the clock waits while a build, a chat turn or a report runs (`anyWorkRunning`, `reportsInProgress`). Only when the launcher started the server (`BWM_LAUNCHED=1`), so dev runs and the checks keep running.
+- **Kids' countdown:** the kid event stream sends `closing` (`null`, `{seconds}` or `{waiting:true}`) at once when the last window closes, and again on each tick; the kid screen shows "Your grown-up closed Build With Me on the laptop. It will stop in N seconds. Everything is saved." It disappears if the window reopens.
+- **Reports never missed:** on every start, passes that ended in the last two weeks with activity and no report get their "(not finished)" report (`watchPassesForReports`).
+- **Checks:** `npm run verify:revisions` (the clock, the countdown status); checked live with a launcher-style test server: the kid tab showed the countdown within seconds and the server stopped itself about a minute after the parent tab closed.
+
 ## Data Model
 
 Everything lives in **`<home>\Build With Me`**, unless noted:

@@ -1,6 +1,7 @@
 // Opening a pass, the kid's session, and live updates (SSE) for both sides.
 // Implements prd.md > Passes, spec.md > Passes, spec.md > Server Core (SSE).
 
+import { closingStatus, presenceEvents, type Closing } from './presence.js';
 import express, { Router, type Request, type Response } from 'express';
 import { endParentSession, isLoopback, isParent, cookies, PARENT_COOKIE } from './auth.js';
 import { kidSession, kidView, openPass, peekPass, passEvents } from './passes.js';
@@ -51,10 +52,14 @@ export function kidRoutes(): Router {
       if (s) send('pass', kidView(s));
     };
     if (parent) passEvents.on('changed', onChanged); else passEvents.on('pass', onPass);
+    // The parent closed their window: kids see when the app will stop (learner request).
+    const onClosing = (c: Closing) => send('closing', c);
+    if (!parent) { presenceEvents.on('closing', onClosing); send('closing', closingStatus()); }
     const beat = setInterval(() => res.write(': beat\n\n'), 25_000);
     req.on('close', () => {
       clearInterval(beat);
       passEvents.off('changed', onChanged); passEvents.off('pass', onPass);
+      presenceEvents.off('closing', onClosing);
     });
   });
 

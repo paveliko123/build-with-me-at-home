@@ -27,7 +27,7 @@
 
 | Getting started | Using it | Peace of mind |
 |---|---|---|
-| [✨ What a kid does](#what-a-kid-does) | [📅 Every day](#every-day) | [🛡️ How kids are kept safe](#safety) |
+| [✨ What a kid does](#what-a-kid-does) | [📅 Every day](#every-day) · [🪟 Keep the window open](#stopping) | [🛡️ How kids are kept safe](#safety) |
 | [🧰 What you need](#what-you-need) | [📱 Tablets and phones](#tablets) | [📄 The parent report](#report) |
 | [⬇️ Install](#install) | [🔑 Forgot your PIN](#forgot-pin) | [🔒 Privacy](#privacy) |
 | | [🔄 Updating](#updating) · [🗑️ Uninstalling](#uninstalling) | [⚡ Your Claude plan](#plan-usage) |
@@ -87,6 +87,8 @@ Kids (under 13) get short questions and picture cards. Teens (13–17) see and a
 
 **4.** Your browser opens Build With Me. Create a parent PIN and add your kids (a nickname, Kid or Teen, and an emoji). A **Build With Me** shortcut appears on your desktop: from now on, just double-click it.
 
+**5.** Keep the Build With Me window open while your kids use it: closing it stops the app. See [🪟 Keep the window open](#stopping).
+
 > [!NOTE]
 > On Windows, a firewall window may ask about Node.js. Choose **Private networks** so tablets at home can connect.
 
@@ -132,7 +134,14 @@ Questions or concerns? See [SECURITY.md](SECURITY.md).
 1. 🖱️ Double-click **Build With Me** on the desktop (or run `/build-with-me:start` in Claude Code) and enter your PIN.
 2. 🎟️ Under **Give a pass**, pick the kid and how long, then **Create pass**.
 3. 📲 The kid scans the QR code with a tablet, or you tap **Open on this laptop**. One device per pass; you can extend or end it from your laptop at any time.
-4. ⏻ **When you're done:** Build With Me keeps running in the background after you close Claude Code, so tablets can connect. To stop it, press **⏻ Stop** at the top of the Parent area (restarting the computer stops it too).
+<a id="stopping"></a>
+
+> [!IMPORTANT]
+> **🪟 Keep the Build With Me window open while your kids use it.** It runs only while its window (the PIN page or the Parent area) is open on your laptop. Closing Claude Code doesn't matter; closing that window does.
+>
+> **When you close it,** Build With Me stops about a minute later, for kids on tablets too: they see a countdown ("It will stop in 45 seconds. Everything is saved."), and if you reopen it in time, nothing stops. A reload doesn't count as closing, a build or report in progress finishes first, and the minute only counts while the laptop is awake.
+>
+> **To start it again:** double-click **Build With Me** on the desktop. Close the window when you're done, and always before using a public Wi-Fi (a café, a hotel).
 
 ---
 
@@ -214,7 +223,7 @@ If the safety check itself can't run (say, a network hiccup), nothing goes throu
 <a id="report"></a>
 ## 📄 The parent report
 
-After every app, Claude Opus reads the whole conversation and writes you a report. It's in the Parent area (**Latest reports**, **All reports**) and saved as a file in your family folder's `Reports` folder.
+After every app (or when a pass ends before the app is finished), Claude Opus reads the whole conversation and writes you a report. If a pass ends while Build With Me isn't running, the report is written the next time you start it. It's in the Parent area (**Latest reports**, **All reports**) and saved as a file in your family folder's `Reports` folder.
 
 **The safety level** sits at the top of every report:
 
@@ -246,7 +255,7 @@ After every app, Claude Opus reads the whole conversation and writes you a repor
 - 📤 **What leaves your computer:** the kids' conversations and plans go to Anthropic through *your* Claude Code, the same way your own Claude Code use does, to run the guide, build the apps, check safety and write your reports. Nothing else is sent anywhere, and **nothing at all is sent to the developer of this plugin**: no accounts, no analytics, no tracking, no crash reports.
 - 📥 **Downloads:** the app's packages (from npm) and the speech model (from Hugging Face), once each, during setup (the model also at the first start, if setup skipped it). Nothing about you or your kids is sent with them.
 - 🎤 **Talking stays local:** speech-to-text runs on this computer; the guide's voice is your device's built-in voice.
-- 📶 **Your network:** while it runs, Build With Me answers on the network the laptop is on (ports 4747 and 4748), so tablets can connect. Devices reach the kid side only with a pass; without one they see just the tablet setup page. The Parent area only opens on the laptop itself. On a public Wi-Fi (a café, a hotel), stop it first: **⏻ Stop** at the top of the Parent area.
+- 📶 **Your network:** while it runs, Build With Me answers on the network the laptop is on (ports 4747 and 4748), so tablets can connect. Devices reach the kid side only with a pass; without one they see just the tablet setup page. The Parent area only opens on the laptop itself. On a public Wi-Fi (a café, a hotel), close the Build With Me window first: the app stops about a minute later.
 - 🗑️ **Deleting:** removing a kid in **Kids & their apps** deletes all of their data (conversations, apps, reports and passes) after a warning. Nothing is deleted automatically otherwise.
 
 ---

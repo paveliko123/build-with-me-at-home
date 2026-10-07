@@ -128,6 +128,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
   <a class="sub" href="#c-exp">Usage Experiment</a>
   <a class="sub" href="#c-revision">Revision Round</a>
   <a class="sub" href="#c-polish">Polish Round</a>
+  <a class="sub" href="#c-window">Keep the Window Open</a>
   <a href="#data">Data Model</a>
   <a href="#tree">File Structure</a>
   <a href="#ext">External Services</a>
@@ -641,6 +642,18 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
       <li><b>Checks:</b> two more in <code>npm run verify:revisions</code> (32 checks): which ideas fit when, and that the kid screen learns it when it picks up again.</li>
     </ul>
     <div class="files">server/journey/guideTurn.ts · routes.ts · web/src/kid/journey/components/ProgressBar.tsx · screens/GuideStage.tsx · Journey.tsx · web/src/parent/Opening.tsx · ParentHome.tsx · parent.css</div>
+  </div></details>
+
+  <details id="c-window"><summary><h3>🪟 Final Review: the Window Keeps the App Running</h3><span class="prd">prd › Installing and Updating</span></summary><div class="body">
+    <p class="src">Your decision in the final review. It replaced a short-lived ⏻ Stop button (the app used to keep running in the background after Claude Code and the browser closed).</p>
+    <ul>
+      <li><b>The "I'm open" stream</b> (<code>server/presence.ts</code>, <code>GET /api/presence</code>, laptop only): every parent screen (first run, the PIN page, the Parent area) holds an event stream while it's open (<code>web/src/App.tsx</code>). Both the PIN page and the Parent area say in bold to keep the window open.</li>
+      <li><b>Stopping:</b> when no stream is open, a 10-second clock counts to 6 ticks (about a minute; 18 before the first window ever opens) and then stops the server the same way as Ctrl+C. Ticks only count while the laptop is awake, a reload reconnects before the minute is up, and the clock waits while a build, a chat turn or a report runs. Only when the launcher started the server (<code>BWM_LAUNCHED=1</code>), so dev runs and the checks keep running.</li>
+      <li><b>Kids' countdown:</b> the kid event stream sends <code>closing</code> (<code>null</code>, <code>{seconds}</code> or <code>{waiting:true}</code>) at once when the last window closes, and again on each tick; the kid screen shows "Your grown-up closed Build With Me on the laptop. It will stop in N seconds. Everything is saved." It disappears if the window reopens.</li>
+      <li><b>Reports never missed:</b> on every start, passes that ended in the last two weeks with activity and no report get their "(not finished)" report.</li>
+      <li><b>Checks:</b> <code>npm run verify:revisions</code>; checked live with a launcher-style test server: the kid tab showed the countdown within seconds and the server stopped itself about a minute after the parent tab closed.</li>
+    </ul>
+    <div class="files">server/presence.ts · server/main.ts · server/kidRoutes.ts · server/report/reporter.ts · web/src/App.tsx · web/src/kid/KidApp.tsx · web/src/parent/Opening.tsx · ParentHome.tsx</div>
   </div></details>
 
   <!-- DATA -->

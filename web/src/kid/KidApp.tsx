@@ -25,6 +25,7 @@ export function KidApp() {
   const [s, setS] = useState<KidSessionView | null | 'none' | 'unreachable'>(null);
   const [offset, setOffset] = useState(0); // server clock − this device's clock
   const [lost, setLost] = useState(false);
+  const [closing, setClosing] = useState<(NonNullable<Closing> & { at: number }) | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -58,6 +59,7 @@ export function KidApp() {
     let timer: number | undefined;
     es.addEventListener('pass', (ev) => { const v = JSON.parse((ev as MessageEvent).data) as KidSessionView; setOffset(v.now - Date.now()); setS(v); });
     es.addEventListener('hello', () => { if (timer) { clearTimeout(timer); timer = undefined; } setLost(false); });
+    es.addEventListener('closing', (ev) => { const c = JSON.parse((ev as MessageEvent).data) as Closing; setClosing(c ? { ...c, at: Date.now() } : null); });
     es.onerror = () => { timer ??= window.setTimeout(() => setLost(true), 8000); };
     return () => { es.close(); if (timer) clearTimeout(timer); };
   }, [live]);
@@ -70,8 +72,24 @@ export function KidApp() {
     <>
       <Journey name={s.kid.nickname} onPassEnded={load} />
       <Countdown endsAt={s.endsAt} offset={offset} onZero={load} />
+      {closing && !lost && <ClosingNotice closing={closing} />}
       {lost && <div className="bwm-overlay"><KidShell><CantReach /></KidShell></div>}
     </>
+  );
+}
+
+type Closing = null | { seconds: number } | { waiting: true };
+
+/** The parent closed their window on the laptop: Build With Me stops soon (learner request). */
+function ClosingNotice({ closing }: { closing: NonNullable<Closing> & { at: number } }) {
+  const now = useNow();
+  const left = 'seconds' in closing ? Math.max(0, Math.ceil(closing.seconds - (now - closing.at) / 1000)) : null;
+  return (
+    <div className="bwm-closing" role="alert">
+      <b>⏳ Your grown-up closed Build With Me on the laptop.</b>{' '}
+      {left === null ? 'It will stop as soon as it finishes what it’s doing.' : <>It will stop in <b>{left} seconds</b>.</>}{' '}
+      Everything is saved.
+    </div>
   );
 }
 

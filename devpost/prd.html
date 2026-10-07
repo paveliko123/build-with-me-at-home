@@ -223,7 +223,8 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
             <li><b>🔔 Needs your attention:</b> flags and limit-reached alerts</li>
             <li><b>📄 Latest reports:</b> with "All reports →"</li>
             <li><b>🧒 Kids &amp; their apps:</b> Manage, Add a kid, and <b>📱 Set up a tablet for talking</b></li>
-            <li><b>⚙️ Settings</b> (change the PIN), <b>🔒 Lock</b>, and <b>⏻ Stop</b>, since it keeps running after Claude Code closes <span class="pill">README review</span></li>
+            <li><b>⚙️ Settings</b> (change the PIN) and <b>🔒 Lock</b></li>
+            <li>a bold note: keep this window open while your kids use Build With Me <span class="pill">final review</span></li>
           </ul></li>
         <li><b>All reports:</b> a table with when, who, what was built, safety, and the app link (<a href="report-mockup.html">report mockup</a>, first tab).</li>
         <li><b>One report:</b> see <a href="#f-report">The Parent Report</a> (report mockup, second tab).</li>
@@ -276,13 +277,14 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
   <h2 id="features">Features and Behavior</h2>
   <p style="margin:0 0 8px"><button class="tool" id="expandAll">Expand all</button> <button class="tool" id="collapseAll">Collapse all</button></p>
 
-  <details id="f-install"><summary><h3>📦 Installing and Updating</h3><span class="count">7 checks</span></summary><div class="body">
+  <details id="f-install"><summary><h3>📦 Installing and Updating</h3><span class="count">8 checks</span></summary><div class="body">
     <p class="src">Source: our discussion after the first draft. For a local app, delivery replaces a share link.</p>
     <p class="story">As a parent who already uses Claude Code, I want to add Build With Me with one command, on Windows or a Mac.</p>
     <ul class="crit">
       <li><b>Install:</b> one Claude Code plugin install command, pointing at the public GitHub repo, adds Build With Me. No other downloads, accounts or keys, unless a required runtime is missing; the Spec checks for one.</li>
       <li><b>Start:</b> <code>/build-with-me:start</code> in Claude Code starts the app and opens the browser to the opening screen (or first-run setup the first time).</li>
       <li><b>Desktop shortcut:</b> setup offers one. Afterwards a double-click starts the app with no terminal and no Claude Code window to manage.</li>
+      <li><b>Keep the window open:</b> Build With Me runs while its window (the PIN page or the Parent area) is open on the laptop; both say so in bold. Closing it stops the app about a minute later (a reload doesn't count, only awake time counts, a build or report finishes first). Kids' screens show a countdown, and it's cancelled if the window reopens in time. A pass that ended while it was stopped gets its report at the next start. <span class="pill">final review</span></li>
       <li><b>Windows and Mac:</b> the same steps and the same screens on both.</li>
       <li><b>Updating:</b> Claude Code's normal plugin update brings the new version. Kids' apps, reports, kids and the PIN are kept.</li>
       <li><b>Uninstalling:</b> removing the plugin removes the app. The kids' apps and reports stay in their folder until the parent deletes them. <span class="assume">ASSUMPTION</span></li>

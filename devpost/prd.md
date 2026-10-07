@@ -55,7 +55,8 @@ Source: `scope.md > The Core Loop`, `scope.md > What "Working" Looks Like`.
    - **🔔 Needs your attention:** flags and limit-reached alerts
    - **📄 Latest reports:** with "All reports →"
    - **🧒 Kids & their apps:** Manage, Add a kid, and **📱 Set up a tablet for talking**
-   - **⚙️ Settings** (change the PIN), **🔒 Lock**, and **⏻ Stop**, since it keeps running after Claude Code closes *(README review)*
+   - **⚙️ Settings** (change the PIN) and **🔒 Lock**
+   - a bold note: keep this window open while your kids use Build With Me *(final review)*
 4. **All reports:** a table with when, who, what was built, safety, and the app link (`report-mockup.html`, first tab).
 5. **One report:** described in **The Parent Report** (`report-mockup.html`, second tab).
 
@@ -98,6 +99,7 @@ Source: learner discussion after the first PRD draft. Delivery replaces a share 
   - [ ] **Install:** one Claude Code plugin install command, pointing at the public GitHub repo, adds Build With Me. No other downloads, accounts or keys, unless a required runtime is missing; the Spec checks for one.
   - [ ] **Start:** `/build-with-me:start` in Claude Code starts the app and opens the browser to the opening screen (or to first-run setup the first time).
   - [ ] **Desktop shortcut:** setup offers one. Afterwards a double-click starts the app with no terminal and no Claude Code window to manage.
+  - [ ] **Keep the window open:** Build With Me runs while its window (the PIN page or the Parent area) is open on the laptop; both say so in bold. Closing it stops the app about a minute later (a reload doesn't count, only awake time counts, a build or report finishes first). Kids' screens show a countdown, and it's cancelled if the window reopens in time. A pass that ended while it was stopped gets its report at the next start. *(learner decision, final review)*
   - [ ] **Windows and Mac:** the same steps and the same screens on both.
   - [ ] **Updating:** Claude Code's normal plugin update brings the new version. Kids' apps, reports, kids and the PIN are kept.
   - [ ] **Uninstalling:** removing the plugin removes the app. The kids' apps and reports stay in their folder until the parent deletes them *(assumption)*.

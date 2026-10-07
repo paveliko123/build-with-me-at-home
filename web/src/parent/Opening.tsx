@@ -36,6 +36,7 @@ export function Opening({ onUnlocked }: { onUnlocked: () => void }) {
         <div className="logo">🛠️✨</div>
         <h1>Build With Me at Home</h1>
         <div className="resp">{RESPONSIBILITY}</div>
+        <div className="keepopen" role="note">⚠️ <b>Keep this window open while your kids use Build With Me.</b> Closing it stops the app about a minute later, on tablets too.</div>
       </div>
       <div className="padside">
         {lockedBy && <p className="muted" style={{ fontWeight: 600, margin: '0 0 4px' }}>🔒 Locked because {lockedBy}'s pass was opened on this laptop.</p>}

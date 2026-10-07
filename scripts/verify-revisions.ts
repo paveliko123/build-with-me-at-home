@@ -295,9 +295,31 @@ async function main() {
     const heldHtml = renderReport({ ...base0, heldBack: 2 } as any);
     add('the report notes held-back messages without counting them as safety flags', heldHtml.includes("couldn't run 2 times") && heldHtml.includes('No flags'), 'a note in Safety; the level stays 🟢');
 
-    // README review: ⏻ Stop Build With Me is the parent's only (the stop itself was checked live).
-    const stopKid = await kid.call('/api/parent/shutdown', {});
-    add('only the parent can stop Build With Me', stopKid.status === 401 || stopKid.status === 403, `a kid's request: ${stopKid.status}`);
+    // Learner decision: closing the parent's window stops the app (about a minute later, only
+    // awake time, never mid-work), and kids' screens show a countdown.
+    const pres = await import('../server/presence.js');
+    pres.resetPresenceForTests();
+    let firstStop = 0;
+    for (let k = 1; k <= 20 && !firstStop; k++) if (pres.presenceTick(false)) firstStop = k;
+    pres.resetPresenceForTests();
+    // node:http, not fetch: an aborted fetch stream crashes Node's exit on Windows.
+    let streamReq: http.ClientRequest | null = null;
+    const stream = await new Promise<{ status: number }>((resolve) => { streamReq = http.get(`${base}/api/presence`, (res) => resolve({ status: res.statusCode ?? 0 })); });
+    await new Promise((r) => setTimeout(r, 200));
+    const whileOpen = { ...pres.presenceState(), stops: pres.presenceTick(false), closing: pres.closingStatus() };
+    (streamReq as http.ClientRequest | null)?.destroy();
+    await new Promise((r) => setTimeout(r, 300));
+    const atClose = pres.closingStatus();
+    const busyTicks = [1, 2, 3, 4, 5, 6, 7, 8].map(() => pres.presenceTick(true));
+    const waiting = pres.closingStatus();
+    let graceStop = 0;
+    for (let k = 1; k <= 10 && !graceStop; k++) if (pres.presenceTick(false)) graceStop = k;
+    add('the parent window keeps the app running; closed, it stops after ~1 minute (3 before the first window), never mid-work',
+      stream.status === 200 && whileOpen.open === 1 && !whileOpen.stops && whileOpen.closing === null && firstStop === 18 && busyTicks.every((b) => !b) && graceStop === 6,
+      `open: ${whileOpen.open} · first window wait: ${firstStop} ticks · busy: never stops · after close: ${graceStop} ticks of 10 s`);
+    add('kids\' screens hear at once that the window closed, with the seconds left (or "finishing first")',
+      JSON.stringify(atClose) === '{"seconds":60}' && JSON.stringify(waiting) === '{"waiting":true}', `at close: ${JSON.stringify(atClose)} · while busy: ${JSON.stringify(waiting)}`);
+    pres.resetPresenceForTests();
 
     // Learner: no way out to a website from a kid's app.
     const { checkApp } = await import('../server/journey/appCheck.js');

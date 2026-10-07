@@ -4,6 +4,9 @@ import { writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { startServer } from './index.js';
 import { pluginDataDir } from './paths.js';
+import { stopWhenWindowCloses } from './presence.js';
+import { anyWorkRunning } from './journey/project.js';
+import { reportsInProgress } from './report/reporter.js';
 
 const lock = join(pluginDataDir(), 'server.lock');
 let s: Awaited<ReturnType<typeof startServer>>;
@@ -22,3 +25,6 @@ console.log(`Build With Me is running.
 const stop = async () => { rmSync(lock, { force: true }); await s.close(); process.exit(0); };
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);
+// Closing the parent's window stops the app (learner decision); only when the launcher started
+// it, so dev runs and the checks keep running.
+if (process.env.BWM_LAUNCHED === '1') stopWhenWindowCloses(() => anyWorkRunning() || reportsInProgress(), () => void stop());

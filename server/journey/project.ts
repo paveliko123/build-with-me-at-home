@@ -154,3 +154,5 @@ export async function exclusiveBuild<T>(projectId: string, work: () => Promise<T
   try { return await work(); } finally { building.delete(projectId); }
 }
 export const isBuilding = (projectId: string) => building.has(projectId);
+/** A build or a chat turn is running anywhere (the app doesn't stop in the middle of one). */
+export const anyWorkRunning = () => building.size > 0 || busy.size > 0;

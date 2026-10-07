@@ -62,6 +62,7 @@ body { margin: 0; }
 
 /* Kid pass overlays (src/kid/KidApp.tsx), above any theme. */
 .bwm-countdown{position:fixed;right:12px;top:12px;background:#fdf2dc;color:#8a5a12;border:2px solid #b7791f;border-radius:999px;padding:10px 20px;font:800 18px/1.2 system-ui,sans-serif;font-variant-numeric:tabular-nums;box-shadow:0 6px 20px rgba(0,0,0,.12);z-index:40;white-space:nowrap}
+.bwm-closing{position:fixed;left:50%;top:12px;transform:translateX(-50%);max-width:min(640px,calc(100vw - 24px));background:#fdf2dc;color:#5c3b0b;border:2px solid #b7791f;border-radius:18px;padding:12px 18px;font:600 17px/1.4 system-ui,sans-serif;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.18);z-index:45}
 .bwm-countdown.in-bar{position:static;padding:5px 12px;font-size:15px;box-shadow:none;border-width:2px}
 .bwm-overlay{position:fixed;inset:0;z-index:50}
 /* Phones and portrait tablets: the newest message stops above the pinned answer bar (UI review O1). */

@@ -81,13 +81,6 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
   // ---- everything below needs the unlocked parent ----
   r.use(requireParent);
 
-  // ⏻ Stop Build With Me (README review: the server keeps running after Claude Code closes, and
-  // a parent on a public Wi-Fi should be able to stop it without ending a process). The same
-  // clean stop as Ctrl+C: the lock file goes, the server closes (server/main.ts).
-  r.post('/shutdown', (_req, res) => {
-    res.json({ ok: true });
-    setTimeout(() => process.emit('SIGTERM'), 300);
-  });
 
   r.post('/pin', async (req, res) => {
     const { current, next } = req.body ?? {};

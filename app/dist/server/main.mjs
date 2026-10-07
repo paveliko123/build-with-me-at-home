@@ -422,9 +422,9 @@ function endParentSession(req, res) {
 function isParent(req) {
   if (!isLoopback(req)) return false;
   const token = cookies(req)[PARENT_COOKIE];
-  const seen = token ? parentSessions.get(token) : void 0;
-  if (seen === void 0) return false;
-  if (Date.now() - seen > IDLE_MS) {
+  const seen2 = token ? parentSessions.get(token) : void 0;
+  if (seen2 === void 0) return false;
+  if (Date.now() - seen2 > IDLE_MS) {
     parentSessions.delete(token);
     return false;
   }
@@ -726,9 +726,9 @@ var MAX = 8e3;
 function extractIcon(html) {
   const m = html.match(ICON);
   if (!m || m[0].length > MAX || UNSAFE.test(m[0])) return null;
-  const open = m[0].match(/^<svg\b[^>]*>/i)[0];
-  const viewBox = open.match(/\bviewBox\s*=\s*["']([\d.\s-]+)["']/i)?.[1] ?? "0 0 64 64";
-  const inner = m[0].slice(open.length, -"</svg>".length);
+  const open2 = m[0].match(/^<svg\b[^>]*>/i)[0];
+  const viewBox = open2.match(/\bviewBox\s*=\s*["']([\d.\s-]+)["']/i)?.[1] ?? "0 0 64 64";
+  const inner = m[0].slice(open2.length, -"</svg>".length);
   if (!/<(path|circle|rect|ellipse|polygon|polyline|line|g)\b/i.test(inner)) return null;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="128" height="128">${inner}</svg>`;
 }
@@ -5905,6 +5905,7 @@ async function exclusiveBuild(projectId, work) {
     building.delete(projectId);
   }
 }
+var anyWorkRunning = () => building.size > 0 || busy.size > 0;
 
 // server/journey/guideTurn.ts
 var MAX_TEXT = 4e3;
@@ -6521,7 +6522,7 @@ function shippedHtml(html, name) {
   let out = /<title>[\s\S]*?<\/title>/i.test(html) ? html.replace(/<title>[\s\S]*?<\/title>/i, title) : html.replace(/<head[^>]*>/i, (m) => `${m}${title}`);
   const oldTitle = html.match(/<title>([\s\S]*?)<\/title>/i)?.[1].trim();
   if (oldTitle && oldTitle.length >= 3 && oldTitle !== escapeHtml(name)) {
-    out = out.replace(/(<h[12][^>]*>)([\s\S]*?)(<\/h[12]>)/gi, (m, open, inner, close) => inner.includes(oldTitle) ? open + inner.split(oldTitle).join(escapeHtml(name)) + close : m);
+    out = out.replace(/(<h[12][^>]*>)([\s\S]*?)(<\/h[12]>)/gi, (m, open2, inner, close) => inner.includes(oldTitle) ? open2 + inner.split(oldTitle).join(escapeHtml(name)) + close : m);
   }
   return /<\/body>/i.test(out) ? out.replace(/<\/body>(?![\s\S]*<\/body>)/i, `${BADGE}</body>`) : out.replace(/<\/html>\s*$/i, `${BADGE}</html>`);
 }
@@ -7039,6 +7040,7 @@ THE CONVERSATION (oldest first):
 ${convo}`;
 }
 var writing = /* @__PURE__ */ new Set();
+var reportsInProgress = () => writing.size > 0;
 async function makeReport(kidId, projectId, opts) {
   const key = `${projectId}:${opts.finished}`;
   if (writing.has(key)) return null;
@@ -7157,15 +7159,17 @@ function watchPassesForReports(port) {
   } catch (e) {
     console.error("[report] upgrade", e);
   }
-  passEvents.on("pass", (passId) => {
-    const pass = readPass(passId);
+  const ended = (pass) => {
     if (!pass || isLive(pass) || !pass.usedAt) return;
     const p = currentProject(pass.kidId);
     if (!p) return;
     const lastReport = Math.max(0, ...(p.reports ?? []).map((r) => r.at));
     const activeThisPass = p.messages.some((m) => m.at >= (pass.usedAt ?? 0) && m.at > lastReport);
     if (activeThisPass) void makeReport(pass.kidId, p.id, { finished: false, pass }).catch((e) => console.error("[report]", e));
-  });
+  };
+  passEvents.on("pass", (passId) => ended(readPass(passId)));
+  const since = Date.now() - 14 * 24 * 60 * 6e4;
+  for (const pass of allPasses()) if (pass.usedAt && pass.endsAt >= since) ended(pass);
 }
 function listReports() {
   const dir = dataPath(`${DATA}/index`);
@@ -7272,10 +7276,6 @@ function parentRoutes(opts) {
     res.json({ ok: true });
   });
   r.use(requireParent);
-  r.post("/shutdown", (_req, res) => {
-    res.json({ ok: true });
-    setTimeout(() => process.emit("SIGTERM"), 300);
-  });
   r.post("/pin", async (req, res) => {
     const { current, next } = req.body ?? {};
     const check = await checkPin(String(current ?? ""));
@@ -7423,6 +7423,61 @@ function parentRoutes(opts) {
   return r;
 }
 
+// server/presence.ts
+import { EventEmitter as EventEmitter2 } from "node:events";
+var TICK_MS = 1e4;
+var GRACE_TICKS = 6;
+var FIRST_TICKS = 18;
+var open = 0;
+var seen = false;
+var quiet = 0;
+var presenceEvents = new EventEmitter2();
+var lastClosing = null;
+var closingStatus = () => lastClosing;
+function announce(next) {
+  if (JSON.stringify(next) === JSON.stringify(lastClosing)) return;
+  lastClosing = next;
+  presenceEvents.emit("closing", next);
+}
+function presenceStream(_req, res) {
+  res.set({ "Content-Type": "text/event-stream", "Cache-Control": "no-store", Connection: "keep-alive" });
+  res.flushHeaders?.();
+  res.write(": open\n\n");
+  open++;
+  seen = true;
+  quiet = 0;
+  announce(null);
+  const ping = setInterval(() => res.write(": ping\n\n"), 2e4);
+  res.on("close", () => {
+    clearInterval(ping);
+    open = Math.max(0, open - 1);
+    if (open === 0) announce({ seconds: GRACE_TICKS * TICK_MS / 1e3 });
+  });
+}
+function presenceTick(busy2) {
+  if (open > 0) {
+    quiet = 0;
+    announce(null);
+    return false;
+  }
+  if (busy2) {
+    if (seen) announce({ waiting: true });
+    return false;
+  }
+  quiet++;
+  if (seen) announce({ seconds: Math.max(0, (GRACE_TICKS - quiet) * TICK_MS / 1e3) });
+  return quiet >= (seen ? GRACE_TICKS : FIRST_TICKS);
+}
+function stopWhenWindowCloses(busy2, stop2) {
+  const timer = setInterval(() => {
+    if (!presenceTick(busy2())) return;
+    clearInterval(timer);
+    console.log("No parent window open: stopping (start again with the desktop shortcut).");
+    stop2();
+  }, TICK_MS);
+  timer.unref();
+}
+
 // server/kidRoutes.ts
 import express2, { Router as Router2 } from "express";
 function kidRoutes() {
@@ -7471,11 +7526,17 @@ data: ${JSON.stringify(data)}
     };
     if (parent) passEvents.on("changed", onChanged);
     else passEvents.on("pass", onPass);
+    const onClosing = (c) => send("closing", c);
+    if (!parent) {
+      presenceEvents.on("closing", onClosing);
+      send("closing", closingStatus());
+    }
     const beat = setInterval(() => res.write(": beat\n\n"), 25e3);
     req.on("close", () => {
       clearInterval(beat);
       passEvents.off("changed", onChanged);
       passEvents.off("pass", onPass);
+      presenceEvents.off("closing", onClosing);
     });
   });
   return r;
@@ -8060,6 +8121,13 @@ async function startServer(opts = {}) {
     const host = (req.headers.host ?? "localhost").replace(/:\d+$/, "");
     res.type("html").send(setupTabletPage(host, httpsPort, authorityName(authority)));
   });
+  app.get("/api/presence", (req, res) => {
+    if (!isLoopback(req)) {
+      res.status(403).end();
+      return;
+    }
+    presenceStream(req, res);
+  });
   app.use("/api/parent", parentRoutes({ httpPort, httpsPort, caName: authorityName(authority) }));
   app.use("/api", kidRoutes());
   watchPassesForReports(httpPort);
@@ -8181,3 +8249,4 @@ var stop = async () => {
 };
 process.on("SIGINT", stop);
 process.on("SIGTERM", stop);
+if (process.env.BWM_LAUNCHED === "1") stopWhenWindowCloses(() => anyWorkRunning() || reportsInProgress(), () => void stop());

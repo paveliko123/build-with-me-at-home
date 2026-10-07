@@ -17,6 +17,7 @@ import { parentRoutes } from './parentRoutes.js';
 import { kidRoutes } from './kidRoutes.js';
 import { journeyRoutes, shelfRoutes } from './journey/routes.js';
 import { APP_CSP, appIcon, servedApp } from './journey/apps.js';
+import { presenceStream } from './presence.js';
 import { watchPassesForReports } from './report/reporter.js';
 import { kidSession } from './passes.js';
 import { setupTabletPage } from './tabletSetupPage.js';
@@ -83,6 +84,8 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
   });
 
   // ---- parent ----
+  // The parent's window is open (the PIN page or the Parent area): keeps the app running.
+  app.get('/api/presence', (req, res) => { if (!isLoopback(req)) { res.status(403).end(); return; } presenceStream(req, res); });
   app.use('/api/parent', parentRoutes({ httpPort, httpsPort, caName: authorityName(authority) }));
 
   // ---- passes, the kid's session, live updates ----
