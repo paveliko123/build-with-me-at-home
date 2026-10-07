@@ -126,6 +126,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
   <a class="sub" href="#c-parent">Parent Screens</a>
   <a class="sub" href="#c-apps">My Apps</a>
   <a class="sub" href="#c-exp">Usage Experiment</a>
+  <a class="sub" href="#c-revision">Revision Round</a>
   <a href="#data">Data Model</a>
   <a href="#tree">File Structure</a>
   <a href="#ext">External Services</a>
@@ -596,6 +597,32 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
     </ul>
   </div></details>
 
+  <details id="c-revision"><summary><h3>🔁 Revision Round After the Family Trial</h3><span class="prd">prd › the (revision round) checks</span></summary><div class="body">
+    <p class="src">Your decisions are in <code>devpost/ui-review.md</code> › Family trial notes.</p>
+    <ul>
+      <li><b>Show me ideas</b> (<code>server/journey/ideas.ts</code>, <code>ideaLibrary.json</code>, <code>IdeaPicker.tsx</code>):
+        <ul>
+          <li>The idea library: 128 ideas, 12 per theme plus 8 classics that fit any theme (coloring, spot the difference, memory match, slide puzzle, word search, dress-up, hidden objects, dot to dot). Each has an emoji, a pitch, how it works, look-and-feel ideas, 4–6 "make it yours" questions, later additions, a teen twist and builder notes. Browsable in <code>devpost/idea-library.html</code> (<code>npm run ideas:page</code>).</li>
+          <li><code>GET /api/kid/journey/ideas?exclude=…</code> picks three for the kid's age group: two that fit the theme's mood and one from elsewhere, never repeating until all have been seen. No Claude call.</li>
+          <li>Picking one sends <code>POST /turn {ideaId}</code>: the kid's answer is the idea's title and pitch, and the guide gets an <code>[app]</code> note with the idea and its "make it yours" questions to ask one at a time. The project keeps <code>ideaSource</code> for the report.</li>
+          <li>The stuck trigger is on the kid screen (<code>GuideStage.tsx</code>): "I don't know", "idk", "help" and similar open the ideas instead of going to the guide. After 20 s of quiet the button glows; in talk mode the guide also asks gently.</li>
+        </ul></li>
+      <li><b>The teen's plan card</b> (<code>DocReview.tsx</code>, <code>PlanCard.tsx</code>, <code>lib/planSummary.ts</code>): the draft plan shows as the title, its one-line summary and up to 5 key sections with icons, read from the plan's own headings (no extra call). "Your plan is ready: have a look. Happy with it?" with 👍 Looks good (sends "Looks good!") and ✏️ Change something; the buttons stay in view while reading. The whole plan folds underneath; no Markdown download. The guide's dial asks it to say the plan is ready.</li>
+      <li><b>How I planned it</b> (<code>GET /api/kid/apps/:slug/plan</code>): a teen's approved plans for a shipped app, shown as plan cards on a printable page in My apps. Kids' plans stay behind the scenes.</li>
+      <li><b>The teaching progress view</b> (<code>server/journey/buildProgress.ts</code>, <code>BuildProgress.tsx</code>):
+        <ul>
+          <li>The builder call adds <code>--include-partial-messages</code>, so the app's text streams in as Opus writes it (same call, no extra cost). The tracker turns it into milestones (look, drawing, rules, tap, move, sound, memory) and, for teens, the name of the function being written (plain words only).</li>
+          <li>The Tech plan now gives <code>buildSteps</code>: 4–6 parts in the kid's words, each with a code word and a kind. A step ticks when a function named for it is written (for example <code>drawBasket</code> for "the basket"); a live build showed that plain mentions came far too early.</li>
+          <li>The kid screen asks <code>GET /api/kid/journey/progress</code> every 1.5 s while building. The code itself never reaches the screen. Checked live with one real build (<code>scripts/fixtures/star-catcher.html</code>).</li>
+        </ul></li>
+      <li><b>Waiting-chat ideas</b> (<code>laterIdea</code> in the reply schema, <code>POST /api/kid/journey/changes/ideas</code>): the guide turns an idea from the waiting chat into a short change item; the project keeps it (<code>laterIdeas</code>); when the app is ready, the kid adds it to the change list with one tap (no Claude call; only ideas the project really has). They also appear in the report.</li>
+      <li><b>App icons</b> (<code>server/journey/appIcon.ts</code>): the builder draws <code>&lt;svg id="bwm-icon"&gt;</code> in every version. At Ship it's saved as <code>apps/&lt;slug&gt;/icon.svg</code> only if it's a plain drawing (no scripts, events, links, outside images or embedded HTML) and shown only as an image (<code>/apps/:kid/:slug/icon.svg</code>, same access as the app). The guide's <code>appEmojis</code> are the backup and the other choices (🎲 Try another). Used on the shelf, the parent's list, the browser tab and, inline, in the report.</li>
+      <li><b>Smaller fixes:</b> "New app" asks nothing after shipping and otherwise shows an in-app dialog (<code>KidDialog.tsx</code>); opened apps have a "← Back" bar; the kid's simple screens use the kid's theme; the parent area uses questions in the card instead of browser popups; the first run checks Claude Code first (<code>GET /api/parent/claude-check</code>, only before a PIN exists); and the rest of <code>devpost/ui-review.md</code>.</li>
+      <li><b>Checks:</b> <code>npm run verify:revisions</code> (30 checks, no Claude calls).</li>
+    </ul>
+    <div class="files">server/journey/ideas.ts · ideaLibrary.json · buildProgress.ts · appIcon.ts · web/src/kid/journey/components/IdeaPicker.tsx · PlanCard.tsx · BuildProgress.tsx · KidDialog.tsx</div>
+  </div></details>
+
   <!-- DATA -->
   <h2 id="data">Data Model</h2>
   <p class="src">Everything lives in <b>&lt;home&gt;\Build With Me</b> unless noted.</p>
@@ -605,9 +632,9 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
       <tbody>
         <tr><td><code>family.json</code></td><td>PIN hash and salt, kids <code>[{id, nickname, group, emoji}]</code>, settings (port)</td><td>Setup; Kids &amp; their apps; Settings</td><td>Kept</td></tr>
         <tr><td><code>passes.json</code></td><td>Passes</td><td>Create, open, extend, end</td><td>Expired kept 30 days for reports, then pruned</td></tr>
-        <tr><td><code>kids/&lt;kid&gt;/projects/&lt;id&gt;/project.json</code></td><td>Stage, theme, transcript (masked), plans, change list, flags, timeline, usage readings, token and cost totals</td><td>Every turn, step, build, flag</td><td><b>Resume point:</b> the next pass picks up here</td></tr>
+        <tr><td><code>kids/&lt;kid&gt;/projects/&lt;id&gt;/project.json</code></td><td>Stage, theme, transcript (masked), plans, change list, flags, timeline, usage readings, token and cost totals; since the revision round also the build steps, the emojis that fit the app, the idea-list idea it started from, and the ideas from the waiting chat</td><td>Every turn, step, build, flag</td><td><b>Resume point:</b> the next pass picks up here</td></tr>
         <tr><td><code>…/versions/vN.html</code></td><td>Each built version</td><td>Each build</td><td>Kept; the last working version shown</td></tr>
-        <tr><td><code>kids/&lt;kid&gt;/apps/&lt;slug&gt;/index.html</code> + <code>apps.json</code></td><td>Shipped apps and the shelf index</td><td>Ship; parent delete</td><td>Kept until deleted (everything under <code>kids/&lt;kid&gt;/</code> goes when the kid is removed)</td></tr>
+        <tr><td><code>kids/&lt;kid&gt;/apps/&lt;slug&gt;/index.html</code>, <code>icon.svg</code> + <code>apps.json</code></td><td>Shipped apps, their drawn icons and the shelf index</td><td>Ship; parent delete</td><td>Kept until deleted (everything under <code>kids/&lt;kid&gt;/</code> goes when the kid is removed)</td></tr>
         <tr><td><code>report-data/&lt;id&gt;.json</code> and <code>report-data/index/</code></td><td>Report data for All reports</td><td>Report written</td><td>Kept until the kid is removed</td></tr>
         <tr><td><code>usage-calibration.json</code></td><td>The learned rate for "this app's own share" (up to 30 measurements)</td><td>E3; each cleanly measured report</td><td>Kept</td></tr>
         <tr><td><code>Reports/&lt;date&gt; &lt;Kid&gt; - &lt;App&gt;.html</code></td><td>The readable report file</td><td>Report written</td><td>Kept, opens without the app; deleted when the kid is removed</td></tr>

@@ -118,13 +118,15 @@ Source: `scope.md > The POC Boundary`, `scope.md > Terms Check`.
 
 ### First-Run Setup
 - As a parent installing it, I want a short setup that tells me if anything is missing.
-  - [ ] If Claude Code is missing or signed out, a plain message says what to do. Setup can't continue until it's fixed.
+  - [ ] Step 1 checks Claude Code. If it's missing or signed out, a plain message says what to do, with **Check again**. Setup can't continue until it's fixed.
+  - [ ] A nickname typed but not added yet is never lost: it's added on Finish, or the parent is asked to pick Kid or Teen first. *(revision round)*
   - [ ] The parent creates a PIN (entered twice) and adds at least one kid: nickname, Kid or Teen, and emoji.
   - [ ] After setup, the parent lands on the parent home.
 
 ### Kids
 - As a parent, I want each kid set up once, so each pass, guide and report fits that kid.
   - [ ] Kids can be added, edited or removed in **Kids & their apps**.
+  - [ ] **Removing a kid deletes all their data** (projects and conversations, apps, reports including the files in the Reports folder, passes). A red warning first lists what will go and says it can't be undone; the parent types the kid's name to confirm. *(revision round)*
   - [ ] A kid's age group (Kid or Teen) is set only here, by the parent. Nothing the kid says changes it.
 
 ### Passes
@@ -138,9 +140,10 @@ Source: `scope.md > The Core Loop`.
   - [ ] **Active passes** shows each live pass: kid, device, current step, and a live countdown.
   - [ ] **+30 min / +1 hr** extend the pass right away, and the kid's countdown updates on its own. **End now** ends it right away.
   - [ ] More than one kid can hold a pass at the same time, one pass per kid.
+  - [ ] One pass can't run down the plan: at most 10 Claude requests a minute and 150 an hour, 5 new apps and 30 builds per pass. Past a limit the kid sees a friendly message and the parent gets a note. *(revision round)*
 - As a kid, I want to know when time is running out, so I'm not cut off by surprise.
   - [ ] At 10 minutes left, a friendly countdown appears on the kid's screen and stays visible.
-  - [ ] At zero, a "Time's up for today!" screen appears. An unfinished conversation is saved. A build that's already running finishes and is saved. The next pass for that kid resumes exactly there.
+  - [ ] At zero, a "Time's up!" screen appears. An unfinished conversation is saved. A build that's already running finishes and is saved. The next pass for that kid resumes exactly there.
 
 ### The Kid's Journey
 Source: `scope.md > The POC Boundary` ("the existing design and flow"). This is Build With Me's journey, kept as is. Only the parent's profile setting changes the guide.
@@ -163,23 +166,26 @@ Source: `scope.md > The POC Boundary` ("the existing design and flow"). This is 
   - [ ] Teens hear in one or two sentences that we plan first, then build.
 - **Idea:**
   - [ ] "I don't know" gets 1–2 opposite-end idea cards with pictures (kids).
+  - [ ] **💡 Show me ideas** (kids; "Need inspiration?" for teens) shows three ideas from the idea library at once, matched to the age group and the theme's mood, with **✨ Something else** and **🔀 More ideas**. A stuck answer ("I don't know", "idk", "help") opens them right away; after about 20 seconds of quiet the button glows, and in talk mode the guide asks gently. Picking one starts the customizing: the guide asks its "make it yours" questions. *(revision round)*
   - [ ] A too-big idea gets a friendly pushback and a smaller version.
-  - [ ] Teens approve the idea plan.
+  - [ ] Teens approve the idea plan, shown as a short plan card under "Your plan is ready: have a look. Happy with it?" with **👍 Looks good** and **✏️ Change something** (the whole plan folds underneath; no Markdown). *(revision round)*
 - **Design:**
   - [ ] "Pick a look" from two mock-ups.
   - [ ] Teens approve the design plan.
   - [ ] The build honors the chosen look.
 - **Tech plan:**
   - [ ] The guide makes every tech choice.
-  - [ ] It gives a one-line "Here's how I'll build it!"
+  - [ ] It gives a one-line "Here's how I'll build it!", and 4–6 build steps in the kid's own words. *(revision round)*
 - **Build:**
   - [ ] About ⅔ app, ⅓ chat.
-  - [ ] A themed animation plays while building.
+  - [ ] A themed animation plays while building, with a teaching progress view: what's being written right now in plain words (the look, the drawings, the rules, sounds…), a progress bar, and the kid's own build steps ticking off as their code gets written. Teens see the real names. *(revision round)*
+  - [ ] Ideas from the waiting chat come back as cards when the app is ready (**➕ Add**, **Not now**), so nothing the kid suggested is lost. *(revision round)*
   - [ ] The result is a true working app.
   - [ ] Changes go on a list, and rebuilding applies them. Anything left out is said honestly.
   - [ ] A broken app is repaired automatically, and nobody sees raw errors.
 - **Ship:**
   - [ ] The kid names the app, and the name is its title.
+  - [ ] The app has its own icon: a small drawing the builder makes in the app's style, or an emoji that fits; the kid can tap **🎲 Try another** or pick one. *(revision round)*
   - [ ] It goes on the kid's My apps shelf with its link and home-Wi-Fi QR code.
 
 ### Talking
@@ -215,7 +221,8 @@ Source: `scope.md > The POC Boundary` (three safety layers). Everything runs on 
 
 ### My Apps
 - As a kid, I want my apps to stay on my shelf so I can play with them any time I have a pass.
-  - [ ] Each kid's shelf shows only their own apps, newest first, with name, picture and Open.
+  - [ ] Each kid's shelf shows only their own apps, newest first, with name, the app's own icon and Open.
+  - [ ] Teens also get **📄 How I planned it**: the plans they approved, as a page that's nice to show or print. *(revision round)*
   - [ ] Apps stay for weeks or months, until a parent deletes them under **Kids & their apps → Manage**.
   - [ ] An app's link opens on the laptop, or on any device on the home Wi-Fi, while the app is running.
 
@@ -231,7 +238,7 @@ Source: `scope.md > The Unique Kernel`. Laid out as in `report-mockup.html`.
     - **In one paragraph:** what they wanted, what got built, how it went
     - **The app:** a picture, a description and an Open link
     - **Safety:** each flag with what the kid said, what the guide did, and the time and step, plus OK lines for personal details, the guide's output and staying on topic, and a one-line "worth a chat?"
-    - **Whose ideas?** The kid's share versus the guide's, with a sentence explaining it
+    - **Whose ideas?** The kid's share versus the guide's, with a sentence explaining it; whether they started from an idea-list idea, and the ideas they had while the app was building *(revision round)*
     - **How it went:** a timeline of the steps
     - **Talk about it together:** 1–2 conversation starters
     - **The full conversation,** folded

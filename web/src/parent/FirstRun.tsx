@@ -22,9 +22,9 @@ function ClaudeCheck({ onNext }: { onNext: () => void }) {
       </div>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 16, flexWrap: 'wrap' }}>
         <button className="ghost" onClick={() => check(true)}>Check again</button>
-        <button className="btn" style={{ width: 200 }} onClick={onNext}>{state?.signedIn ? 'Next' : 'Continue anyway'}</button>
+        <button className="btn" style={{ width: 200 }} disabled={!state?.signedIn} onClick={onNext}>Next</button>
       </div>
-      {state && !state.signedIn && <p className="muted" style={{ fontSize: 14 }}>You can finish setup now. Kids can't build until Claude Code is ready.</p>}
+      {state && !state.signedIn && <p className="muted" style={{ fontSize: 14 }}>Setup continues once Claude Code is ready. Fix it, then tap Check again.</p>}
     </>
   );
 }

@@ -342,6 +342,24 @@ Implements the learner's question about caching and models (see **Decisions and 
   - Average wait per kid turn: A 12.4 s, B 8.1 s, C 12.7 s. The check of the guide's reply runs after the guide answers, and the Sonnet fork (2.8 s) answered faster than the Haiku check (6.2 s).
   - **The learner chose B:** "the speed is the major downside now, so any improvement is a plus."
 
+### Revision Round After the Family Trial
+Implements the `(revision round)` checks in `prd.md > The Kid's Journey`, `My Apps`, `Kids`, `First-Run Setup` and `The Parent Report`. The learner's decisions are in `devpost/ui-review.md > Family trial notes`.
+- **Show me ideas** (`server/journey/ideas.ts`, `server/journey/ideaLibrary.json`, `web/src/kid/journey/components/IdeaPicker.tsx`):
+  - The idea library: 128 ideas, 12 per theme plus 8 classics that fit any theme (coloring, spot the difference, memory match, slide puzzle, word search, dress-up, hidden objects, dot to dot). Each has an emoji, a pitch, how it works, look-and-feel ideas, 4–6 "make it yours" questions, later additions, a teen twist and builder notes. Browsable in `devpost/idea-library.html` (`npm run ideas:page`).
+  - `GET /api/kid/journey/ideas?exclude=…` picks three for the kid's age group: two that fit the theme's mood and one from elsewhere, never repeating until all have been seen. No Claude call.
+  - Picking one sends `POST /turn {ideaId}`: the kid's answer is the idea's title and pitch, and the guide gets an `[app]` note with the idea and its "make it yours" questions to ask one at a time. The project keeps `ideaSource` for the report.
+  - The stuck trigger is client-side (`GuideStage.tsx`): "I don't know", "idk", "help" and similar open the ideas instead of going to the guide. After 20 s of quiet the button glows; in talk mode the guide also asks gently.
+- **The teen's plan card** (`DocReview.tsx`, `PlanCard.tsx`, `lib/planSummary.ts`): the draft plan shows as the title, its one-line summary and up to 5 key sections with icons, read from the plan's own headings (no extra call). "Your plan is ready: have a look. Happy with it?" with 👍 Looks good (sends "Looks good!") and ✏️ Change something; the buttons stay in view while reading. The whole plan folds underneath; no Markdown download. The guide's dial asks it to say the plan is ready.
+- **How I planned it** (`GET /api/kid/apps/:slug/plan`): a teen's approved plans for a shipped app, shown as plan cards on a printable page in My apps. Kids' plans stay behind the scenes.
+- **The teaching progress view** (`server/journey/buildProgress.ts`, `BuildProgress.tsx`):
+  - The builder call adds `--include-partial-messages`, so the app's text streams in as Opus writes it (same call, no extra cost). The tracker turns it into milestones (look, drawing, rules, tap, move, sound, memory) and, for teens, the name of the function being written (plain words only).
+  - The Tech plan now gives `buildSteps`: 4–6 parts in the kid's words, each with a code word and a kind. A step ticks when a function named for it is written (for example `drawBasket` for "the basket"); a live build showed that plain mentions came far too early.
+  - The kid screen asks `GET /api/kid/journey/progress` every 1.5 s while building. The code itself never reaches the screen. Checked live with one real build (`scripts/fixtures/star-catcher.html`).
+- **Waiting-chat ideas** (`laterIdea` in the reply schema, `POST /api/kid/journey/changes/ideas`): the guide turns an idea from the waiting chat into a short change item; the project keeps it (`laterIdeas`); when the app is ready, the kid adds it to the change list with one tap (no Claude call; only ideas the project really has). They also appear in the report.
+- **App icons** (`server/journey/appIcon.ts`): the builder draws `<svg id="bwm-icon">` in every version. At Ship it's saved as `apps/<slug>/icon.svg` only if it's a plain drawing (no scripts, events, links, outside images or embedded HTML) and shown only as an image (`/apps/:kid/:slug/icon.svg`, same access as the app). The guide's `appEmojis` are the backup and the other choices (🎲 Try another). Used on the shelf, the parent's list, the browser tab and, inline, in the report.
+- **Smaller fixes:** "New app" asks nothing after shipping and otherwise shows an in-app dialog (`KidDialog.tsx`); opened apps have a "← Back" bar; the kid's simple screens use the kid's theme; the parent area uses questions in the card instead of browser popups; the first run checks Claude Code first (`GET /api/parent/claude-check`, only before a PIN exists); and the rest of `devpost/ui-review.md`.
+- **Checks:** `npm run verify:revisions` (30 checks, no Claude calls).
+
 ## Data Model
 
 Everything lives in **`<home>\Build With Me`**, unless noted:
@@ -350,9 +368,9 @@ Everything lives in **`<home>\Build With Me`**, unless noted:
 |---|---|---|---|
 | `family.json` | PIN hash and salt, kids `[{id, nickname, group, emoji}]`, settings (port) | Setup; Kids & their apps; Settings | Kept |
 | `passes.json` | Passes (see **Passes**) | Create, open, extend, end | Expired passes kept 30 days for the reports, then pruned |
-| `kids/<kidId>/projects/<projectId>/project.json` | Stage, theme, transcript (masked), plans, change list, flags, timeline, usage readings, token and cost totals | Every turn, step change, build or flag | **Resume point:** the next pass picks up here |
+| `kids/<kidId>/projects/<projectId>/project.json` | Stage, theme, transcript (masked), plans, change list, flags, timeline, usage readings, token and cost totals; since the revision round also the build steps, the emojis that fit the app, the idea-list idea it started from, and the ideas from the waiting chat | Every turn, step change, build or flag | **Resume point:** the next pass picks up here |
 | `kids/<kidId>/projects/<projectId>/versions/vN.html` | Each built version | Each build | Kept; the last working version is shown |
-| `kids/<kidId>/apps/<slug>/index.html` and `kids/<kidId>/apps.json` | Shipped apps and the shelf index | Ship; parent delete | Kept until deleted (everything under `kids/<kidId>/` goes when the kid is removed) |
+| `kids/<kidId>/apps/<slug>/index.html`, `icon.svg` and `kids/<kidId>/apps.json` | Shipped apps, their drawn icons and the shelf index | Ship; parent delete | Kept until deleted (everything under `kids/<kidId>/` goes when the kid is removed) |
 | `report-data/<reportId>.json` and `report-data/index/` | Report data for All reports | Report written | Kept until the kid is removed |
 | `usage-calibration.json` | The learned rate for "this app's own share" (up to 30 measurements) | E3; each cleanly measured report | Kept |
 | `Reports/<date> <Kid> - <App>.html` | The readable report file | Report written | Kept, opens without the app; deleted when the kid is removed |

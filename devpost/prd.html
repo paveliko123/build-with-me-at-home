@@ -302,24 +302,26 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     </ul>
   </div></details>
 
-  <details id="f-setup"><summary><h3>🧰 First-Run Setup</h3><span class="count">3 checks</span></summary><div class="body">
+  <details id="f-setup"><summary><h3>🧰 First-Run Setup</h3><span class="count">4 checks</span></summary><div class="body">
     <p class="story">As a parent installing it, I want a short setup that tells me if anything is missing.</p>
     <ul class="crit">
-      <li>If Claude Code is missing or signed out, a plain message says what to do. Setup can't continue until it's fixed.</li>
+      <li>Step 1 checks Claude Code. If it's missing or signed out, a plain message says what to do, with <b>Check again</b>. Setup can't continue until it's fixed.</li>
+      <li>A nickname typed but not added yet is never lost: it's added on Finish, or the parent is asked to pick Kid or Teen first. <span class="pill">revision round</span></li>
       <li>The parent creates a PIN (entered twice) and adds at least one kid: nickname, Kid or Teen, and emoji.</li>
       <li>After setup, the parent lands on the parent home.</li>
     </ul>
   </div></details>
 
-  <details id="f-kids"><summary><h3>🧒 Kids</h3><span class="count">2 checks</span></summary><div class="body">
+  <details id="f-kids"><summary><h3>🧒 Kids</h3><span class="count">3 checks</span></summary><div class="body">
     <p class="story">As a parent, I want each kid set up once, so each pass, guide and report fits that kid.</p>
     <ul class="crit">
       <li>Kids can be added, edited or removed in <b>Kids &amp; their apps</b>.</li>
+      <li><b>Removing a kid deletes all their data</b> (projects and conversations, apps, reports including the files in the Reports folder, passes). A red warning first lists what will go and says it can't be undone; the parent types the kid's name to confirm. <span class="pill">revision round</span></li>
       <li>A kid's age group (Kid or Teen) is set only here, by the parent. Nothing the kid says changes it.</li>
     </ul>
   </div></details>
 
-  <details id="f-passes"><summary><h3>🎟️ Passes</h3><span class="count">9 checks</span></summary><div class="body">
+  <details id="f-passes"><summary><h3>🎟️ Passes</h3><span class="count">10 checks</span></summary><div class="body">
     <p class="src">Source: scope › The Core Loop</p>
     <p class="story">As a parent, I want to give one kid access for exactly as long as I choose.</p>
     <ul class="crit">
@@ -331,15 +333,16 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
       <li><b>Active passes</b> shows each live pass: kid, device, current step, and a live countdown.</li>
       <li><b>+30 min / +1 hr</b> extend the pass right away, and the kid's countdown updates on its own. <b>End now</b> ends it right away.</li>
       <li>More than one kid can hold a pass at the same time, one pass per kid.</li>
+      <li>One pass can't run down the plan: at most 10 Claude requests a minute and 150 an hour, 5 new apps and 30 builds per pass. Past a limit the kid sees a friendly message and the parent gets a note. <span class="pill">revision round</span></li>
     </ul>
     <p class="story" style="margin-top:12px">As a kid, I want to know when time is running out, so I'm not cut off by surprise.</p>
     <ul class="crit">
       <li>At 10 minutes left, a friendly countdown appears on the kid's screen and stays visible.</li>
-      <li>At zero, a "Time's up for today!" screen appears. An unfinished conversation is saved. A build that's already running finishes and is saved. The next pass for that kid resumes exactly there.</li>
+      <li>At zero, a "Time's up!" screen appears. An unfinished conversation is saved. A build that's already running finishes and is saved. The next pass for that kid resumes exactly there.</li>
     </ul>
   </div></details>
 
-  <details id="f-journey"><summary><h3>🗺️ The Kid's Journey</h3><span class="count">17 checks</span></summary><div class="body">
+  <details id="f-journey"><summary><h3>🗺️ The Kid's Journey</h3><span class="count">21 checks</span></summary><div class="body">
     <p class="src">Source: scope › The POC Boundary ("the existing design and flow"). Build With Me's journey, kept as is. Only the parent's profile setting changes the guide.</p>
     <div class="tablewrap" style="margin-bottom:12px">
       <table>
@@ -360,11 +363,11 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
           <tr><td><b>Welcome</b></td><td><ul class="crit"><li>Shows "Your helper is an AI, not a person." The guide's first words say it too.</li><li>The kid chooses talking or typing.</li></ul></td></tr>
           <tr><td><b>Theme</b></td><td><ul class="crit"><li>The theme is the only choice. It sets the helper's look and voice.</li></ul></td></tr>
           <tr><td><b>Intro and Start</b></td><td><ul class="crit"><li>Kids get at most two easy questions.</li><li>Teens hear in one or two sentences that we plan first, then build.</li></ul></td></tr>
-          <tr><td><b>Idea</b></td><td><ul class="crit"><li>"I don't know" gets 1–2 opposite-end idea cards with pictures (kids).</li><li>A too-big idea gets a friendly pushback and a smaller version.</li><li>Teens approve the idea plan.</li></ul></td></tr>
+          <tr><td><b>Idea</b></td><td><ul class="crit"><li>"I don't know" gets 1–2 opposite-end idea cards with pictures (kids).</li><li><b>💡 Show me ideas</b> (kids; "Need inspiration?" for teens) shows three ideas from the idea library at once, matched to the age group and the theme's mood, with <b>✨ Something else</b> and <b>🔀 More ideas</b>. A stuck answer ("I don't know", "idk", "help") opens them right away; after about 20 seconds of quiet the button glows, and in talk mode the guide asks gently. Picking one starts the customizing: the guide asks its "make it yours" questions. <span class="pill">revision round</span></li><li>A too-big idea gets a friendly pushback and a smaller version.</li><li>Teens approve the idea plan, shown as a short plan card under "Your plan is ready: have a look. Happy with it?" with <b>👍 Looks good</b> and <b>✏️ Change something</b> (the whole plan folds underneath; no Markdown). <span class="pill">revision round</span></li></ul></td></tr>
           <tr><td><b>Design</b></td><td><ul class="crit"><li>"Pick a look" from two mock-ups.</li><li>Teens approve the design plan.</li><li>The build honors the chosen look.</li></ul></td></tr>
-          <tr><td><b>Tech plan</b></td><td><ul class="crit"><li>The guide makes every tech choice.</li><li>It gives a one-line "Here's how I'll build it!"</li></ul></td></tr>
-          <tr><td><b>Build</b></td><td><ul class="crit"><li>About ⅔ app, ⅓ chat.</li><li>A themed animation plays while building.</li><li>The result is a true working app.</li><li>Changes go on a list, and rebuilding applies them. Anything left out is said honestly.</li><li>A broken app is repaired automatically, and nobody sees raw errors.</li></ul></td></tr>
-          <tr><td><b>Ship</b></td><td><ul class="crit"><li>The kid names the app, and the name is its title.</li><li>It goes on the kid's My apps shelf with its link and home-Wi-Fi QR code.</li></ul></td></tr>
+          <tr><td><b>Tech plan</b></td><td><ul class="crit"><li>The guide makes every tech choice.</li><li>It gives a one-line "Here's how I'll build it!", and 4–6 build steps in the kid's own words. <span class="pill">revision round</span></li></ul></td></tr>
+          <tr><td><b>Build</b></td><td><ul class="crit"><li>About ⅔ app, ⅓ chat.</li><li>A themed animation plays while building, with a teaching progress view: what's being written right now in plain words (the look, the drawings, the rules, sounds…), a progress bar, and the kid's own build steps ticking off as their code gets written. Teens see the real names. <span class="pill">revision round</span></li><li>Ideas from the waiting chat come back as cards when the app is ready (<b>➕ Add</b>, <b>Not now</b>), so nothing the kid suggested is lost. <span class="pill">revision round</span></li><li>The result is a true working app.</li><li>Changes go on a list, and rebuilding applies them. Anything left out is said honestly.</li><li>A broken app is repaired automatically, and nobody sees raw errors.</li></ul></td></tr>
+          <tr><td><b>Ship</b></td><td><ul class="crit"><li>The kid names the app, and the name is its title.</li><li>The app has its own icon: a small drawing the builder makes in the app's style, or an emoji that fits; the kid can tap <b>🎲 Try another</b> or pick one. <span class="pill">revision round</span></li><li>It goes on the kid's My apps shelf with its link and home-Wi-Fi QR code.</li></ul></td></tr>
         </tbody>
       </table>
     </div>
@@ -406,10 +409,11 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     </ul>
   </div></details>
 
-  <details id="f-apps"><summary><h3>🗂️ My Apps</h3><span class="count">3 checks</span></summary><div class="body">
+  <details id="f-apps"><summary><h3>🗂️ My Apps</h3><span class="count">4 checks</span></summary><div class="body">
     <p class="story">As a kid, I want my apps to stay on my shelf so I can play with them any time I have a pass.</p>
     <ul class="crit">
-      <li>Each kid's shelf shows only their own apps, newest first, with name, picture and Open.</li>
+      <li>Each kid's shelf shows only their own apps, newest first, with name, the app's own icon and Open.</li>
+      <li>Teens also get <b>📄 How I planned it</b>: the plans they approved, as a page that's nice to show or print. <span class="pill">revision round</span></li>
       <li>Apps stay for weeks or months, until a parent deletes them under <b>Kids &amp; their apps → Manage</b>.</li>
       <li>An app's link opens on the laptop, or on any device on the home Wi-Fi, while the app is running.</li>
     </ul>
@@ -429,7 +433,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
           <li><b>In one paragraph:</b> what they wanted, what got built, how it went</li>
           <li><b>The app:</b> a picture, a description and an Open link</li>
           <li><b>Safety:</b> each flag with what the kid said, what the guide did, and the time and step; OK lines for personal details, the guide's output and staying on topic; a one-line "worth a chat?"</li>
-          <li><b>Whose ideas?</b> The kid's share versus the guide's, with a sentence explaining it</li>
+          <li><b>Whose ideas?</b> The kid's share versus the guide's, with a sentence explaining it; whether they started from an idea-list idea, and the ideas they had while the app was building <span class="pill">revision round</span></li>
           <li><b>How it went:</b> a timeline of the steps</li>
           <li><b>Talk about it together:</b> 1–2 conversation starters</li>
           <li><b>The full conversation,</b> folded</li>
