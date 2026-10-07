@@ -197,7 +197,7 @@ Build mode: fast — pause only for significant decisions, the planned checkpoin
   Learner check: Read the results page and choose the mix. Does the winner match your intuition about the cache?
   Commit: `Usage experiment and chosen model mix`
 
-- [ ] **9. A parent can install it from GitHub using only the README**
+- [x] **9. A parent can install it from GitHub using only the README**
   Becomes usable:
   - `npm run release` produces the committed `app/dist`.
   - The README (for parents) covers install, first start, tablets, reset PIN, update and uninstall.
@@ -331,4 +331,6 @@ Activity mode:
   - Found in the clean-install test: the launcher stopped with "run setup" after an update that changed packages; it now refreshes them by itself (stopping the old server first, since Windows locks its files). The short `user/repo` install form clones over SSH and failed without GitHub SSH keys; the README uses the full `https://` address. A Node warning in the setup output is gone.
   - Verified: `claude plugin validate .` passes; a clone installed into a separate Claude Code profile ran the setup check, installed packages, started at first-run setup on its own port, and refreshed packages after a pretend update; an install straight from the private GitHub repo over HTTPS brought the latest commit with the built app and without private files.
   - The running app is a runtime copy (in the plugin data folder) refreshed only when it starts; a build in the repo never touches it.
-  - Still to do for slice 9: the learner follows the README on a separate profile (learner check), and the demo run-through is rehearsed.
+  - Learner check: the learner read the README on GitHub as another parent would and asked for a nicer layout (contents, icons, sections), the safety system and the report's safety level, the Claude membership, "fully local" at the top, the 18+ terms in bold, and an optional review by the parent's own Claude before installing.
+  - Pre-install review, run three times in fresh read-only sessions with the README's prompt: "looks safe" every time. Fixed from its findings: a ⏻ Stop Build With Me button (it keeps running after Claude Code closes), the README on network exposure, automatic calls, downloads and the certificate's real location, the early-version folder move removed, and (learner decision) a safety check that can't run now holds the message back instead of letting it through. Also from the README review: an instant wellbeing alert, and kids' apps can't open a website.
+  - Moved to 6-ship: rehearsing the demo run-through, done together with recording the video once the app stops changing.
