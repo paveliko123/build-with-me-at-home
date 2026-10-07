@@ -1,6 +1,8 @@
 ---
 description: Reset the Build With Me parent PIN (kids, apps and reports are kept)
-allowed-tools: Bash(node:*)
+allowed-tools:
+  - Bash(node "${CLAUDE_PLUGIN_ROOT}/app/reset-pin.mjs")
+  - Bash(node "${CLAUDE_PLUGIN_ROOT}/app/reset-pin.mjs" *)
 ---
 
 The parent forgot their Build With Me PIN. Run:

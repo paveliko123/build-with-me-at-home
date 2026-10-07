@@ -71,7 +71,7 @@ Kids (under 13) get short questions and picture cards. Teens (13–17) see and a
 ```
 
 > [!TIP]
-> Use the full `https://` address. The short `paveliko123/build-with-me-at-home` form needs GitHub SSH keys, which most computers don't have. While it starts up or sets up, Claude Code runs the plugin's own `node` scripts without asking each time; installing anything else (Node.js, Claude Code) still asks you first.
+> Use the full `https://` address. The short `paveliko123/build-with-me-at-home` form needs GitHub SSH keys, which most computers don't have. While it starts up, sets up or resets your PIN, Claude Code runs only the plugin's own scripts (`setup-check`, `launch`, `reset-pin`) without asking each time; any other command, including installing Node.js or Claude Code, still asks you first.
 
 **2.** Start it:
 
@@ -79,11 +79,12 @@ Kids (under 13) get short questions and picture cards. Teens (13–17) see and a
 /build-with-me:start
 ```
 
-**3.** The first time, Claude Code checks everything and fixes what it can, asking you before it installs anything:
+**3.** The first time, Claude Code checks everything and fixes what it can:
 
 - 🔐 if `claude` isn't signed in, it asks you to run `claude`, type `/login` and finish in the browser (Build With Me never sees your password or tokens);
-- 📦 it installs the app's packages (about a minute);
-- 🎤 it downloads the speech-to-text model (about 250 MB, once), so talking works on this computer.
+- 🧰 if Node.js or Claude Code itself is missing, it offers the official installer and asks you first;
+- 📦 it installs the app's own packages into the plugin's folder (about a minute, through its setup script, without a separate prompt);
+- 🎤 it downloads the speech-to-text model (about 250 MB, once, the same way), so talking works on this computer.
 
 **4.** Your browser opens Build With Me. Create a parent PIN and add your kids (a nickname, Kid or Teen, and an emoji). A **Build With Me** shortcut appears on your desktop: from now on, just double-click it.
 
