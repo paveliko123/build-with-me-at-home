@@ -10,6 +10,8 @@ You are helping a parent install Build With Me, a local tool where a parent intr
 
 **Hard rule:** never ask for, read, copy or handle Claude passwords, tokens, API keys or credential files. Signing in to Claude always happens through Anthropic's own sign-in page, done by the parent.
 
+**Say this once, before the first install step:** Build With Me runs on the parent's own Claude account. Anthropic's terms say Claude users must be 18 or older, so letting their kids use it is the parent's decision and responsibility; passes and reports help them supervise, they don't replace them.
+
 ## 1. Check
 
 Run:

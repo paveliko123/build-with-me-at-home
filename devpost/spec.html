@@ -284,12 +284,12 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
         </ul></li>
       <li><b>Kids use it from:</b> the laptop's browser at <code>http://localhost:4747</code>, or a tablet on the same Wi-Fi at <code>https://&lt;laptop's home address&gt;:4748</code>.</li>
       <li><b>Install:</b> paste the README's install line into Claude Code, or run:
-<pre><code>/plugin marketplace add &lt;github-user&gt;/build-with-me-home
+<pre><code>/plugin marketplace add paveliko123/build-with-me-at-home
 /plugin install build-with-me@build-with-me-home</code></pre>
         Then type <code>/build-with-me:start</code>.</li>
       <li><b>Start later:</b> the desktop shortcut, or <code>/build-with-me:start</code>.</li>
-      <li><b>Development (your machine):</b> <code>npm install</code>, then <code>npm run dev</code>. This runs the server (:4747) plus Vite with hot reload. Test the plugin locally with <code>claude --plugin-dir .</code></li>
-      <li><b>Release:</b> <code>npm run release</code> builds the front end and server into <code>app/dist/</code>, which is committed so families never need a build step.</li>
+      <li><b>Development (your machine):</b> <code>npm install</code>, then <code>npm run dev:server</code> and, in a second terminal, <code>npm run dev:web</code>: the server (:4747) plus Vite with hot reload. Test the plugin locally with <code>claude --plugin-dir .</code></li>
+      <li><b>Release:</b> <code>npm run release</code> type-checks, runs the checks that make no Claude calls, builds the front end and server into <code>app/dist/</code> and scans it for private data; <code>app/dist/</code> is committed so families never need a build step. After a plugin update the launcher refreshes the packages by itself when they changed.</li>
       <li><b>Demo recording:</b> the laptop screen (parent home, give a pass, the QR code) side by side with the tablet (scan, talk, build, ship), then back to the laptop for the report.</li>
       <li><b>Submission:</b> a public GitHub repo (the plugin repo itself) plus the short demo video. <b>No deployment</b>; hosting is deferred.</li>
     </ul>

@@ -36,10 +36,28 @@ const win = process.platform === 'win32';
 
 // 1. Is the runtime ready (setup-check --install-packages ran for this version)?
 const stampFile = join(RUNTIME, '.stamp.json');
-const stamp = existsSync(stampFile) ? JSON.parse(readFileSync(stampFile, 'utf8')) : null;
-if (!stamp || stamp.version !== version()) {
-  console.log(JSON.stringify({ ok: false, reason: 'setup-needed', message: 'Run /build-with-me:setup first (packages missing or out of date).' }));
+const readStamp = () => (existsSync(stampFile) ? JSON.parse(readFileSync(stampFile, 'utf8')) : null);
+const lockSize = () => (existsSync(join(ROOT, 'package-lock.json')) ? readFileSync(join(ROOT, 'package-lock.json'), 'utf8').length : 0);
+let stamp = readStamp();
+if (!stamp) {
+  console.log(JSON.stringify({ ok: false, reason: 'setup-needed', message: 'Run /build-with-me:setup first (packages missing).' }));
   process.exit(1);
+}
+// After a plugin update with new or changed packages: refresh them here, so a double-click on
+// the desktop shortcut keeps working (slice 9: updates need no setup run).
+if (stamp.version !== version() || (stamp.lock !== undefined && stamp.lock !== lockSize())) {
+  console.error('Updating the app packages (once after an update, about a minute)…');
+  // The old server holds its packages open (Windows can't replace them): stop it first.
+  if (await health(P)) {
+    try { process.kill(JSON.parse(readFileSync(join(DATA, 'server.lock'), 'utf8')).pid); } catch {}
+    for (let i = 0; i < 20 && (await health(P)); i++) await new Promise((r) => setTimeout(r, 250));
+  }
+  const r = spawnSync(process.execPath, [join(ROOT, 'app', 'setup-check.mjs'), '--install-packages', '--data', DATA], { stdio: ['ignore', 'inherit', 'inherit'], env: cleanEnv() });
+  stamp = readStamp();
+  if (r.status !== 0 || !stamp || stamp.version !== version()) {
+    console.log(JSON.stringify({ ok: false, reason: 'setup-needed', message: 'Run /build-with-me:setup (updating the packages failed).' }));
+    process.exit(1);
+  }
 }
 
 // 1b. Refresh the app copy if the plugin has a different build (update or rebuild).

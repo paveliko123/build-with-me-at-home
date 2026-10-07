@@ -8,8 +8,8 @@ node_modules/
 .local-data/
 *.log
 
-# built app: committed at release time (slice 9)
-app/dist/
+# The built app (app/dist/) is committed at release time (npm run release): a plugin install
+# can't build it.
 
 # scratch scripts
 /tmp/

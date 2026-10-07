@@ -118,7 +118,7 @@ The mix is one setting in `server/journey/claude.ts` (`DEFAULT_MIX`, or `BWM_MIX
   - a tablet on the same Wi-Fi at `https://<laptop's home address>:4748`
 - **Install:** paste the README's install line into Claude Code, or run the two commands yourself:
   ```
-  /plugin marketplace add <github-user>/build-with-me-home
+  /plugin marketplace add paveliko123/build-with-me-at-home
   /plugin install build-with-me@build-with-me-home
   ```
   Then type `/build-with-me:start`.
@@ -126,10 +126,11 @@ The mix is one setting in `server/journey/claude.ts` (`DEFAULT_MIX`, or `BWM_MIX
 - **Development (the learner's machine):**
   ```bash
   npm install
-  npm run dev
+  npm run dev:server
+  npm run dev:web
   ```
-  This runs the server (`:4747`) and the Vite front end with hot reload. Test the plugin locally with `claude --plugin-dir .`.
-- **Release:** `npm run release` builds the front end and the server into `app/dist/`, which is committed so families never need a build step.
+  These run the server (`:4747`) and, in a second terminal, the Vite front end with hot reload. Test the plugin locally with `claude --plugin-dir .`.
+- **Release:** `npm run release` type-checks, runs the checks that make no Claude calls, builds the front end and the server into `app/dist/` and scans it for private data; `app/dist/` is committed so families never need a build step. After a plugin update the launcher refreshes the packages by itself when they changed.
 - **Demo recording:** the laptop screen (parent home, give a pass, the QR code) side by side with the tablet (scan, talk, build, ship), then back to the laptop for the report. A local app is fine for the required video.
 - **Submission:** a public GitHub repo (the plugin repo itself) plus the short demo video. **No deployment.** Hosting is deferred (`prd.md > Deferred From the POC`).
 
