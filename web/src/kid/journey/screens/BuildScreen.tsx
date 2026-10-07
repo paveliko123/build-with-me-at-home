@@ -67,6 +67,11 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
   const [blocked, setBlocked] = useState<string | null>(null);
   // The change list: collected one message at a time, built all at once when they're done.
   const [changes, setChanges] = useState<string[]>(resume?.pendingChanges ?? []);
+  // The list being built right now: off the screen once "That's all, build it!" is tapped
+  // (learner request); only what's added meanwhile shows, as "For next time".
+  const [inBuild, setInBuild] = useState<string[]>([]);
+  const later = changes.filter(c => !inBuild.includes(c));
+  const inBuildRef = useRef<string[]>([]);
   // Ideas the kid had in the waiting chat (family trial: they were lost). Offered as cards
   // when the app is ready; one tap puts them on the change list.
   const waitIdeas = useRef<string[]>([]);
@@ -200,7 +205,7 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
       // The new version's words didn't pass the safety check: it's never shown, and the last
       // working version stays (prd.md > Safety).
       if (result.unsuitable) {
-        if (extra.fromList) setChanges([]);
+        if (extra.fromList) { const built = inBuildRef.current; setChanges(prev => prev.filter(c => !built.includes(c))); setInBuild([]); }
         say({ from: 'guide', text: "Hmm, I can't build that version. Let's try a different change! 🙂" });
         return false;
       }
@@ -216,7 +221,8 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
       if (window.matchMedia('(max-width: 1023px)').matches) window.setTimeout(() => preview.current?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 600);
       // QA round 3: what the builder couldn't get in is said plainly and goes back on the list.
       const missing = result.missing ?? [];
-      if (extra.fromList) setChanges(mode === 'edit' ? missing : []);
+      // What didn't make it in comes back, and what was added during the build stays.
+      if (extra.fromList) { const built = inBuildRef.current; setChanges(prev => [...(mode === 'edit' ? missing : []), ...prev.filter(c => !built.includes(c) && !missing.includes(c))]); setInBuild([]); }
       if (missing.length && mode === 'edit') {
         waitingOpen.current = false;
         say({ from: 'guide', text: `Version ${result.version} is ready, but ${missing.length === 1 ? 'this one didn\'t' : 'these didn\'t'} make it in yet: ${missing.join('; ')}. ${missing.length === 1 ? 'It\'s' : 'They\'re'} back on your list. Say "that's all" to try again, or tell me another way to do ${missing.length === 1 ? 'it' : 'them'}.` });
@@ -295,6 +301,8 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
   function buildChanges(list = changes, confirmed = false) {
     if (!list.length || buildingRef.current) return;
     say({ from: 'guide', text: `🔧 Building ${list.length === 1 ? 'your change' : list.length === 2 ? 'both changes' : `all ${list.length} changes`} now!` });
+    inBuildRef.current = list;
+    setInBuild(list);
     void build('edit', { request: list.map((c, i) => `${i + 1}. ${c}`).join('\n'), fromList: true, confirmed });
   }
 
@@ -461,18 +469,18 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
           )}
         </div>
         <div className="border-t-2 border-line p-3">
-          {changes.length > 0 && (
+          {later.length > 0 && (
             <section className="mb-3 rounded-2xl border-2 border-accent bg-surface-2 p-3" aria-label="Your change list">
-              <h3 className="font-extrabold text-ink">📝 Your changes ({changes.length})</h3>
+              <h3 className="font-extrabold text-ink">{inBuild.length ? `📝 For next time (${later.length})` : `📝 Your changes (${later.length})`}</h3>
               <ol className="mt-1 max-h-40 space-y-1 overflow-y-auto">
-                {changes.map((c, i) => (
+                {later.map((c, n) => { const i = changes.indexOf(c); return (
                   <li key={`${i}-${c}`} className="flex items-start gap-2 text-ink">
-                    <span className="font-bold text-muted">{i + 1}.</span>
+                    <span className="font-bold text-muted">{n + 1}.</span>
                     <span className="flex-1">{c}</span>
-                    <button onClick={() => void removeChange(i)} disabled={building} aria-label={`Remove change ${i + 1}`}
+                    <button onClick={() => void removeChange(i)} disabled={building} aria-label={`Remove change ${n + 1}`}
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-bold text-muted hover:bg-accent-soft hover:text-ink disabled:opacity-40">✕</button>
-                  </li>
-                ))}
+                  </li>);
+                })}
               </ol>
               {!building && (
                 <button onClick={() => buildChanges()} disabled={guideBusy} className={`${button} mt-2 w-full`}>

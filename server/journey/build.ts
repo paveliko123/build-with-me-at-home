@@ -15,7 +15,7 @@ import { applyEdits, EDIT_FORMAT, lineDiff, withoutChangedNote } from './edits.j
 import { BUILDER_LAYER } from './prompt/builderLayer.js';
 import { personText, SAFETY_LAYER } from './prompt/safety.js';
 import { callSafetyCheck, flag } from './safetyCheck.js';
-import { addUsage, type Project } from './project.js';
+import { addUsage, readProject, type Project } from './project.js';
 import { ageGroupOf, type DocKind } from './types.js';
 import { TurnError } from './guideTurn.js';
 
@@ -94,6 +94,7 @@ export async function buildApp(p: Project, mode: BuildMode, error = ''): Promise
       if ((mode === 'edit' || mode === 'repair') && !current) throw new TurnError(409, 'There is no app to change yet.');
       // Edits build the saved change list (never text straight from the request).
       const change = (p.pendingChanges ?? []).map((c, i) => `${i + 1}. ${personText(c)}`).join('\n');
+      const startList = [...(p.pendingChanges ?? [])];
       if (mode === 'edit' && !change) throw new TurnError(400, 'The change list is empty.');
       const fault = personText(error.replace(/\s+/g, ' ').trim().slice(0, 300));
 
@@ -179,7 +180,12 @@ export async function buildApp(p: Project, mode: BuildMode, error = ''): Promise
       }
 
       const n = saveVersion(p, html, mode, mode === 'edit' ? change : mode === 'repair' ? `repair: ${fault}` : 'first build');
-      if (mode === 'edit') p.pendingChanges = missing.slice(0, 12);
+      // What didn't make it in goes back on the list, plus anything the kid added while this
+      // version was building (the change chat runs alongside a build).
+      if (mode === 'edit') {
+        const added = (readProject(p.kidId, p.id)?.pendingChanges ?? []).filter((c) => !startList.includes(c));
+        p.pendingChanges = [...missing, ...added].slice(0, 12);
+      }
       const changed = missing.length ? undefined : editedNote ?? html.match(/^<!doctype html>\s*<!--\s*changed:\s*([\s\S]*?)-->/i)?.[1].trim().slice(0, 200);
       ok = true;
       return { version: n, html, changed, missing };

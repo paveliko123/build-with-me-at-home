@@ -17,6 +17,17 @@ const THREAD = 'changes';
 const MAX_ITEMS = 12;
 const HISTORY = 12; // recent messages kept as context
 
+/** The changes already built into the app (from the edit versions' notes), so a finished change
+ *  never goes back on the list (family trial: after the levels were built, adding a level
+ *  counter put the levels on the list again, from the guide's own earlier messages). */
+export function builtChanges(p: Project): string[] {
+  return (p.versions ?? []).filter((v) => v.mode === 'edit')
+    .flatMap((v) => String(v.note ?? '').split('\n'))
+    .map((l) => l.replace(/^\s*\d+[.)]\s*/, '').trim())
+    .filter(Boolean);
+}
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
 export interface ChangeResult { changes: string[]; ready: boolean; ship?: boolean; reply: { say: string; question?: string } | null }
 
 export async function changeTurn(p: Project, input: { text?: string; remove?: number; chatQuestion?: string }): Promise<ChangeResult> {
@@ -49,7 +60,10 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
     const guideText = (raw: string) => { try { const r = JSON.parse(raw); return `${r.say ?? ''} ${r.question ?? ''}`; } catch { return raw; } };
     const guideAsked = !!chatQuestion && thread(p, 'build-wait').slice(-4).some((m) => m.role === 'model' && flat(guideText(m.text)).includes(flat(chatQuestion)));
     const asked = chatQuestion && guideAsked ? `\n\n[app] During the build the guide just asked this chat question: "${chatQuestion}". If the message only answers it (an opinion, a fact, or chat), it is not a change. If it asks for something to be in the app, even something the chat just talked about ("give Biscuit a pirate hat"), add it to the list.` : '';
-    const askFor = (said: string) => `[app] Current change list:\n${list.length ? list.map((c, i) => `${i + 1}. ${c}`).join('\n') : '(empty)'}${asked}\n\nThe person said: "${said}"`;
+    // Already built: listed so the guide doesn't put them back (its earlier messages still show them).
+    const built = builtChanges(p).slice(-12);
+    const builtNote = built.length ? `\n\n[app] Already built into the app (done, NOT on the list; never add these again unless the person asks for one again in this message):\n${built.map((c) => `- ${c}`).join('\n')}` : '';
+    const askFor = (said: string) => `[app] Current change list (this is the whole list now; anything from earlier messages that isn't here was built or removed):\n${list.length ? list.map((c, i) => `${i + 1}. ${c}`).join('\n') : '(empty)'}${builtNote}${asked}\n\nThe person said: "${said}"`;
     let ask = askFor(text);
 
     const listChanges = async () => {
@@ -73,9 +87,13 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
       metas.push(called.meta);
     }
     const { result } = called;
+    const builtSet = new Set(built.map(norm));
+    const onList = new Set(list.map(norm));
     const changes = (Array.isArray(result.changes) ? result.changes : list)
       .map((c) => String(c).replace(/\s+/g, ' ').trim().slice(0, 200))
       .filter(Boolean)
+      // A built change that wasn't on the list comes back only if the person's words ask for it again.
+      .filter((c) => !builtSet.has(norm(c)) || onList.has(norm(c)) || norm(text).includes(norm(c)))
       .slice(0, MAX_ITEMS);
     const ready = result.ready === true && changes.length > 0;
     const ship = result.ship === true && changes.length === 0;

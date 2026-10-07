@@ -270,6 +270,10 @@ async function main() {
     prog.setPhase('look1', 'checking');
     const atCheck = prog.getProgress('look1')!.steps.every((s: any) => s.done);
     add('the look step ticks when the styles are done, and every step once the code is checked', !lookBefore && afterStyle.join() === 'true,false' && atCheck, `before </style>: ${lookBefore} · after: ${afterStyle.join(', ')} · checking: ${atCheck}`);
+    // Learner: a change built in round 1 came back on the list in round 2.
+    const { builtChanges } = await import('../server/journey/changes.js');
+    const doneList = builtChanges({ versions: [{ n: 1, mode: 'full', note: 'first build' }, { n: 2, mode: 'edit', note: '1. Add a dozen more shapes, like levels\n2. Make the dots bigger' }] } as any);
+    add('the guide is told which changes are already built (from the versions)', doneList.join(' | ') === 'Add a dozen more shapes, like levels | Make the dots bigger', doneList.join(' | '));
     r = await kid.call('/api/kid/journey/progress');
     add('the kid screen asks for progress (nothing while no build runs)', r.status === 200 && r.body.progress === null, JSON.stringify(r.body));
   } finally {
