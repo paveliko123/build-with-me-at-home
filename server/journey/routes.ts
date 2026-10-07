@@ -5,6 +5,11 @@
 // (minutes) and the kid's chat or change list can run side by side.
 // Implements prd.md > The Kid's Journey, My Apps, States and Boundaries (coming back).
 
+import { callSafetyCheck, flag, heldBack } from './safetyCheck.js';
+import { maskPersonal } from './personal.js';
+import { personText, WELLBEING_REPLY } from './prompt/safety.js';
+import { addUsage } from './project.js';
+import { ageGroupOf } from './types.js';
 import { getProgress } from './buildProgress.js';
 import { pickIdeas } from './ideas.js';
 import express, { Router, type Request, type Response } from 'express';
@@ -87,6 +92,9 @@ function fail(res: Response, err: unknown, s?: KidSession) {
   console.error('[journey]', err);
   res.status(500).json({ error: 'hiccup' });
 }
+
+/** Plan usage of a check made outside a turn. */
+function metasOf(p: Project, c: { meta?: unknown; metas?: unknown[] }) { addUsage(p, (c.metas ?? [c.meta]) as any); }
 
 export function journeyRoutes(opts: { httpsPort: number }): Router {
   const r = Router();
@@ -203,7 +211,21 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
   r.post('/ship', (req, res) => withProject(req, res, 'chat', async (p, s) => {
     const raw = req.body?.icon;
     const choice = raw?.kind === 'drawing' ? { kind: 'drawing' as const } : raw?.kind === 'emoji' && typeof raw.emoji === 'string' ? { kind: 'emoji' as const, emoji: raw.emoji } : undefined;
-    const out = shipApp(p, String(req.body?.name ?? ''), choice);
+    // Safety review: the name goes on the shelf, into the report and the shared link, so it's
+    // masked and checked like anything the kid types.
+    const typed = String(req.body?.name ?? '').slice(0, 80);
+    if (typed.trim()) {
+      const masked = maskPersonal(personText(typed));
+      if (masked.kinds.length) throw new TurnError(409, "Let's pick a name without real names or details in it. 🙂");
+      const check = await callSafetyCheck(masked.text, 'input', ageGroupOf(p.profile));
+      metasOf(p, check);
+      if (check.failed) throw heldBack(p, 'input', masked.text);
+      if (check.verdict !== 'ok') {
+        flag(p, 'input', check, masked.text);
+        throw new TurnError(409, check.verdict === 'personal' ? "Let's pick a name without real names or details in it. 🙂" : check.verdict === 'wellbeing' ? WELLBEING_REPLY : "Let's pick a different name! 🙂");
+      }
+    }
+    const out = shipApp(p, typed, choice);
     if (!out.ok) throw new TurnError(409, out.error);
     // The parent report, once the ship is saved (it runs in the background: Opus takes a minute).
     setTimeout(() => void makeReport(s.kid.id, p.id, { finished: true, pass: s.pass }).catch((e) => console.error('[report]', e)), 100);
@@ -212,7 +234,17 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
 
   // "New app": the unfinished project stays in the folder; the next start begins fresh.
   r.post('/new', (req, res) => {
-    leaveCurrent(sessionOf(req).kid.id);
+    const s = sessionOf(req);
+    // Safety review: the app being left gets its "(not finished)" report, so "＋ New app" can't
+    // make a flagged moment disappear from what the parent sees.
+    const left = currentProject(s.kid.id);
+    if (left) {
+      const lastReport = Math.max(0, ...(left.reports ?? []).map((x) => x.at));
+      if (left.messages.some((m) => m.at > lastReport) || left.flags.some((f) => f.at > lastReport)) {
+        setTimeout(() => void makeReport(s.kid.id, left.id, { finished: false, pass: s.pass }).catch((e) => console.error('[report]', e)), 100);
+      }
+    }
+    leaveCurrent(s.kid.id);
     res.json({ ok: true });
   });
 

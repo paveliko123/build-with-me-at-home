@@ -178,7 +178,14 @@ async function main() {
     writeFileSync(join(dir, 'project.json'), JSON.stringify(p2));
     r = await kid.call('/api/kid/journey');
     add('the resumed project carries the emojis that fit the app', JSON.stringify(r.body.project?.appEmojis) === JSON.stringify(['🐶', '🦴']), JSON.stringify(r.body.project?.appEmojis));
+    // The app's name is masked and checked at Ship (safety review); the check stands in here.
+    const scShip = await import('../server/journey/safetyCheck.js');
+    scShip.standInCheckForTests((t) => ({ verdict: /stab/i.test(t) ? 'unsuitable' : 'ok' }));
+    const badName = await kid.call('/api/kid/journey/ship', { name: 'Stab Party', icon: { kind: 'drawing' } });
+    const realName = await kid.call('/api/kid/journey/ship', { name: 'Call me at 555-123-4567', icon: { kind: 'drawing' } });
+    add('the app\'s name is checked at Ship: unsuitable names and personal details are turned away kindly', badName.status === 409 && /different name/.test(badName.body.error ?? '') && realName.status === 409 && /without real names/.test(realName.body.error ?? ''), `${badName.status}: ${badName.body.error} · ${realName.status}: ${realName.body.error}`);
     r = await kid.call('/api/kid/journey/ship', { name: 'Biscuit Time', icon: { kind: 'drawing' } });
+    scShip.standInCheckForTests(null);
     const iconUrl = r.body.iconUrl as string;
     add('shipping with the drawing saves it as the app\'s icon (and the guide\'s emoji as backup)', r.status === 200 && r.body.icon === true && /\/apps\/.+\/biscuit-time\/icon\.svg$/.test(iconUrl ?? '') && r.body.emoji === '🐶', `${r.status} · ${iconUrl} · ${r.body.emoji}`);
     const svgRes = await kid.call(iconUrl);
@@ -294,6 +301,45 @@ async function main() {
     add('a safety check that can\'t run holds the message back (the turn fails with "try again")', cantRun.failed === true && (err as any).status === 503 && holdP.flags[0]?.verdict === 'unchecked' && ex0(join(PLUGIN, 'simulate-limit')), `check: ${JSON.stringify({ verdict: cantRun.verdict, failed: cantRun.failed })} · turn: ${(err as any).status}`);
     const heldHtml = renderReport({ ...base0, heldBack: 2 } as any);
     add('the report notes held-back messages without counting them as safety flags', heldHtml.includes("couldn't run 2 times") && heldHtml.includes('No flags'), 'a note in Safety; the level stays 🟢');
+
+    // ---------- safety review fixes ----------
+    const sc = await import('../server/journey/safetyCheck.js');
+    const verdicts = ['Unsuitable', ' WELLBEING ', 'ok', 'Sure, that looks fine!', undefined, 'safe'].map((v) => sc.readVerdict(v));
+    add('a check answer that can\'t be read is "couldn\'t run" (held back), never "ok"; capitals don\'t matter', JSON.stringify(verdicts) === '["unsuitable","wellbeing","ok",null,null,null]', JSON.stringify(verdicts));
+    const longText = 'a'.repeat(6000) + 'b'.repeat(6000) + 'c'.repeat(100);
+    const pieces = sc.chunks(longText, 6000);
+    add('long texts are checked in pieces, all of them (not just the first 6,000 characters)', pieces.length === 3 && pieces[2] === 'c'.repeat(100), `${longText.length} characters → ${pieces.length} pieces`);
+    const hurting = ['I want to hurt myself', 'my dad hits me when he is angry', 'nobody loves me', 'i wish i was dead'].map(sc.mayBeHurting);
+    const games = ['kill the dragon to win', 'the robot hits the ball', 'make the monster cry', 'a game about dying plants'].map(sc.mayBeHurting);
+    add('when the check can\'t run, words that may mean a kid is hurting still alert the parent (game words don\'t)', hurting.every(Boolean) && !games.some(Boolean), `hurting: ${hurting.join(',')} · games: ${games.join(',')}`);
+    const holdP2: any = { id: 'hold-2', kidId: maya.id, stage: 'idea', flags: [] };
+    sc.heldBack(holdP2, 'input', 'nobody loves me and I want to hurt myself');
+    add('a held-back message keeps its (masked) words, and a hurting one alerts at once', holdP2.flags[0]?.text.includes('nobody loves me') && holdP2.flags.some((f: any) => f.verdict === 'wellbeing') && listAlerts().some((a: any) => a.kind === 'wellbeing' && a.text.includes('hurt myself')), holdP2.flags.map((f: any) => f.verdict).join(', '));
+    const { appWords } = await import('../server/journey/build.js');
+    const game = `<!doctype html><!-- changed: made the dragon bigger --><html><head><style>.x{color:red}</style></head><body><h1>Dragon Run</h1><button title="Start the race">Go</button><script>function end(){ const msg = "You lost the race, try again!"; document.querySelector('.x').classList.add('big'); }</script></body></html>`;
+    const w = appWords(game);
+    add('an app is checked on everything it can show: page text, script messages, labels and the "changed" note (not code)', ['made the dragon bigger', 'Dragon Run', 'Start the race', 'You lost the race'].every((t) => w.includes(t)) && !w.includes('color:red') && !w.includes('function end'), w);
+    const { visibleWords } = await import('../server/journey/guideTurn.js');
+    add('a picture\'s words are checked too', visibleWords('<svg><text x="1">Spooky castle</text></svg><p>Boo&nbsp;!</p>') === 'Spooky castle Boo !', visibleWords('<svg><text x="1">Spooky castle</text></svg><p>Boo&nbsp;!</p>'));
+    const whoHtml = renderReport({ ...base0, badge: 'look', flags: [{ at: now, stage: 'Idea', verdict: 'unsuitable', category: 'violence', text: 'blood everywhere', headline: 'h', guideDid: 'x', kidReaction: '', who: 'guide' }, { at: now, stage: 'Idea', verdict: 'personal', category: 'name', text: '[name]', headline: 'h2', guideDid: 'hidden', kidReaction: '', who: 'kid' }] } as any);
+    add('the report says who said a flagged thing (the guide, the app or the kid)', whoHtml.includes('The guide was about to say (it was stopped)') && whoHtml.includes('Maya said'), 'guide and kid flags worded by source');
+
+    // "＋ New app" can't make a flagged moment disappear: the app being left gets its report.
+    const projMod = await import('../server/journey/project.js');
+    const repMod = await import('../server/report/reporter.js');
+    await kid.call('/api/kid/journey/start', { theme: 'nature', inputMode: 'type' });
+    const leftP = projMod.currentProject(maya.id);
+    if (leftP) {
+      leftP.messages.push({ thread: 'idea', role: 'user', text: 'make a game where you hurt people', seq: 900, at: Date.now() } as any);
+      leftP.flags.push({ at: Date.now(), stage: 'idea', direction: 'input', verdict: 'unsuitable', category: 'violence', text: 'make a game where you hurt people' } as any);
+      projMod.saveProject(leftP);
+    }
+    const reportsBefore = repMod.listReports().length;
+    await kid.call('/api/kid/journey/new', {});
+    let reportsAfter = reportsBefore;
+    for (let k = 0; k < 30 && reportsAfter === reportsBefore; k++) { await new Promise((r) => setTimeout(r, 200)); reportsAfter = repMod.listReports().length; }
+    const newest = repMod.listReports()[0];
+    add('"＋ New app" writes a "(not finished)" report for the app being left, flags included', !!leftP && reportsAfter === reportsBefore + 1 && newest?.flags === 1 && newest?.finished === false, `reports: ${reportsBefore} → ${reportsAfter}, flags in it: ${newest?.flags}`);
 
     // Learner decision: closing the parent's window stops the app (about a minute later, only
     // awake time, never mid-work), and kids' screens show a countdown.

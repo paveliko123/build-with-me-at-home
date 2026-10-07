@@ -30,7 +30,7 @@ export interface ReportData {
   stoppedAt?: string;
   app: { name: string; path: string; url: string; emoji: string; icon?: string; description: string } | null;
   usage: UsageInfo | LegacyUsage;
-  flags: { at: number; stage: string; verdict: string; category: string; text: string; headline: string; guideDid: string; kidReaction: string }[];
+  flags: { at: number; stage: string; verdict: string; category: string; text: string; headline: string; guideDid: string; kidReaction: string; who?: 'kid' | 'guide' | 'app' }[];
   checks: { personal: { ok: boolean; text: string }; output: { ok: boolean; text: string }; onTopic: { ok: boolean; text: string } };
   badge: Badge; title: string; summary: string; ideasShareKid: number | null; ideasNote: string; worthAChat: string; starters: string[];
   laterIdeas?: string[]; // ideas the kid had in the waiting chat (a fact from the project)
@@ -282,9 +282,11 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
 
     const flags = p.flags.map((f, i) => {
       const a = (ai?.flags ?? []).find((x: any) => x.index === i + 1) ?? {};
-      return { at: f.at, stage: STEP[f.stage] ?? f.stage, verdict: f.verdict, category: f.category, text: f.text, headline: a.headline ?? `${f.verdict === 'personal' ? 'Personal detail' : f.verdict === 'wellbeing' ? 'Wellbeing' : 'Unsuitable request'}${f.category ? ` (${f.category})` : ''}`, guideDid: a.guideDid ?? (f.verdict === 'personal' ? 'The detail was hidden and the guide said it isn\'t needed.' : 'The guide redirected kindly to something else.'), kidReaction: a.kidReaction ?? '' };
+      return { at: f.at, stage: STEP[f.stage] ?? f.stage, verdict: f.verdict, category: f.category, text: f.text, who: f.direction === 'input' ? 'kid' as const : f.direction === 'output' ? 'guide' as const : 'app' as const, headline: a.headline ?? `${f.verdict === 'personal' ? 'Personal detail' : f.verdict === 'wellbeing' ? 'Wellbeing' : 'Unsuitable request'}${f.category ? ` (${f.category})` : ''}`, guideDid: a.guideDid ?? (f.verdict === 'personal' ? 'The detail was hidden and the guide said it isn\'t needed.' : 'The guide redirected kindly to something else.'), kidReaction: a.kidReaction ?? '' };
     });
-    const serious = p.flags.some((f) => f.verdict === 'wellbeing' || f.direction !== 'input');
+    // 🔴 for a wellbeing concern, or anything unsuitable from the guide or an app (a personal
+    // detail they repeated is 🟡: worth knowing, not alarming).
+    const serious = p.flags.some((f) => f.verdict === 'wellbeing' || (f.direction !== 'input' && f.verdict !== 'personal'));
     const badge: Badge = !flags.length ? 'none' : serious || ai?.needsLook ? 'look' : 'handled';
     const stageNotes = ai?.stageNotes ?? {};
     const timeline = [
@@ -303,11 +305,18 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
       ...(opts.finished ? {} : { stoppedAt: STEP[p.stage] }),
       app: shelfApp ? { name: shelfApp.name, path: `/apps/${kidId}/${shelfApp.slug}/`, url: `http://localhost:${appPort}/apps/${kidId}/${shelfApp.slug}/`, emoji: shelfApp.emoji, ...(shelfApp.icon && appIcon(kidId, shelfApp.slug) ? { icon: svgDataUrl(appIcon(kidId, shelfApp.slug)!) } : {}), description: ai?.appDescription ?? '' } : null,
       usage, flags, ...(heldBack ? { heldBack } : {}), ...(p.laterIdeas?.length ? { laterIdeas: p.laterIdeas } : {}), ...(p.ideaSource ? { ideaSource: p.ideaSource.title } : {}),
-      checks: ai?.checks ?? {
-        personal: { ok: !p.flags.some((f) => f.verdict === 'personal'), text: p.flags.some((f) => f.verdict === 'personal') ? 'A personal detail came up; it was hidden.' : 'No personal details shared.' },
-        output: { ok: !p.flags.some((f) => f.direction !== 'input'), text: 'Based on the automatic checks of what the guide said and built.' },
-        onTopic: { ok: true, text: 'Not reviewed (the report writer did not run).' },
-      },
+      // Safety review: the ✓/✗ of the first two checks come from the flags, never from the report
+      // writer (a kid's words could steer it); its wording is kept only when it agrees.
+      checks: (() => {
+        const personalOk = !p.flags.some((f) => f.verdict === 'personal');
+        const outputOk = !p.flags.some((f) => f.direction !== 'input' && f.verdict !== 'personal');
+        const said = (c: { ok?: unknown; text?: unknown } | undefined, ok: boolean, fallback: string) => (c && c.ok === ok && typeof c.text === 'string' && c.text.trim() ? c.text : fallback);
+        return {
+          personal: { ok: personalOk, text: said(ai?.checks?.personal, personalOk, personalOk ? 'No personal details shared.' : 'A personal detail came up; it was hidden.') },
+          output: { ok: outputOk, text: said(ai?.checks?.output, outputOk, outputOk ? 'The automatic checks found nothing unsuitable in what the guide said or built.' : 'Something the guide or an app was about to show was stopped by the safety check (see the flags).') },
+          onTopic: ai?.checks?.onTopic ?? { ok: true, text: 'Not reviewed (the report writer did not run).' },
+        };
+      })(),
       badge, title: ai?.title ?? fallbackTitle, summary: ai?.summary ?? 'The report writer could not run this time, so this report shows the facts only.',
       ideasShareKid: typeof ai?.ideasShareKid === 'number' ? Math.max(0, Math.min(100, Math.round(ai.ideasShareKid))) : null, ideasNote: ai?.ideasNote ?? '',
       worthAChat: ai?.worthAChat ?? '', starters: (ai?.starters ?? []).slice(0, 2), timeline, transcript: lines,

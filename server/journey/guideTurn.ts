@@ -188,6 +188,16 @@ export interface GuideTurnResult {
   checklist?: string;
 }
 
+/** The words a picture or app shows, without markup (for the safety check). */
+export function visibleWords(html: string): string {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&[a-z]+;|&#\d+;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export class TurnError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
@@ -301,17 +311,39 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
       }
     };
     // The kid's words are checked at the same time as the guide answers (no extra wait).
-    const [inputCheck, firstAnswer] = await Promise.all([
+    const [checked, answered] = await Promise.allSettled([
       text ? callSafetyCheck(text, 'input', age, { system: systemInstruction, turns: contents, schema: REPLY_SCHEMA }) : Promise.resolve<SafetyResult>({ verdict: 'ok' }),
       askGuide(),
     ]);
+    // Safety review: if the guide failed (for example the plan limit), a wellbeing concern in the
+    // kid's words still reaches the parent before the error goes back.
+    if (answered.status === 'rejected') {
+      if (checked.status === 'fulfilled' && checked.value.verdict === 'wellbeing') flag(session, 'input', checked.value, text);
+      throw answered.reason;
+    }
+    if (checked.status === 'rejected') throw checked.reason;
+    let inputCheck = checked.value;
+    const firstAnswer = answered.value;
     let raw = firstAnswer.reply;
-    metas.push(...firstAnswer.meta, inputCheck.meta);
-    if (inputCheck.failed) throw heldBack(session, 'input');
+    metas.push(...firstAnswer.meta, ...(inputCheck.metas ?? [inputCheck.meta]));
+    if (inputCheck.failed) throw heldBack(session, 'input', text);
+    // Safety review: the check's own masked rewrite is checked again before it's used, so an
+    // unsuitable request with a personal detail in it can't slip through as just "personal".
+    let flagText = text;
+    if (inputCheck.verdict === 'personal' && inputCheck.masked?.trim()) {
+      const again = await callSafetyCheck(inputCheck.masked, 'input', age);
+      metas.push(...(again.metas ?? [again.meta]));
+      if (again.failed) throw heldBack(session, 'input', inputCheck.masked);
+      if (again.verdict === 'unsuitable' || again.verdict === 'wellbeing') {
+        flag(session, 'input', inputCheck, inputCheck.masked);
+        flagText = inputCheck.masked;
+        inputCheck = again;
+      }
+    }
     const blocked = inputCheck.verdict === 'unsuitable' || inputCheck.verdict === 'wellbeing';
     if (blocked) {
       // Never answered, never built: a kind redirect (or, if they may be hurting, a grown-up).
-      flag(session, 'input', inputCheck, text);
+      flag(session, 'input', inputCheck, flagText);
       raw = { say: inputCheck.verdict === 'wellbeing' ? WELLBEING_REPLY : REDIRECT_REPLY, question: sameQuestion, stageComplete: false };
       const mine = newMessages.find(m => m.role === 'user' && m.text === text);
       if (mine) mine.text = '(A message that was left out because it was not suitable.)';
@@ -411,13 +443,18 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
 
     // prd.md > Safety: the guide's own words are checked before they're shown.
     if (!blocked) {
-      const shown = [reply.say, reply.question, ...(reply.cards ?? []).map(c => `${c.label} ${c.detail ?? ''}`), reply.techSummary, reply.laterIdea].filter(Boolean).join('\n');
+      // Safety review: everything the person will see, including the picture's words, the plan
+      // document and the build steps (they used to go out unchecked).
+      const shown = [reply.say, reply.question, ...(reply.cards ?? []).map(c => `${c.label} ${c.detail ?? ''}`), reply.techSummary, reply.laterIdea,
+        reply.visualHtml ? visibleWords(reply.visualHtml) : '', reply.doc?.markdown, ...(reply.buildSteps ?? []).map(s => s.step)].filter(Boolean).join('\n');
       const outputCheck = await callSafetyCheck(shown, 'output', age, { system: systemInstruction, turns: [...contents, { role: 'model', text: JSON.stringify(raw) }], schema: REPLY_SCHEMA });
-      metas.push(outputCheck.meta);
-      if (outputCheck.failed) throw heldBack(session, 'output');
-      if (outputCheck.verdict === 'unsuitable') {
+      metas.push(...(outputCheck.metas ?? [outputCheck.meta]));
+      if (outputCheck.failed) throw heldBack(session, 'output', shown);
+      if (outputCheck.verdict === 'unsuitable' || outputCheck.verdict === 'wellbeing') {
         flag(session, 'output', outputCheck, shown);
         reply = { say: REDIRECT_REPLY, question: sameQuestion, stageComplete: false };
+      } else if (outputCheck.verdict === 'personal') {
+        flag(session, 'output', outputCheck, shown); // the guide repeated a personal detail: the parent sees it
       }
     }
 

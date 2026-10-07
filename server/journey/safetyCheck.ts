@@ -18,7 +18,8 @@ export interface SafetyResult {
   category?: string;
   masked?: string; // the text with personal details replaced by [name], [school], ...
   meta?: CallMeta;
-  failed?: boolean; // the check didn't answer; the turn went through
+  metas?: CallMeta[]; // one per piece, when a long text was checked in pieces
+  failed?: boolean; // the check couldn't run (or its answer couldn't be read): hold the text back
 }
 
 const SCHEMA = {
@@ -39,6 +40,8 @@ Verdicts:
 - "personal": real personal details about the person or someone they know: a first name or full name they say is theirs or a friend's or family member's, a school, an address or where they live, a phone number, an email, a username. Already hidden details like [name] or [school] are fine. Also give "masked": the same text with each detail replaced by [name], [school], [address], [email], or [phone].
 - "ok": everything else.
 
+If more than one applies, give the strongest: "wellbeing" first, then "unsuitable", then "personal". A message with a personal detail AND an unsuitable request is "unsuitable".
+
 Be fair to kids. These are OK: cartoon battles, monsters, zombies or ghosts in a silly or mild way, superheroes, lasers and space fights, pets' names, made-up character names, game scores, ages and grades ("I'm 9", "4th grade"), favourite foods and shows, mild gross humour, being sad or bored in an everyday way.`;
 
 const LABEL: Record<Direction, string> = {
@@ -52,17 +55,56 @@ const LABEL: Record<Direction, string> = {
  *  review; it used to go through). */
 export async function callSafetyCheck(text: string, direction: Direction, ageGroup: AgeGroup, fork?: ForkFrom): Promise<SafetyResult> {
   if (!text.trim()) return { verdict: 'ok' };
+  if (stand_in) return stand_in(text, direction);
+  // Safety review: long texts (a whole app, a plan) are checked in pieces, all of them, and the
+  // worst verdict wins (only the first 6,000 characters used to be read).
+  const pieces = chunks(text, CHUNK);
+  if (pieces.length === 1) return checkOne(pieces[0], direction, ageGroup, fork);
+  const results = await Promise.all(pieces.map((piece) => checkOne(piece, direction, ageGroup)));
+  const failed = results.find((r) => r.failed);
+  if (failed) return failed;
+  const worst = results.reduce((a, b) => (RANK[b.verdict] > RANK[a.verdict] ? b : a));
+  const metaAll = results.map((r) => r.meta).filter((m): m is CallMeta => !!m);
+  return { verdict: worst.verdict, category: worst.category, meta: metaAll[0], metas: metaAll };
+}
+
+/** For the checks only (scripts/verify-*.ts import this module in-process; nothing outside the
+ *  program can set it): stands in for the Claude check's answer. */
+let stand_in: ((text: string, direction: Direction) => SafetyResult) | null = null;
+export function standInCheckForTests(fn: typeof stand_in): void { stand_in = fn; }
+
+const CHUNK = 6000;
+const MAX_PIECES = 12; // ~72,000 characters: far more than an app's words
+/** Higher wins when more than one applies (safety review: unsuitable used to lose to personal). */
+const RANK: Record<Verdict, number> = { ok: 0, personal: 1, unsuitable: 2, wellbeing: 3 };
+
+/** The check's verdict, whatever its capitals; null when it can't be read (then: hold back). */
+export function readVerdict(v: unknown): Verdict | null {
+  const s = String(v ?? '').trim().toLowerCase();
+  return s in RANK ? (s as Verdict) : null;
+}
+
+export function chunks(text: string, size: number): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < text.length && out.length < MAX_PIECES; i += size) out.push(text.slice(i, i + size));
+  return out;
+}
+
+/** One piece. An answer that can't be read counts as "the check couldn't run" (safety review:
+ *  it used to count as "ok", so a slip in the answer's format could hide a wellbeing concern). */
+async function checkOne(text: string, direction: Direction, ageGroup: AgeGroup, fork?: ForkFrom): Promise<SafetyResult> {
   const who = ageGroup === 'kid' ? 'a kid under 13' : 'a teen (13-17)';
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const { result, ok, meta, broken } = await callCheck(`safety-${direction}`, RULES, `${LABEL[direction]} (the person is ${who}):\n"""\n${text.slice(0, 6000)}\n"""`, SCHEMA, 30_000, fork);
+      const { result, ok, meta, broken } = await callCheck(`safety-${direction}`, RULES, `${LABEL[direction]} (the person is ${who}):\n"""\n${text}\n"""`, SCHEMA, 30_000, fork);
       // claude didn't run at all: try again, then hold the text back (never a flag on the kid).
       if (broken) { console.warn(JSON.stringify({ event: 'safety-check-failed', direction, attempt, error: 'claude did not run' })); continue; }
-      const parsed = (result ?? {}) as { verdict?: Verdict; category?: string; masked?: string };
+      const parsed = (result ?? {}) as { verdict?: unknown; category?: string; masked?: string };
       // No answer at all on a safety check usually means the text itself is the problem.
       if (!ok && !result) return { verdict: 'unsuitable', category: 'refused', meta };
-      const verdict: Verdict = ['ok', 'unsuitable', 'personal', 'wellbeing'].includes(parsed.verdict as string) ? parsed.verdict! : 'ok';
-      return { verdict, category: parsed.category?.slice(0, 40), ...(verdict === 'personal' && parsed.masked ? { masked: parsed.masked.slice(0, 6000) } : {}), meta };
+      const verdict = readVerdict(parsed.verdict);
+      if (!verdict) { console.warn(JSON.stringify({ event: 'safety-check-failed', direction, attempt, error: 'unreadable answer' })); continue; }
+      return { verdict, category: typeof parsed.category === 'string' ? parsed.category.slice(0, 40) : undefined, ...(verdict === 'personal' && parsed.masked ? { masked: String(parsed.masked).slice(0, 6000) } : {}), meta };
     } catch (err) {
       if (err instanceof LimitError) throw err;
       console.warn(JSON.stringify({ event: 'safety-check-failed', direction, attempt, error: String((err as Error)?.message ?? err).slice(0, 200) }));
@@ -74,11 +116,19 @@ export async function callSafetyCheck(text: string, direction: Direction, ageGro
 /** A flag for the parent report (spec.md > Safety: {time, step, kidSaid/guideDid, kind}). */
 /** The safety check couldn't run: noted for the report (not a safety flag), and the turn fails
  *  with the usual "let's try that again", so the kid simply retries. */
-export function heldBack(project: Project, direction: Direction): TurnError {
-  project.flags.push({ at: Date.now(), stage: project.stage, direction, verdict: 'unchecked', category: 'check-unavailable', text: '' });
+export function heldBack(project: Project, direction: Direction, maskedText = ''): TurnError {
+  project.flags.push({ at: Date.now(), stage: project.stage, direction, verdict: 'unchecked', category: 'check-unavailable', text: maskedText.slice(0, 2000) });
   console.warn(JSON.stringify({ event: 'held-back', project: project.id, direction }));
+  // Safety review: a kid who may be hurting shouldn't go unheard because the check couldn't run.
+  // A simple on-computer word check alerts the parent in that case (the message stays held back).
+  if (direction === 'input' && mayBeHurting(maskedText)) flag(project, 'input', { verdict: 'wellbeing', category: 'words (check unavailable)' }, maskedText);
   return new TurnError(503, 'The safety check could not run; held back.');
 }
+
+/** Words that may mean a kid is hurting or unsafe. Only a fallback for when the Claude check can't
+ *  run, so it leans towards telling the parent. Game words ("kill the dragon") don't match. */
+const HURTING = /\b(hurt(ing)? (my ?self|me)|kill(ing)? my ?self|want(ed)? to die|wish i (was|were) dead|suicid\w*|self[- ]?harm|cut(ting)? my ?self|(hits?|hitting|beats?|beating|touch(es|ed)?) me\b|abus\w*|nobody (loves|likes|cares about) me|everyone hates me|i hate my ?self|run(ning)? away from home|scared (of|to go) home|bull(y|ies|ied|ying) me)/i;
+export const mayBeHurting = (text: string) => HURTING.test(text);
 
 export function flag(project: Project, direction: Direction, result: SafetyResult, maskedText: string) {
   project.flags.push({ at: Date.now(), stage: project.stage, direction, verdict: result.verdict, category: result.category ?? '', text: maskedText.slice(0, 2000) });

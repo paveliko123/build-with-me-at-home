@@ -71,10 +71,24 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
       catch (err) { if (err instanceof GuideError) return err; throw err; }
     };
     // Checked at the same time as the list is updated: an unsuitable change never reaches the builder.
-    const [check, first] = await Promise.all([callSafetyCheck(text, 'input', ageGroupOf(p.profile), { system, turns: [...past, { role: 'user', text: ask }], schema: CHANGES_SCHEMA }), listChanges()]);
-    metas.push(check.meta, ...(first instanceof GuideError ? ((first as any).metas ?? []) : [first.meta]));
+    const [checked, listed] = await Promise.allSettled([callSafetyCheck(text, 'input', ageGroupOf(p.profile), { system, turns: [...past, { role: 'user', text: ask }], schema: CHANGES_SCHEMA }), listChanges()]);
+    // A wellbeing concern reaches the parent even if the list call failed (the plan limit).
+    if (listed.status === 'rejected') {
+      if (checked.status === 'fulfilled' && checked.value.verdict === 'wellbeing') flag(p, 'input', checked.value, text);
+      throw listed.reason;
+    }
+    if (checked.status === 'rejected') throw checked.reason;
+    let check = checked.value;
+    const first = listed.value;
+    metas.push(...(check.metas ?? [check.meta]), ...(first instanceof GuideError ? ((first as any).metas ?? []) : [first.meta]));
     let called = first;
-    if (check.failed) throw heldBack(p, 'input');
+    if (check.failed) throw heldBack(p, 'input', text);
+    if (check.verdict === 'personal' && check.masked?.trim()) {
+      const again = await callSafetyCheck(check.masked, 'input', ageGroupOf(p.profile));
+      metas.push(...(again.metas ?? [again.meta]));
+      if (again.failed) throw heldBack(p, 'input', check.masked);
+      if (again.verdict === 'unsuitable' || again.verdict === 'wellbeing') { flag(p, 'input', check, check.masked); text = check.masked; check = again; }
+    }
     if (check.verdict === 'unsuitable' || check.verdict === 'wellbeing' || called instanceof GuideError) {
       flag(p, 'input', called instanceof GuideError && check.verdict === 'ok' ? { verdict: 'unsuitable', category: 'refused' } : check, text);
       return { changes: list, ready: false, ship: false, reply: { say: check.verdict === 'wellbeing' ? WELLBEING_REPLY : REDIRECT_REPLY } };
@@ -99,7 +113,19 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
     const ready = result.ready === true && changes.length > 0;
     const ship = result.ship === true && changes.length === 0;
     const question = result.question && !ready && !ship ? String(result.question).slice(0, 300) : undefined;
-    const reply = { say: LEAK.test(String(result.say ?? '')) ? LEAK_REPLY : withoutEchoedQuestion(String(result.say ?? '').slice(0, 600), question), ...(question ? { question } : {}) };
+    let reply: { say: string; question?: string } = { say: LEAK.test(String(result.say ?? '')) ? LEAK_REPLY : withoutEchoedQuestion(String(result.say ?? '').slice(0, 600), question), ...(question ? { question } : {}) };
+
+    // Safety review: the reply and the list are checked before the kid sees them (only the kid's
+    // words used to be checked here). An unsuitable item never reaches the builder.
+    const shown = [reply.say, reply.question, ...changes].filter(Boolean).join('\n');
+    const out = await callSafetyCheck(shown, 'output', ageGroupOf(p.profile));
+    metas.push(...(out.metas ?? [out.meta]));
+    if (out.failed) throw heldBack(p, 'output', shown);
+    if (out.verdict === 'unsuitable' || out.verdict === 'wellbeing') {
+      flag(p, 'output', out, shown);
+      return { changes: list, ready: false, ship: false, reply: { say: REDIRECT_REPLY } };
+    }
+    if (out.verdict === 'personal') flag(p, 'output', out, shown);
 
     const now = Date.now();
     p.messages.push({ thread: THREAD, role: 'user', text: ask, seq: seq++, at: now });

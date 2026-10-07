@@ -67,15 +67,24 @@ async function slot<T>(work: () => Promise<T>): Promise<T> {
 }
 export const buildsWaiting = () => waiting.length;
 
-/** The app's words for the safety check: markup, styles and drawings left out. */
-function appWords(html: string): string {
-  return html
+/** The app's words for the safety check: everything the app can show, and nothing else. The
+ *  page's text, the words in its drawings, every quoted string in its scripts (messages, names,
+ *  dialogue live there), attribute text people see, and the "changed:" note. Code, styles and
+ *  markup are left out, so a big app stays one or two pieces; the check reads all the pieces
+ *  (safety review: only the first 6,000 characters used to be read, code included). */
+export function appWords(html: string): string {
+  const note = html.match(/<!--\s*changed:\s*([\s\S]*?)-->/i)?.[1] ?? '';
+  const scripts = (html.match(/<script\b[^>]*>[\s\S]*?<\/script>/gi) ?? []).join('\n');
+  const quoted = scripts.match(/"(?:[^"\\\n]|\\.){2,}"|'(?:[^'\\\n]|\\.){2,}'|`(?:[^`\\]|\\.){2,}`/g) ?? [];
+  const strings = quoted.map((q) => q.slice(1, -1).replace(/\$\{[^}]*\}/g, ' ')).filter((q) => /[A-Za-z]{2}/.test(q) && !/^[\w.#:\-[\]=" >*,()]+$/.test(q.trim()) || / /.test(q.trim()));
+  const shownAttrs = (html.match(/\b(?:title|alt|placeholder|aria-label|value)\s*=\s*"[^"]*"/gi) ?? []).map((a) => a.replace(/^[^=]+=\s*"/, '').replace(/"$/, ''));
+  const page = html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
     // Drawings: only their words (text, titles), so nothing harmful hides in a picture (audit B2).
     .replace(/<svg[\s\S]*?<\/svg>/gi, (svg) => ` ${(svg.match(/<(text|tspan|title|desc)\b[^>]*>[\s\S]*?<\/\1>/gi) ?? []).join(' ')} `)
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .slice(0, 6000);
+    .replace(/<[^>]+>/g, ' ');
+  return [note, page, ...shownAttrs, ...strings].join(' ').replace(/&[a-z]+;|&#\d+;/gi, ' ').replace(/\s+/g, ' ').trim();
 }
 
 export interface BuildResult { version: number; html: string; changed?: string; missing: string[] }
@@ -142,16 +151,6 @@ export async function buildApp(p: Project, mode: BuildMode, error = ''): Promise
         throw new TurnError(500, `The app didn't pass its checks: ${problems.join('; ')}`);
       }
 
-      // spec.md > Safety: the builder's output gets one check before it's shown.
-      setPhase(p.id, 'safety');
-      const appCheck = await callSafetyCheck(appWords(html), 'app', ageGroupOf(p.profile));
-      if (appCheck.failed) throw heldBack(p, 'app'); // the last working version stays
-      metas.push(appCheck.meta);
-      if (appCheck.verdict === 'unsuitable') {
-        flag(p, 'app', appCheck, appWords(html).slice(0, 500));
-        throw new TurnError(422, 'unsuitable');
-      }
-
       // What a change really did, against what was asked: anything missing gets one more
       // edit round, and anything still missing is said honestly and goes back on the list.
       let missing: string[] = [];
@@ -179,6 +178,19 @@ export async function buildApp(p: Project, mode: BuildMode, error = ''): Promise
         }
         if (missing.length) { html = withoutChangedNote(html); editedNote = undefined; }
       }
+
+      // spec.md > Safety: the final version, exactly as it will be saved and shown, is checked first
+      // (safety review: a fix-up round after the check used to go out unchecked).
+      setPhase(p.id, 'safety');
+      const words = appWords(html);
+      const appCheck = await callSafetyCheck(words, 'app', ageGroupOf(p.profile));
+      metas.push(...(appCheck.metas ?? [appCheck.meta].filter((m): m is CallMeta => !!m)));
+      if (appCheck.failed) throw heldBack(p, 'app', words.slice(0, 500)); // the last working version stays
+      if (appCheck.verdict === 'unsuitable' || appCheck.verdict === 'wellbeing') {
+        flag(p, 'app', appCheck, words.slice(0, 500));
+        throw new TurnError(422, 'unsuitable');
+      }
+      if (appCheck.verdict === 'personal') flag(p, 'app', appCheck, words.slice(0, 500)); // the parent sees it
 
       const n = saveVersion(p, html, mode, mode === 'edit' ? change : mode === 'repair' ? `repair: ${fault}` : 'first build');
       // What didn't make it in goes back on the list, plus anything the kid added while this
