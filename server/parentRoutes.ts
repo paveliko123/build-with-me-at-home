@@ -1,6 +1,7 @@
 // Parent API: first-run setup, PIN unlock/lock, kids, status strip, tablet setup info.
 // Implements prd.md > Parent Gate and Responsibility, First-Run Setup, Kids.
 
+import { openSetup } from './lan.js';
 import express, { Router } from 'express';
 import QRCode from 'qrcode';
 import { isLoopback, requireParent, checkPin, setPin, startParentSession, endParentSession, isParent, validPin } from './auth.js';
@@ -14,7 +15,7 @@ import { activePasses, createPass, extendPass, endPass } from './passes.js';
 import { deleteApp, shelf } from './journey/apps.js';
 import { listReports, readReport } from './report/reporter.js';
 import { renderReport } from './report/template.js';
-import { dismissAlert, listAlerts } from './report/alerts.js';
+import { addAlert, dismissAlert, listAlerts } from './report/alerts.js';
 
 let usageCache: { reading: UsageReading; at: number } | null = null;
 let usageInFlight: Promise<UsageReading> | null = null;
@@ -27,7 +28,7 @@ export async function currentUsage(maxAgeMs = 60_000): Promise<UsageReading> {
   return reading;
 }
 
-export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName: string }): Router {
+export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName: string; caFingerprints?: { sha256: string; sha1: string } }): Router {
   const r = Router();
   r.use(express.json({ limit: '100kb' }));
 
@@ -67,7 +68,11 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
   r.post('/unlock', async (req, res) => {
     if (!isLoopback(req)) { res.status(403).json({ error: 'laptop-only' }); return; }
     const result = await checkPin(String(req.body?.pin ?? ''));
-    if (result.ok) { startParentSession(res); res.json({ ok: true }); return; }
+    if (result.ok) {
+      // Security review: the parent hears about wrong tries since they last unlocked.
+      if (result.wrongTries > 0) addAlert({ kind: 'pin', kidId: '', kidName: '', text: `${result.wrongTries === 1 ? 'Someone typed a wrong PIN once' : `Someone typed a wrong PIN ${result.wrongTries} times`} since you last unlocked${result.lastWrongAt ? ` (last at ${new Date(result.lastWrongAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })})` : ''}. If that wasn't you, think about a longer PIN (Settings).` });
+      startParentSession(res); res.json({ ok: true }); return;
+    }
     if (result.reason === 'locked') { res.status(429).json(result); return; }
     if (result.reason === 'no-pin') { res.status(409).json(result); return; }
     res.status(401).json(result);
@@ -134,7 +139,9 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
   r.get('/tablet-setup', async (_req, res) => {
     const ips = homeAddresses();
     const url = ips[0] ? `http://${ips[0]}:${opts.httpPort}/setup-tablet` : null;
-    res.json({ url, addresses: ips, httpsPort: opts.httpsPort, certificateName: opts.caName, qr: url ? await QRCode.toDataURL(url, { margin: 1, width: 240 }) : null });
+    // Opening this window opens tablet setup for 15 minutes (the window renews it while open).
+    const openUntil = openSetup();
+    res.json({ url, addresses: ips, httpsPort: opts.httpsPort, certificateName: opts.caName, fingerprints: opts.caFingerprints, openUntil, qr: url ? await QRCode.toDataURL(url, { margin: 1, width: 240 }) : null });
   });
 
   // ---- reports and alerts (prd.md > The Parent Report, Limit Reached) ----

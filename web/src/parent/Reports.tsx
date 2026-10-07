@@ -9,7 +9,7 @@ export interface ReportItem {
   finished: boolean; title: string; what: string; description: string; badge: 'none' | 'handled' | 'look'; flags: number;
   appPath: string | null; fiveHourPct: number | null; file: string;
 }
-export interface AlertItem { id: string; at: number; kind: 'flag' | 'limit' | 'wellbeing'; kidId: string; kidName: string; text: string; reportId?: string; resetsAt?: number | null }
+export interface AlertItem { id: string; at: number; kind: 'flag' | 'limit' | 'wellbeing' | 'pin'; kidId: string; kidName: string; text: string; reportId?: string; resetsAt?: number | null }
 
 const when = (t: number) => new Date(t).toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
 const dayOf = (t: number) => new Date(t).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
@@ -29,9 +29,9 @@ export function AttentionCard({ alerts, onOpenReport, reload }: { alerts: AlertI
       {!alerts.length && <div className="empty">Nothing right now.</div>}
       {alerts.map((a) => (
         <div key={a.id} className={`alert ${a.kind === 'flag' ? 'warn' : 'bad'}`} role={a.kind === 'wellbeing' ? 'alert' : undefined}>
-          {a.kind === 'limit' ? '⛔' : a.kind === 'wellbeing' ? '💛' : '⚠️'}
+          {a.kind === 'limit' ? '⛔' : a.kind === 'wellbeing' ? '💛' : a.kind === 'pin' ? '🔑' : '⚠️'}
           <span style={{ flex: 1 }}>
-            <b>{a.kind === 'limit' ? `Limit reached ${when(a.at)}` : a.kind === 'wellbeing' ? `${a.kidName} may need you, ${when(a.at)}` : `${a.kidName}, ${when(a.at)}`}</b>: {a.text}
+            <b>{a.kind === 'limit' ? `Limit reached ${when(a.at)}` : a.kind === 'wellbeing' ? `${a.kidName} may need you, ${when(a.at)}` : a.kind === 'pin' ? `Wrong PIN tries` : `${a.kidName}, ${when(a.at)}`}</b>: {a.text}
             {a.kind === 'limit' && a.resetsAt ? <> Resets around <b>{timeOf(a.resetsAt)}</b>.</> : null}
             {a.reportId && <> <a href="#" onClick={(e) => { e.preventDefault(); onOpenReport(a.reportId!); }}>See report</a></>}
           </span>

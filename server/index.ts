@@ -12,12 +12,21 @@ import { join, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadOrCreateAuthority, issueServerCert, mobileConfig, authorityName, type Authority } from './certs.js';
 import { addChunk, finishUtterance, loadSpeech } from './speech.js';
-import { hostAllowed, isLoopback, isParent, isThisComputer, originAllowed } from './auth.js';
+import { hostAllowed, isLoopback, isParent, isThisComputer, originAllowed, sameOriginPage, setServerPorts } from './auth.js';
 import { parentRoutes } from './parentRoutes.js';
 import { kidRoutes } from './kidRoutes.js';
 import { journeyRoutes, shelfRoutes } from './journey/routes.js';
 import { APP_CSP, appIcon, servedApp } from './journey/apps.js';
 import { presenceStream } from './presence.js';
+import { lanGate, setupOpen } from './lan.js';
+import { createHash } from 'node:crypto';
+
+/** The home certificate's fingerprints, to compare on the device (security review). */
+function fingerprints(der: ArrayBuffer | Uint8Array): { sha256: string; sha1: string } {
+  const hex = (alg: string) => createHash(alg).update(Buffer.from(der as ArrayBuffer)).digest('hex').toUpperCase().match(/../g)!.join(':');
+  return { sha256: hex('sha256'), sha1: hex('sha1') };
+}
+const SETUP_CLOSED_PAGE = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Build With Me</title><body style="font:18px system-ui;margin:0;display:grid;place-items:center;min-height:100vh;background:#f6f4ef;color:#1f2430;text-align:center;padding:16px"><div><div style="font-size:48px">📱</div><h1 style="font-size:24px">Tablet setup isn't open</h1><p>On the laptop, open the Parent area → Kids &amp; their apps → <b>Set up a tablet or laptop for talking</b>, then try again.</p></div>`;
 import { watchPassesForReports } from './report/reporter.js';
 import { kidSession } from './passes.js';
 import { setupTabletPage } from './tabletSetupPage.js';
@@ -49,6 +58,7 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
 
   const app = express();
   app.disable('x-powered-by');
+  setServerPorts(httpPort, httpsPort);
 
   // Only this computer's own names, and changes only from this app's own pages (auth.ts,
   // security audit H1: a web page that points its domain at this laptop gets nothing).
@@ -57,6 +67,9 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
     if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !originAllowed(req)) { res.status(403).json({ error: 'wrong-origin' }); return; }
     next();
   });
+
+  // Other devices only while a pass is live or tablet setup is open (security review, lan.ts).
+  app.use(lanGate);
 
   // Plain-HTTP gate for other devices.
   app.use((req: Request, res: Response, next: NextFunction) => {
@@ -72,6 +85,13 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
   app.get('/api/health', (_req, res) => { res.set('Access-Control-Allow-Origin', '*').json({ ok: true, build: BUILD_ID }); });
 
   // ---- tablet setup (home certificate) ----
+  // Only while the parent has "Set up a tablet" open on the laptop (security review: the setup
+  // page and certificate go over plain HTTP, so they're offered for minutes, not always).
+  const setupGate = (req: Request, res: Response, next: NextFunction) => {
+    if (isThisComputer(req) || setupOpen()) return next();
+    res.status(404).type('html').send(SETUP_CLOSED_PAGE);
+  };
+  app.use(['/setup-tablet', '/home-certificate.mobileconfig', '/home-certificate.crt'], setupGate);
   app.get('/home-certificate.mobileconfig', (_req, res) => {
     res.attachment('Build With Me home.mobileconfig').type('application/x-apple-aspen-config').send(mobileConfig(authority));
   });
@@ -85,8 +105,9 @@ export async function startServer(opts: ServerOptions = {}): Promise<RunningServ
 
   // ---- parent ----
   // The parent's window is open (the PIN page or the Parent area): keeps the app running.
-  app.get('/api/presence', (req, res) => { if (!isLoopback(req)) { res.status(403).end(); return; } presenceStream(req, res); });
-  app.use('/api/parent', parentRoutes({ httpPort, httpsPort, caName: authorityName(authority) }));
+  // Only this app's own page on this laptop (security review: any site could hold it open).
+  app.get('/api/presence', (req, res) => { if (!isLoopback(req) || !sameOriginPage(req)) { res.status(403).end(); return; } presenceStream(req, res); });
+  app.use('/api/parent', parentRoutes({ httpPort, httpsPort, caName: authorityName(authority), caFingerprints: fingerprints(authority.certDer) }));
 
   // ---- passes, the kid's session, live updates ----
   app.use('/api', kidRoutes());

@@ -324,6 +324,39 @@ async function main() {
     const whoHtml = renderReport({ ...base0, badge: 'look', flags: [{ at: now, stage: 'Idea', verdict: 'unsuitable', category: 'violence', text: 'blood everywhere', headline: 'h', guideDid: 'x', kidReaction: '', who: 'guide' }, { at: now, stage: 'Idea', verdict: 'personal', category: 'name', text: '[name]', headline: 'h2', guideDid: 'hidden', kidReaction: '', who: 'kid' }] } as any);
     add('the report says who said a flagged thing (the guide, the app or the kid)', whoHtml.includes('The guide was about to say (it was stopped)') && whoHtml.includes('Maya said'), 'guide and kid flags worded by source');
 
+    // ---------- security review: the parent area and who may talk to it ----------
+    const raw = (path: string, method: string, headers: Record<string, string>) => new Promise<number>((resolve) => {
+      const q = http.request(base + path, { method, headers: { 'Content-Type': 'application/json', ...headers } }, (res) => { res.resume(); resolve(res.statusCode ?? 0); });
+      q.on('error', () => resolve(0)); if (method !== 'GET') q.write('{}'); q.end();
+    });
+    const otherPort = await raw('/api/parent/lock', 'POST', { Origin: 'http://localhost:3000' });
+    const crossSite = await raw('/api/parent/lock', 'POST', { Origin: base, 'Sec-Fetch-Site': 'cross-site' });
+    const sameApp = await raw('/api/parent/lock', 'POST', { Origin: base, 'Sec-Fetch-Site': 'same-origin' });
+    const machineName = await raw('/api/health', 'GET', { Host: `${(await import('node:os')).hostname().toLowerCase()}:${PORT}` });
+    const presenceCross = await raw('/api/presence', 'GET', { 'Sec-Fetch-Site': 'cross-site' });
+    add('only this app\'s own pages may talk to it: another program\'s port, cross-site requests and odd names are refused',
+      otherPort === 403 && crossSite === 403 && sameApp === 200 && machineName === 421 && presenceCross === 403,
+      `other port ${otherPort} · cross-site ${crossSite} · own page ${sameApp} · machine name on loopback ${machineName} · presence from a site ${presenceCross}`);
+    const authMod = await import('../server/auth.js');
+    const storeMod = await import('../server/store.js');
+    authMod.resetAuthForTests();
+    const tries: string[] = [];
+    for (let k = 0; k < 5; k++) { const t = await authMod.checkPin('0000'); tries.push(t.ok ? 'ok' : t.reason === 'locked' ? `locked ${t.seconds}s` : 'wrong'); }
+    const saved1 = storeMod.readFamily().pinLock;
+    storeMod.updateFamily((f) => { f.pinLock!.lockedUntil = 0; }); // as if the minute passed (and a restart: it's on disk)
+    for (let k = 0; k < 5; k++) { const t = await authMod.checkPin('1111'); if (k === 4) tries.push(t.ok ? 'ok' : t.reason === 'locked' ? `locked ${t.seconds}s` : 'wrong'); }
+    storeMod.updateFamily((f) => { f.pinLock!.lockedUntil = 0; });
+    const rightPin = await authMod.checkPin('4321');
+    add('wrong PINs lock for longer each time (1, then 5 minutes…), kept on disk; the parent hears how many', tries[4] === 'locked 60s' && tries[5] === 'locked 300s' && saved1?.lockouts === 1 && rightPin.ok && rightPin.wrongTries === 10 && !storeMod.readFamily().pinLock?.lockouts, `${tries.join(' → ')} · then the right PIN: ${rightPin.ok ? `ok, ${(rightPin as any).wrongTries} wrong tries reported` : 'refused'}`);
+    const p2c = client(base);
+    await p2c.call('/api/parent/unlock', { pin: '4321' });
+    const beforeReset = (await p2c.call('/api/parent/kids')).status;
+    storeMod.updateFamily((f) => { f.sessionEpoch = (f.sessionEpoch ?? 0) + 1; }); // what /build-with-me:reset-pin does
+    const afterReset = (await p2c.call('/api/parent/kids')).status;
+    add('resetting the PIN logs out Parent areas that were already open', beforeReset === 200 && afterReset === 401, `before ${beforeReset} · after ${afterReset}`);
+    authMod.resetAuthForTests();
+    await parent.call('/api/parent/unlock', { pin: '4321' });
+
     // "＋ New app" can't make a flagged moment disappear: the app being left gets its report.
     const projMod = await import('../server/journey/project.js');
     const repMod = await import('../server/report/reporter.js');
@@ -383,6 +416,27 @@ async function main() {
     add('the guide is told which changes are already built (from the versions)', doneList.join(' | ') === 'Add a dozen more shapes, like levels | Make the dots bigger', doneList.join(' | '));
     r = await kid.call('/api/kid/journey/progress');
     add('the kid screen asks for progress (nothing while no build runs)', r.status === 200 && r.body.progress === null, JSON.stringify(r.body));
+    // Other devices only while a pass is live or tablet setup is open (security review).
+    const lan = await import('../server/lan.js');
+    const passesMod = await import('../server/passes.js');
+    for (const ps of passesMod.allPasses()) if (passesMod.isLive(ps)) passesMod.endPass(ps.id);
+    lan.resetLanForTests();
+    const tablet = (path: string) => {
+      let code = 200; let body = '';
+      const res: any = { status(c: number) { code = c; return res; }, json(b: unknown) { body = JSON.stringify(b); return res; }, type() { return res; }, send(b: string) { body = b; return res; } };
+      let passed = false;
+      lan.lanGate({ path, socket: { remoteAddress: '192.168.1.77' } } as any, res, () => { passed = true; });
+      return passed ? 'open' : `${code} ${body.includes('resting') ? 'resting' : ''}`.trim();
+    };
+    const noPass = [tablet('/kid'), tablet('/api/kid/journey')];
+    lan.openSetup();
+    const duringSetup = tablet('/setup-tablet');
+    lan.resetLanForTests();
+    add('another device gets only a "resting" page unless a pass is live or tablet setup is open', noPass.join(',') === '503 resting,503 resting' && duringSetup === 'open', `no pass: ${noPass.join(', ')} · during setup: ${duringSetup}`);
+    await parent.call('/api/parent/unlock', { pin: '4321' }); // closing the window (presence test above) locked it
+    r = await parent.call('/api/parent/tablet-setup');
+    add('tablet setup shows the certificate\'s fingerprints to compare on the device', /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(r.body.fingerprints?.sha256 ?? '') && r.body.openUntil > Date.now(), (r.body.fingerprints?.sha256 ?? '').slice(-11));
+    lan.resetLanForTests();
   } finally {
     await server.close();
   }

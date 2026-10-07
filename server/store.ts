@@ -43,6 +43,10 @@ export interface Kid { id: string; nickname: string; group: AgeGroup; emoji: str
 export interface Family {
   version: 1;
   pin?: { salt: string; hash: string };
+  /** Wrong-PIN lockout, kept on disk so a restart doesn't clear it (security review). */
+  pinLock?: { failures: number; lockedUntil: number; lockouts: number; wrongSinceUnlock: number; lastWrongAt?: number };
+  /** Bumped by /build-with-me:reset-pin: parent sessions from before it stop working. */
+  sessionEpoch?: number;
   kids: Kid[];
   settings: { port?: number };
 }

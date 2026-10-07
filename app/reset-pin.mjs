@@ -8,6 +8,8 @@ const file = join(familyData(), 'family.json');
 if (!existsSync(file)) { console.log('Build With Me has not been set up yet, so there is no PIN to reset.'); process.exit(0); }
 const family = JSON.parse(readFileSync(file, 'utf8'));
 delete family.pin;
+delete family.pinLock; // the lockout goes too
+family.sessionEpoch = (family.sessionEpoch ?? 0) + 1; // open Parent areas lock (security review)
 const tmp = `${file}.${process.pid}.tmp`;
 writeFileSync(tmp, JSON.stringify(family, null, 2));
 renameSync(tmp, file);

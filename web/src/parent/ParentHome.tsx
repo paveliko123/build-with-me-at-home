@@ -42,6 +42,16 @@ export function ParentHome({ onLock }: { onLock: () => void }) {
   useEffect(() => { loadReports(); }, [loadReports]);
 
   const lock = async () => { await api('/api/parent/lock', { body: {} }).catch(() => {}); onLock(); };
+  // Security review: on a laptop the kids also use, the Parent area locks itself after 15
+  // minutes without the parent touching it (live updates don't count as activity).
+  useEffect(() => {
+    let last = Date.now();
+    const touch = () => { last = Date.now(); };
+    const events = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
+    events.forEach((e) => window.addEventListener(e, touch, { passive: true }));
+    const t = window.setInterval(() => { if (Date.now() - last > 15 * 60_000) void lock(); }, 30_000);
+    return () => { events.forEach((e) => window.removeEventListener(e, touch)); window.clearInterval(t); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const now = new Date();
   const [focusKid, setFocusKid] = useState<string | null>(null);
 
@@ -248,8 +258,15 @@ function KidsManage({ kids, apps, reload, onClose, focusKid }: { kids: Kid[]; ap
 }
 
 function TabletSetup({ onClose }: { onClose: () => void }) {
-  const [info, setInfo] = useState<{ url: string | null; qr: string | null; certificateName?: string } | null>(null);
-  useEffect(() => { api('/api/parent/tablet-setup').then(setInfo).catch(() => setInfo({ url: null, qr: null })); }, []);
+  const [info, setInfo] = useState<{ url: string | null; qr: string | null; certificateName?: string; fingerprints?: { sha256: string; sha1: string } } | null>(null);
+  // Setup only works while this window is open (security review): it renews every 5 minutes.
+  useEffect(() => {
+    const load = () => api('/api/parent/tablet-setup').then(setInfo).catch(() => setInfo((i) => i ?? { url: null, qr: null }));
+    void load();
+    const t = window.setInterval(() => void load(), 5 * 60_000);
+    return () => window.clearInterval(t);
+  }, []);
+  const fp = info?.fingerprints;
   return (
     <Modal title="📱 Set up a tablet or laptop for talking" onClose={onClose}>
       {!info ? <p className="muted">Loading…</p> : info.url ? (
@@ -259,6 +276,12 @@ function TabletSetup({ onClose }: { onClose: () => void }) {
             <p className="muted" style={{ fontSize: 13 }}>The device must be on the same Wi-Fi. If it can't open the page, allow Node.js on <b>private networks</b> in the Windows firewall.</p></div>
         </div>
       ) : <p className="err">This computer doesn't seem to be on a home network right now.</p>}
+      {info?.url && fp && (
+        <div className="confirm" style={{ display: 'block' }}>
+          <b>🔒 Make sure it's yours.</b> Setup works only while this window is open. Before you trust the certificate on the device, check that its fingerprint ends with <b><code>{fp.sha256.slice(-11)}</code></b> (SHA-256). On a Windows laptop the "thumbprint" ends with <b><code>{fp.sha1.replace(/:/g, '').slice(-8)}</code></b>. If it doesn't match, don't trust it, and set up on another Wi-Fi.
+          <details style={{ marginTop: 6 }}><summary>The full fingerprints</summary><p style={{ fontSize: 12, wordBreak: 'break-all', margin: '6px 0 0' }}>SHA-256: <code>{fp.sha256}</code><br />SHA-1: <code>{fp.sha1}</code></p></details>
+        </div>
+      )}
       <details style={{ marginTop: 12 }}><summary><b>What this does, and why the security warning?</b></summary>
       <ul className="explain">
         <li><b>Goal:</b> your kid can <b>talk</b> to Claude on a tablet, phone, laptop or Chromebook, not only type.</li>

@@ -6,6 +6,7 @@
 // in the middle of a build, a chat turn or a report.
 import type { Request, Response } from 'express';
 import { EventEmitter } from 'node:events';
+import { endAllParentSessions } from './auth.js';
 
 const TICK_MS = 10_000;
 const GRACE_TICKS = 6; // ~1 minute without a parent window
@@ -47,6 +48,8 @@ export function presenceTick(busy: boolean): boolean {
   if (open > 0) { quiet = 0; announce(null); return false; }
   if (busy) { if (seen) announce({ waiting: true }); return false; } // finish the build, turn or report first
   quiet++;
+  // The window is gone: the Parent area locks at once (security review), even before the app stops.
+  if (quiet === 1) endAllParentSessions();
   if (seen) announce({ seconds: Math.max(0, (GRACE_TICKS - quiet) * TICK_MS / 1000) });
   return quiet >= (seen ? GRACE_TICKS : FIRST_TICKS);
 }
