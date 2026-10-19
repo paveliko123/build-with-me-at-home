@@ -6,6 +6,7 @@
 import { callCheck, LimitError, type CallMeta, type ForkFrom } from './claude.js';
 import type { Project } from './project.js';
 import { addAlert } from '../report/alerts.js';
+import { SignInError } from '../claude/signin.js';
 import { TurnError } from './guideTurn.js';
 import { readFamily } from '../store.js';
 import type { AgeGroup } from './types.js';
@@ -135,7 +136,7 @@ async function checkOne(text: string, direction: Direction, ageGroup: AgeGroup, 
       if (!verdict) { console.warn(JSON.stringify({ event: 'safety-check-failed', direction, attempt, error: 'unreadable answer' })); continue; }
       return { verdict, category: typeof parsed.category === 'string' ? parsed.category.slice(0, 40) : undefined, ...(verdict === 'personal' && parsed.masked ? { masked: String(parsed.masked).slice(0, 6000) } : {}), meta };
     } catch (err) {
-      if (err instanceof LimitError) throw err;
+      if (err instanceof LimitError || err instanceof SignInError) throw err;
       console.warn(JSON.stringify({ event: 'safety-check-failed', direction, attempt, error: String((err as Error)?.message ?? err).slice(0, 200) }));
     }
   }

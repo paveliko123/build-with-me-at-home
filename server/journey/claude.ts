@@ -9,6 +9,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { oneShot, type Model, type RateLimitInfo, type TurnResult } from '../claude/runner.js';
 import { pluginDataDir } from '../paths.js';
+import { SignInError, isSignedOutError, simulatedSignedOut } from '../claude/signin.js';
 import { LEAK, LEAK_REPLY } from './prompt/safety.js';
 import { REPLY_SCHEMA } from './prompt/replySchema.js';
 import type { GuideReply } from './types.js';
@@ -112,8 +113,10 @@ const limited = (r: TurnResult) => r.rateLimit?.status === 'rejected' || /rate.?
 async function call(label: string, role: 'guide' | 'check', system: string, prompt: string, schema: unknown, timeoutMs = GUIDE_TIMEOUT_MS, onRateLimit?: (i: RateLimitInfo) => void) {
   const model = role === 'guide' ? currentMix().guide : currentMix().check;
   if (simulatedLimit()) throw new LimitError(Date.now() + 60 * 60_000);
+  if (simulatedSignedOut()) throw new SignInError();
   const r = await oneShot({ model, systemPrompt: salted(system), prompt, jsonSchema: claudeSchema(schema), timeoutMs, onRateLimit });
   if (limited(r)) throw new LimitError(r.rateLimit?.resetsAt ? r.rateLimit.resetsAt * 1000 : undefined);
+  if (!r.ok && isSignedOutError(r.error)) throw new SignInError();
   return { r, meta: metaOf(label, model, r) };
 }
 
@@ -194,8 +197,10 @@ const BUILD_TIMEOUT_MS = 12 * 60_000; // big apps can take several minutes to wr
 export async function callBuilder(system: string, prompt: string, onDelta?: (text: string) => void): Promise<{ text: string; meta: CallMeta }> {
   const model: Model = currentMix().builder;
   if (simulatedLimit()) throw new LimitError(Date.now() + 60 * 60_000);
+  if (simulatedSignedOut()) throw new SignInError();
   const r = await oneShot({ model, systemPrompt: salted(system), prompt, timeoutMs: BUILD_TIMEOUT_MS, onRateLimit: rateLimitListener, onDelta });
   if (limited(r)) throw new LimitError(r.rateLimit?.resetsAt ? r.rateLimit.resetsAt * 1000 : undefined);
+  if (!r.ok && isSignedOutError(r.error)) throw new SignInError();
   if (!r.ok) throw new GuideError(`the builder did not answer: ${(r.error ?? '').slice(0, 200)}`);
   return { text: r.text, meta: metaOf('generateApp', model, r) };
 }

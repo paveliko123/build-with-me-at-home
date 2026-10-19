@@ -8,7 +8,7 @@ import { passEvents } from '../passes.js';
 export interface Alert {
   id: string;
   at: number;
-  kind: 'flag' | 'limit' | 'wellbeing' | 'pin'; // wellbeing: at once, during the pass; pin: wrong PIN tries
+  kind: 'flag' | 'limit' | 'wellbeing' | 'pin' | 'signin'; // wellbeing: at once, during the pass; pin: wrong PIN tries; signin: Claude Code's sign-in ran out
   kidId: string;
   kidName: string;
   text: string;
@@ -27,6 +27,8 @@ export function addAlert(a: Omit<Alert, 'id' | 'at'>): void {
   updateJson<{ alerts: Alert[] }>(FILE, { alerts: [] }, (f) => {
     // One limit alert per kid at a time is enough.
     if (a.kind === 'limit' && f.alerts.some((x) => x.kind === 'limit' && x.kidId === a.kidId && x.text === a.text && !x.dismissed && Date.now() - x.at < 30 * 60_000)) return;
+    // One sign-in alert until it's fixed.
+    if (a.kind === 'signin' && f.alerts.some((x) => x.kind === 'signin' && !x.dismissed)) return;
     f.alerts.push({ ...a, id: randomBytes(6).toString('base64url'), at: Date.now() });
     f.alerts = f.alerts.slice(-200);
   });
@@ -37,4 +39,10 @@ export function dismissAlert(id: string): boolean {
   let found = false;
   updateJson<{ alerts: Alert[] }>(FILE, { alerts: [] }, (f) => { const x = f.alerts.find((y) => y.id === id); if (x) { x.dismissed = true; found = true; } });
   return found;
+}
+
+/** Clears every open alert of one kind (the sign-in alert, once the parent signed in again). */
+export function dismissAlertsOfKind(kind: Alert['kind']): void {
+  updateJson<{ alerts: Alert[] }>(FILE, { alerts: [] }, (f) => { for (const x of f.alerts) if (x.kind === kind) x.dismissed = true; });
+  passEvents.emit('changed');
 }

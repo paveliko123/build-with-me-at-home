@@ -345,3 +345,7 @@ Activity mode: brief recap through the app map (not hands-on).
 - **Next version idea (not in the proof of concept): match the app to the thumbnail's look.**
   - What came up (6-ship, 2026-10-07): the Devpost thumbnail uses a teal, orange, and navy palette with a paper/felt style.
   - What it would take: the colors are a small token change in `web/src/index.css` (the font is already rounded Nunito); the textured look needs artwork per screen and readability checks. Deferred: the hackathon asks for a proof of concept.
+- **Claude Code's sign-in can run out: the parent gets told, and signs in again with a button.**
+  - What the trial found (6-ship, 2026-10-19): the guide went silent on the tablet. The server log showed `OAuth session expired and could not be refreshed` on every call; the kid saw nothing useful and the parent wasn't told.
+  - What changed: an expired sign-in is recognized on every Claude call (`server/claude/signin.ts`). The kid sees "Your grown-up needs to fix something on the computer… Your work is saved." The parent gets one 🔐 "Claude needs you to sign in again" alert with a **Sign in to Claude** button that runs Claude Code's own `claude auth login` (Anthropic's page opens in the browser, with a link and a code box as fallbacks), no terminal. Signing in clears the alert.
+  - Checked: `verify:revisions` 73/73 (simulated sign-out: kid message, one alert, button, kids can't press it), `verify:security` 23/23. The real sign-in flow is for the learner to try.

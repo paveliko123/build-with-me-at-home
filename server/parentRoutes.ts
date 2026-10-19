@@ -16,6 +16,7 @@ import { deleteApp, shelf } from './journey/apps.js';
 import { listReports, readReport } from './report/reporter.js';
 import { renderReport } from './report/template.js';
 import { addAlert, dismissAlert, listAlerts } from './report/alerts.js';
+import { cancelSignIn, sendSignInCode, signInState, startSignIn } from './claude/signin.js';
 
 let usageCache: { reading: UsageReading; at: number } | null = null;
 let usageInFlight: Promise<UsageReading> | null = null;
@@ -155,6 +156,12 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
   });
   r.get('/alerts', (_req, res) => { res.json(listAlerts()); });
   r.post('/alerts/:id/dismiss', (req, res) => { res.json({ ok: dismissAlert(String(req.params.id)) }); });
+
+  // ---- signing Claude Code in again (the "Sign in to Claude" button; no terminal) ----
+  r.get('/signin', (_req, res) => { res.json(signInState()); });
+  r.post('/signin/start', (_req, res) => { res.json(startSignIn()); });
+  r.post('/signin/code', (req, res) => { res.json({ ok: sendSignInCode(String(req.body?.code ?? '')) }); });
+  r.post('/signin/cancel', (_req, res) => { cancelSignIn(); res.json(signInState()); });
 
   // ---- each kid's apps (prd.md > My Apps: Kids & their apps → Manage) ----
   r.get('/apps', (_req, res) => {

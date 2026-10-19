@@ -48,6 +48,7 @@ export async function newApp() {
  *  pass's own limits (server/journey/limits.ts): too fast, or all one pass can do. */
 export function limitMessage(err: unknown): string | null {
   if (err instanceof ApiError && err.status === 429 && ['slow-down', 'pass-cap'].includes(err.body?.error)) return String(err.body?.say ?? 'Wait a little, then try again.');
+  if (err instanceof ApiError && err.status === 503 && err.body?.error === 'signed-out') return 'Your grown-up needs to fix something on the computer before we can keep going. Your work is saved.';
   if (!(err instanceof ApiError && err.status === 429 && err.body?.error === 'limit')) return null;
   // The Limit reached screen (Journey.tsx) listens for this.
   window.dispatchEvent(new CustomEvent('bwm-limit', { detail: { resetsAt: err.body?.resetsAt ?? null } }));

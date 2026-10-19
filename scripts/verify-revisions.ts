@@ -390,6 +390,31 @@ async function main() {
     add('one device can\'t take all the talking: 2 at a time per pass, only its own, 12 a minute', own.join(',') === 'ok,ok,busy' && otherPass === 'ok' && stolen === 'busy' && endsOk === 12, `own ${own.join('/')} · another pass ${otherPass} · someone else's ${stolen} · finishes ${endsOk}/14`);
     const long = await kid.call('/api/kid/journey/turn', { text: 'a'.repeat(20_000) });
     add('a long kid message isn\'t turned away by the wrong size limit', long.status !== 413, `status ${long.status}`);
+
+    // Claude Code's sign-in ran out (family trial, 2026-10-19: the guide just went silent).
+    const signin = await import('../server/claude/signin.js');
+    add('the expired sign-in error from the real log is recognized (and an ordinary error isn\'t)', signin.isSignedOutError('api_error: Failed to authenticate: OAuth session expired and could not be refreshed') && !signin.isSignedOutError('timed out after 120 s'), 'matched');
+    const { rmSync: rm1 } = await import('node:fs');
+    rm1(join(PLUGIN, 'simulate-limit'));
+    writeFileSync(join(PLUGIN, 'simulate-signed-out'), '');
+    try {
+      const out1 = await kid.call('/api/kid/journey/turn', { text: 'a robot that dances' });
+      const out2 = await kid.call('/api/kid/journey/turn', { text: 'a robot that dances' });
+      add('signed out → the kid gets "signed-out" (not a silent hiccup)', out1.status === 503 && out1.body.error === 'signed-out' && out2.body.error === 'signed-out', `${out1.status} ${JSON.stringify(out1.body)}`);
+      const sAlerts = (await parent.call('/api/parent/alerts')).body.filter((a: any) => a.kind === 'signin');
+      add('…and the parent gets one "sign in again" alert, not one per try', sAlerts.length === 1 && /sign-in ran out/.test(sAlerts[0].text), sAlerts[0]?.text ?? 'none');
+      const idle = await parent.call('/api/parent/signin');
+      const started = await parent.call('/api/parent/signin/start', {});
+      const kidTries = await kid.call('/api/parent/signin/start', {});
+      add('the Sign in button reports back (here Claude Code can\'t start, so it says so); kids can\'t press it', idle.body.state === 'idle' && started.body.state === 'failed' && (kidTries.status === 401 || kidTries.status === 403), `${idle.body.state} → ${started.body.state}: ${started.body.message} · kid: ${kidTries.status}`);
+      add('a bad sign-in code is refused without a sign-in running', (await parent.call('/api/parent/signin/code', { code: 'x' })).body.ok === false, 'refused');
+      const { dismissAlertsOfKind } = await import('../server/report/alerts.js');
+      dismissAlertsOfKind('signin');
+      add('signing in clears the alert', !(await parent.call('/api/parent/alerts')).body.some((a: any) => a.kind === 'signin'), 'cleared');
+    } finally {
+      rm1(join(PLUGIN, 'simulate-signed-out'), { force: true });
+      writeFileSync(join(PLUGIN, 'simulate-limit'), '');
+    }
     const st = await parent.call('/api/parent/state');
     add('the PIN page learns there\'s a wellbeing alert waiting (so a locked Parent area can\'t hide it)', typeof st.body.urgent === 'number' && st.body.urgent >= 1, `urgent: ${st.body.urgent}`);
 

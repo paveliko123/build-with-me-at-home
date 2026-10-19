@@ -18,6 +18,7 @@ import { requireKid, setPassStep, type KidSession } from '../passes.js';
 import { homeAddresses } from '../certs.js';
 import { guideTurn, ideasMode, TurnError } from './guideTurn.js';
 import { LimitError } from './claude.js';
+import { SignInError, reportSignedOut } from '../claude/signin.js';
 import { buildApp, latestVersion, type BuildMode } from './build.js';
 import { changeTurn } from './changes.js';
 import { shelf, shipApp, type ShelfApp } from './apps.js';
@@ -85,6 +86,12 @@ function fail(res: Response, err: unknown, s?: KidSession) {
     // prd.md > Limit Reached: the parent sees when, in whose session, and when it resets.
     if (s) addAlert({ kind: 'limit', kidId: s.kid.id, kidName: s.kid.nickname, resetsAt: err.resetsAt ?? null, text: `Limit reached during ${s.kid.nickname}'s session. ${s.kid.nickname} saw "Limit reached, ask your parent." The work is saved.` });
     res.status(429).json({ error: 'limit', resetsAt: err.resetsAt ?? null });
+    return;
+  }
+  if (err instanceof SignInError) {
+    // The parent's Claude Code sign-in ran out: the parent gets an alert with a sign-in button.
+    reportSignedOut(s?.kid);
+    res.status(503).json({ error: 'signed-out' });
     return;
   }
   if (err instanceof TurnError) { res.status(err.status).json({ error: err.message }); return; }
