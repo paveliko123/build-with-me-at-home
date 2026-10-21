@@ -13,3 +13,13 @@ node_modules/
 
 # scratch scripts
 /tmp/
+
+# Keys, signing files and service-account keys never enter the repository (D-114)
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+key.properties
+keystore.properties
+service-account*.json
