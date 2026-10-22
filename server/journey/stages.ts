@@ -2,6 +2,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { skillsDir } from './skillsDir.js';
 import { YOUNG_PROFILE_TEMPLATE } from './prompt/youngProfile.js';
+import { YOUNG_PRD_TEMPLATE, YOUNG_SCOPE_TEMPLATE, YOUNG_SPEC_TEMPLATE } from './prompt/youngPlans.js';
+
+/** Kids' and teens' own templates, in place of the course ones (adults keep the course's). */
+const YOUNG_TEMPLATES: Partial<Record<Stage, string>> = { start: YOUNG_PROFILE_TEMPLATE, idea: YOUNG_SCOPE_TEMPLATE, design: YOUNG_PRD_TEMPLATE, tech: YOUNG_SPEC_TEMPLATE };
 import type { DocKind, Profile, Stage } from './types.js';
 
 export const STAGE_ORDER: Stage[] = ['start', 'idea', 'design', 'tech', 'build', 'ship'];
@@ -53,9 +57,10 @@ export function withoutSections(markdown: string, titles: string[]): string {
 const cache = new Map<string, string>();
 
 /** The stage's instruction text, byte-identical on every call (it heads the cached prompt prefix). */
-/** `young`: a kid or teen, whose Start uses its own "About you" template (prompt/youngProfile.ts). */
+/** `young`: a kid or teen, whose Start, Idea, Design and Tech plan use their own templates. */
 export function stageInstructions(stage: Stage, guided = false, young = false): string {
-  const key = `${stage}:${guided}:${young && stage === 'start'}`;
+  const youngTemplate = young ? YOUNG_TEMPLATES[stage] : undefined;
+  const key = `${stage}:${guided}:${!!youngTemplate}`;
   const hit = cache.get(key);
   if (hit) return hit;
   const source = SOURCES[stage];
@@ -65,8 +70,8 @@ export function stageInstructions(stage: Stage, guided = false, young = false): 
   const text = source.files
     .filter(file => !(guided && file.startsWith('references/')))
     .map(file => {
-      const body = stage === 'start' && young && file.startsWith('templates/')
-        ? YOUNG_PROFILE_TEMPLATE.trim()
+      const body = youngTemplate && file.startsWith('templates/')
+        ? youngTemplate.trim()
         : readFileSync(join(root, file), 'utf8').replace(/\r\n/g, '\n').trim();
       return `----- ${source.dir}/${file} -----\n${file === 'SKILL.md' ? withoutSections(body, skipped).trim() : body}`;
     })

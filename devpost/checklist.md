@@ -358,4 +358,8 @@ Activity mode: brief recap through the app map (not hands-on).
   - What the learner found: the Start page used the adults' hackathon profile template, so kids' pages were mostly "Not discussed" (kids get at most two questions at Start, by design).
   - What changed: for kids and teens, Start uses `server/journey/prompt/youngProfile.ts` (age group and experience, look, what they like, starting idea, what they'd like to learn if said, notes); sections with nothing to say are left out. Adults keep the course template. The two-question limit and safety rules are unchanged.
   - Checked: one real kid and one real teen Start session (full pages, no "Not discussed"), `verify:revisions` 73/73, `verify:security` 23/23.
-  - Open (learner to decide): the same kind of leftovers in the Idea, Design and Tech plan templates (review of 10 real projects, 2026-10-22).
+  - The same leftovers in the later plans: fixed below (D-5).
+- **Kids' and teens' Idea, Design and Tech plans get their own templates (owner yes D-5, 2026-10-22).**
+  - What the review found (10 real projects): adult hackathon sections came out "not discussed", stock lines or empty (for example 9 of 10 Design plans ended in a "not discussed" list; Stack and File structure were stock or empty).
+  - What changed: the "write 'not discussed'" rule became "leave the section out; list open items once" (all ages). Kids and teens use `server/journey/prompt/youngPlans.ts` for Idea, Design and Tech plan; adults keep the course templates. Question counts, safety rules, the builder and the checklist are unchanged.
+  - Checked: a real kid (new to this) and teen (So-so) session through the Tech plan: 0 "not discussed", only filled sections, the plan cards still find their points; the kid's plan built cleanly (no app-check problems). `verify:revisions` 73/73, `verify:security` 23/23.
