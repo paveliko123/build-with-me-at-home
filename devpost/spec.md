@@ -110,6 +110,7 @@ The mix is one setting in `server/journey/claude.ts` (`DEFAULT_MIX`, or `BWM_MIX
 
 ## Where It Runs and How Someone Tries It
 
+- **Public repository (2026-10-22):** https://github.com/paveliko123/build-with-me-at-home. Parents install the plugin from it (README > Install); feedback goes to its Issues.
 - **Runs on:** the parent's Windows or Mac computer, with Node.js 22+ and the **standalone Claude Code CLI** (`claude`) installed and signed in (any plan that includes Claude Code).
   - The Claude desktop app's Code tab doesn't count. It doesn't put `claude` on PATH, and its sign-in isn't usable by other programs.
   - Setup offers the official installer and walks the parent through `/login` once (see `checklist.md > Revisions`).
