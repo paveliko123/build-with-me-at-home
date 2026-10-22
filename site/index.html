@@ -156,19 +156,32 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 #s1 .quote b{font-size:12px;color:var(--muted);display:block}
 #s1 .okpill{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--brand-soft);color:var(--brand)}
 #s1 details{margin-top:8px} #s1 summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:center}
+/* one-screen kid pages (screens 3 and 4): sizes follow the stage height */
+#stage{container-type:size}
+.screen.fit{overflow:hidden;padding:1.5cqh 16px}
+.screen.fit .inner{height:100%;display:flex;flex-direction:column;justify-content:center}
 /* kid landing page (screen 3), scoped */
 #s2 .inner{max-width:760px;text-align:center;position:relative}
-#s2 .myapps{position:absolute;right:0;top:0;min-height:44px;padding:6px 14px;border-radius:999px;border:1px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-weight:700}
-#s2 .wave{font-size:72px;line-height:1;margin-top:34px}
-#s2 .eyebrow{letter-spacing:.14em;font-weight:800;color:var(--t-accent);margin:18px 0 6px;font-size:15px}
-#s2 h1{font-size:clamp(30px,6vw,48px);line-height:1.1;margin:0 0 8px}
-#s2 .tag{font-weight:700;font-size:18px}
-#s2 .aipill{display:inline-flex;align-items:center;gap:8px;margin:18px 0 12px;padding:10px 18px;border-radius:16px;background:var(--t-surface-2);font-weight:800;font-size:17px}
-#s2 .howto{margin:14px 0 6px;font-size:18px;font-weight:800}
-#s2 .choices{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
-#s2 .choice{min-height:140px;border-radius:22px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-size:24px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
-#s2 .choice span{font-size:48px;line-height:1}
-#s2 .toast{position:sticky;bottom:8px;margin:12px auto 0;max-width:340px;background:var(--t-ink);color:var(--t-bg);padding:10px 14px;border-radius:10px;font-size:14px}
+#s2 .myapps{position:absolute;right:0;top:0;min-height:44px;padding:4px 14px;border-radius:999px;border:1px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-weight:700;font-size:14px}
+#s2 .wave{font-size:min(9cqh,64px);line-height:1;margin-top:3cqh}
+#s2 .eyebrow{letter-spacing:.14em;font-weight:800;color:var(--t-accent);margin:1.6cqh 0 .6cqh;font-size:max(11px,min(2.6cqh,15px))}
+#s2 h1{font-size:min(6.4cqh,9cqw,48px);line-height:1.1;margin:0 0 .8cqh}
+#s2 .tag{font-weight:700;font-size:max(12px,min(2.8cqh,18px))}
+#s2 .aipill{display:inline-flex;align-self:center;align-items:center;gap:8px;margin:1.8cqh 0 1.2cqh;padding:.9cqh 16px;border-radius:16px;background:var(--t-surface-2);font-weight:800;font-size:max(13px,min(3cqh,17px))}
+#s2 .intro{margin:0 0 1.4cqh;font-size:max(12px,min(2.8cqh,17px));line-height:1.35}
+#s2 .howto{margin:.6cqh 0 .6cqh;font-size:max(13px,min(3cqh,18px));font-weight:800}
+#s2 .choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:.6cqh}
+#s2 .choice{min-height:max(64px,16cqh);border-radius:22px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-size:max(16px,min(3.8cqh,24px));font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#s2 .choice span{font-size:max(26px,min(7cqh,48px));line-height:1}
+#s2 .toast{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:max-content;max-width:90%;background:var(--t-ink);color:var(--t-bg);padding:8px 14px;border-radius:10px;font-size:14px}
+/* pick a look (screen 4) */
+#s3 h2{font-size:min(4.6cqh,28px);margin:0 0 .6cqh}
+#s3 .sub{font-size:max(12px,min(2.8cqh,16px));margin:0 0 1.2cqh}
+#s3 .tiles{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:1.4cqh 12px;margin:.6cqh 0;flex:1 1 auto;min-height:0;max-height:48cqh}
+#s3 .tile{min-height:0;font-size:max(13px,min(2.8cqh,16px))}
+#s3 .tile .e{font-size:max(22px,min(6cqh,34px))}
+#s3 .motifs{font-size:max(20px,min(4.6cqh,34px));margin:.8cqh 0}
+#s3 .kbtn{min-height:max(48px,min(7cqh,52px));align-self:center}
 /* parent screens */
 .kidcard{display:flex;align-items:center;gap:14px}
 .kidcard .em{font-size:40px}
@@ -501,7 +514,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 3 Kid: landing page -->
-    <section class="screen kid" id="s2" aria-label="Kid landing page">
+    <section class="screen kid fit" id="s2" aria-label="Kid landing page">
       <div class="inner">
         <button class="myapps" id="myAppsBtn">📚 My apps</button>
         <div class="wave" aria-hidden="true">👋</div>
@@ -509,7 +522,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
         <h1>Hi Sam! Let's make an app together!</h1>
         <div class="tag muted">Design first, build together.</div>
         <div class="aipill">🤖 Your helper is an AI, not a person.</div>
-        <p class="muted" style="font-size:17px">We plan your app together first, then build it. Projects are kept small: a few short sessions.</p>
+        <p class="muted intro">We plan your app together first, then build it. Projects are kept small: a few short sessions.</p>
         <div class="howto">How do you want to answer?</div>
         <div class="choices">
           <button class="choice" id="chooseTalk"><span aria-hidden="true">🎤</span>Talk</button>
@@ -520,10 +533,10 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 4 Kid: pick a look -->
-    <section class="screen kid" id="s3" aria-label="Pick a look">
+    <section class="screen kid fit" id="s3" aria-label="Pick a look">
       <div class="inner">
         <h2>Hi Sam! Pick a look 🎨</h2>
-        <p class="muted">Tap one. You can see the colors change.</p>
+        <p class="muted sub">Tap one. You can see the colors change.</p>
         <div class="tiles" id="tiles"></div>
         <div class="motifs" id="motifs1" aria-hidden="true"></div>
         <button class="kbtn" id="lookNext">Looks great, let's go</button>
