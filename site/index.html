@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Build With Me at Home</title>
+<title>Build With Me</title>
 <meta name="description" content="An open-source Claude Code plugin for parents: kids build small apps with a friendly AI guide, on your computer and your Claude account, with you supervising.">
 <style>
 :root{
@@ -155,16 +155,18 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 <main id="landing">
   <div class="hero">
     <div class="icon" aria-hidden="true">🏠</div>
-    <h1>Build With Me at Home</h1>
-    <p class="lead">An open-source Claude Code plugin for parents: your kids plan and build their own small apps with a friendly AI guide, on your computer and your own Claude account, with you supervising.</p>
-    <p class="muted">Fully local. Nothing is ever sent to the developer of this plugin: no accounts, no analytics, no tracking.</p>
+    <h1>Build With Me</h1>
+    <p class="lead">This open-source Claude Code plugin is for parents who love AI coding and want to introduce it to their kids.</p>
+    <p class="lead">Your kids plan and build their own small apps with a friendly AI guide and under your supervision, using a slightly modified Devpost Plan-First Skill.</p>
+    <p class="muted">Fully local: runs as a plug-in on your computer and your own Claude account. Nothing is ever sent to the developer of this plugin: no accounts, no analytics, no tracking.</p>
   </div>
 
-  <div class="cta"><button class="btn big" id="tryDemo">Try the demo</button><p class="muted" style="margin-top:8px">About two minutes of mock screens. Nothing to install.</p></div>
+  <div class="cta"><button class="btn big" id="tryDemo">Try the demo</button> <button class="btn big ghost" id="installBtn">Install</button><p class="muted" style="margin-top:8px">About two minutes of mock screens. Nothing to install.</p></div>
 
-  <div class="note warn"><b>Adults only hold the account.</b> Anthropic requires Claude account holders to be 18 or older, so this runs on <i>your</i> account. Kids get in with a pass you give them, for as long as you choose, and you get a report after every app. You are responsible for how your kids use it, so stay nearby.</div>
+  <div class="note warn"><b>Adults only hold the account.</b> Anthropic requires Claude account holders to be 18 or older, so this runs on <i>your</i> account. Your kids get in with a pass you give them, for as long as you choose, and you get a report after every app. You are responsible for how your kids use it, so stay nearby.</div>
 
-  <div class="card">
+  <div id="installArea" hidden>
+  <div class="card" id="needCard">
     <h2>What you need</h2>
     <ul class="need">
       <li>A paid Claude plan that includes Claude Code (such as Pro or Max), in your own name.</li>
@@ -175,8 +177,8 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
   </div>
 
   <section id="install" class="card">
-    <h2>Check it before you install</h2>
-    <p>Nothing runs until you type the start command, so you can have your own Claude read the code first. Open Claude Code in an empty folder and paste this. It uses a little of your plan.</p>
+    <h2>Is it Safe to install?</h2>
+    <p><b>Don't trust unknown sources, always verify.</b> Nothing runs until you type the start command, so you can have your own Claude read the code first. Open Claude Code in an empty folder and paste this.</p>
     <pre id="promptText">Clone https://github.com/paveliko123/build-with-me-at-home.git into a new folder. Read the
 code only: don't run any of it, don't run npm install, don't start it.
 
@@ -201,16 +203,17 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
 
   <div class="card">
     <h2>Install</h2>
-    <p>In Claude Code, run these three commands one at a time:</p>
+    <p>After you verified that it is safe to install, in Claude Code, run these three commands one at a time:</p>
     <pre id="installText">/plugin marketplace add https://github.com/paveliko123/build-with-me-at-home.git
 /plugin install build-with-me@build-with-me-home
 /build-with-me:start</pre>
     <div class="copyrow"><button class="btn ghost" data-copy="installText">Copy the commands</button><span class="muted" role="status" aria-live="polite"></span></div>
     <p style="margin-top:12px">Source, details and privacy notes: <a href="https://github.com/paveliko123/build-with-me-at-home">github.com/paveliko123/build-with-me-at-home</a></p>
   </div>
+  </div>
 </main>
 
-<div id="demo" hidden role="dialog" aria-label="Demo of Build With Me at Home">
+<div id="demo" hidden role="dialog" aria-label="Demo of Build With Me">
   <div class="demobanner">Demo: mock screens, not connected to anything.</div>
   <div class="demobar">
     <div class="steps"><span id="stepLabel">Step 1 of 7</span><span class="dots" id="dots" aria-hidden="true"></span></div>
@@ -399,7 +402,9 @@ $('restartBtn').addEventListener('click',function(){hist=[];applyTheme(THEMES[0]
 $('exitBtn').addEventListener('click',closeDemo);
 $('tryDemo').addEventListener('click',function(){$('demo').hidden=false;document.body.style.overflow='hidden';hist=[];applyTheme(THEMES[0]);show(0,true)});
 function closeDemo(){clearAll();$('demo').hidden=true;document.body.style.overflow='';$('tryDemo').focus()}
-$('installIt').addEventListener('click',function(){closeDemo();$('install').scrollIntoView();});
+function showInstall(){$('installArea').hidden=false;$('needCard').scrollIntoView({behavior:'smooth'})}
+$('installBtn').addEventListener('click',showInstall);
+$('installIt').addEventListener('click',function(){closeDemo();showInstall();});
 
 /* 1 Parent pass */
 var passInt;
