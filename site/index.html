@@ -156,6 +156,19 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 #s1 .quote b{font-size:12px;color:var(--muted);display:block}
 #s1 .okpill{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--brand-soft);color:var(--brand)}
 #s1 details{margin-top:8px} #s1 summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:center}
+/* kid landing page (screen 3), scoped */
+#s2 .inner{max-width:760px;text-align:center;position:relative}
+#s2 .myapps{position:absolute;right:0;top:0;min-height:44px;padding:6px 14px;border-radius:999px;border:1px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-weight:700}
+#s2 .wave{font-size:72px;line-height:1;margin-top:34px}
+#s2 .eyebrow{letter-spacing:.14em;font-weight:800;color:var(--t-accent);margin:18px 0 6px;font-size:15px}
+#s2 h1{font-size:clamp(30px,6vw,48px);line-height:1.1;margin:0 0 8px}
+#s2 .tag{font-weight:700;font-size:18px}
+#s2 .aipill{display:inline-flex;align-items:center;gap:8px;margin:18px 0 12px;padding:10px 18px;border-radius:16px;background:var(--t-surface-2);font-weight:800;font-size:17px}
+#s2 .howto{margin:14px 0 6px;font-size:18px;font-weight:800}
+#s2 .choices{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+#s2 .choice{min-height:140px;border-radius:22px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-size:24px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+#s2 .choice span{font-size:48px;line-height:1}
+#s2 .toast{position:sticky;bottom:8px;margin:12px auto 0;max-width:340px;background:var(--t-ink);color:var(--t-bg);padding:10px 14px;border-radius:10px;font-size:14px}
 /* parent screens */
 .kidcard{display:flex;align-items:center;gap:14px}
 .kidcard .em{font-size:40px}
@@ -307,7 +320,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
 <div id="demo" hidden role="dialog" aria-label="Demo of Build With Me">
   <div class="demobanner">Demo: mock screens, not connected to anything.</div>
   <div class="demobar">
-    <div class="steps"><span id="stepLabel">Step 1 of 8</span><span class="dots" id="dots" aria-hidden="true"></span></div>
+    <div class="steps"><span id="stepLabel">Step 1 of 9</span><span class="dots" id="dots" aria-hidden="true"></span></div>
     <button class="btn ghost" id="restartBtn">Restart</button>
     <button class="btn ghost" id="backBtn">Back</button>
     <button class="btn" id="nextBtn">Next</button>
@@ -487,8 +500,27 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
       </div>
     </section>
 
-    <!-- 2 Kid: pick a look -->
-    <section class="screen kid" id="s2" aria-label="Pick a look">
+    <!-- 3 Kid: landing page -->
+    <section class="screen kid" id="s2" aria-label="Kid landing page">
+      <div class="inner">
+        <button class="myapps" id="myAppsBtn">📚 My apps</button>
+        <div class="wave" aria-hidden="true">👋</div>
+        <div class="eyebrow">BUILD WITH ME</div>
+        <h1>Hi Sam! Let's make an app together!</h1>
+        <div class="tag muted">Design first, build together.</div>
+        <div class="aipill">🤖 Your helper is an AI, not a person.</div>
+        <p class="muted" style="font-size:17px">We plan your app together first, then build it. Projects are kept small: a few short sessions.</p>
+        <div class="howto">How do you want to answer?</div>
+        <div class="choices">
+          <button class="choice" id="chooseTalk"><span aria-hidden="true">🎤</span>Talk</button>
+          <button class="choice" id="chooseType"><span aria-hidden="true">⌨️</span>Type</button>
+        </div>
+        <div class="toast" id="toast2" role="status" hidden>That's not part of this demo.</div>
+      </div>
+    </section>
+
+    <!-- 4 Kid: pick a look -->
+    <section class="screen kid" id="s3" aria-label="Pick a look">
       <div class="inner">
         <h2>Hi Sam! Pick a look 🎨</h2>
         <p class="muted">Tap one. You can see the colors change.</p>
@@ -499,7 +531,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 3 Kid: guide chat -->
-    <section class="screen kid" id="s3" aria-label="Chat with the guide">
+    <section class="screen kid" id="s4" aria-label="Chat with the guide">
       <div class="inner">
         <div class="stages" id="stages" aria-label="Progress"></div>
         <div id="chat" role="log" aria-live="polite"></div>
@@ -508,7 +540,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 4 Kid: build -->
-    <section class="screen kid" id="s4" aria-label="Building the app">
+    <section class="screen kid" id="s5" aria-label="Building the app">
       <div class="inner">
         <h2 id="buildLine">Building…</h2>
         <div class="motifs" id="motifs3" aria-hidden="true"></div>
@@ -518,7 +550,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 5 Kid: the game -->
-    <section class="screen kid" id="s5" aria-label="Star Catcher game">
+    <section class="screen kid" id="s6" aria-label="Star Catcher game">
       <div class="inner">
         <h2>Star Catcher is ready! ⭐</h2>
         <p class="muted">Tap the stars to catch them. A round lasts 20 seconds.</p>
@@ -529,7 +561,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 6 Kid: ship + shelf -->
-    <section class="screen kid" id="s6" aria-label="Ship and My apps">
+    <section class="screen kid" id="s7" aria-label="Ship and My apps">
       <div class="inner">
         <div id="shipForm">
           <h2>Ship it! 🎉</h2>
@@ -549,7 +581,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 7 Parent report -->
-    <section class="screen" id="s7" aria-label="Parent report">
+    <section class="screen" id="s8" aria-label="Parent report">
       <div class="inner">
         <p><span class="pill">Parent report</span></p>
         <h1 style="font-size:26px">Sam made <span id="repName">Star Catcher</span></h1>
@@ -599,7 +631,7 @@ var THEMES=[
  {id:'nature',name:'Nature',emoji:'🌿',motifs:['🌻','🦋','🍃','🌲'],thinking:'Letting that idea grow…',building:'Growing your app…',c:{bg:'#f7f7ee',surface:'#ffffff',surface2:'#ecefdc',ink:'#1f2a14',muted:'#4d6b2f',accent:'#55803a',line:'#c5d6a8'}}
 ];
 var theme=THEMES[0];
-var kidScreens=[2,3,4,5,6].map(function(i){return $('s'+i)});
+var kidScreens=[2,3,4,5,6,7].map(function(i){return $('s'+i)});
 function applyTheme(t){
   theme=t;
   var c=t.c, m={'--t-bg':c.bg,'--t-surface':c.surface,'--t-surface-2':c.surface2,'--t-ink':c.ink,'--t-muted':c.muted,'--t-accent':c.accent,'--t-line':c.line};
@@ -622,9 +654,9 @@ document.querySelectorAll('[data-copy]').forEach(function(b){
 });
 
 /* Flow */
-var N=8,cur=0,hist=[],tok=0,timers=[];
-var NAMES=['Parent Portal','Parent Report (sample)','Pick a look','Chat with the guide','Building the app','Star Catcher game','Ship and My apps','Parent Report'];
-var DESCS=['Parent control center.','What a parent sees after a kid finishes an app.','The kid chooses a color theme for their space.','The kid and the AI guide plan the app together.','The app gets built while the kid watches.','The kid plays the app they just made.','The kid names the app and adds it to their shelf.','The report the parent gets for this app.'];
+var N=9,cur=0,hist=[],tok=0,timers=[];
+var NAMES=['Parent Portal','Parent Report (sample)','Kid Landing Page','Pick a look','Chat with the guide','Building the app','Star Catcher game','Ship and My apps','Parent Report'];
+var DESCS=['Parent control center.','What a parent sees after a kid finishes an app.','The kid\u2019s start page. Talk: their voice becomes text on this computer.','The kid chooses a color theme for their space.','The kid and the AI guide plan the app together.','The app gets built while the kid watches.','The kid plays the app they just made.','The kid names the app and adds it to their shelf.','The report the parent gets for this app.'];
 var screens=[];for(var i=0;i<N;i++)screens.push($('s'+i));
 var dots=$('dots');dots.innerHTML=screens.map(function(){return '<i></i>'}).join('');
 function later(fn,ms){var id=setTimeout(fn,ms);timers.push(id);return id}
@@ -637,7 +669,7 @@ function show(i,isBack){
   var kids=dots.children;for(var k=0;k<N;k++)kids[k].className=k===i?'on':(k<i?'done':'');
   $('stepLabel').textContent='Step '+(i+1)+' of '+N;$('screenName').textContent=NAMES[i];$('screenDesc').textContent=DESCS[i];$('nextBtn').disabled=i===N-1;
   screens[i].scrollTop=0;
-  var enter=[enterPass,enterSample,enterLook,enterChat,enterBuild,enterGame,enterShip,enterReport][i];
+  var enter=[enterPass,enterSample,enterKidHome,enterLook,enterChat,enterBuild,enterGame,enterShip,enterReport][i];
   enter();
   var h=screens[i].querySelector('h1,h2');if(h){h.setAttribute('tabindex','-1');try{h.focus({preventScroll:true})}catch(e){}}
 }
@@ -668,6 +700,10 @@ var left={leo:4360,sam:3600};
 function fmtLeft(n){var h=Math.floor(n/3600),m=Math.floor(n%3600/60),x=n%60;return h+':'+(m<10?'0':'')+m+':'+(x<10?'0':'')+x+' left'}
 function paintTimes(){$('tLeo').textContent=fmtLeft(left.leo);$('tSam').textContent=fmtLeft(left.sam)}
 function enterSample(){}
+function enterKidHome(){$('toast2').hidden=true}
+$('chooseTalk').addEventListener('click',function(){go(3)});
+$('chooseType').addEventListener('click',function(){go(3)});
+$('myAppsBtn').addEventListener('click',function(){var t=$('toast2');t.hidden=false;later(function(){t.hidden=true},1800)});
 function enterPass(){
   $('passArea').hidden=true;$('rowSam').hidden=true;$('givePass').hidden=false;$('toast0').hidden=true;
   left={leo:4360,sam:3600};paintTimes();
@@ -722,7 +758,7 @@ Array.prototype.forEach.call($('s1').querySelectorAll('[data-inert2]'),function(
   });
 })();
 function enterLook(){Array.prototype.forEach.call($('tiles').children,function(x,k){x.setAttribute('aria-pressed',THEMES[k].id===theme.id)})}
-$('lookNext').addEventListener('click',function(){go(3)});
+$('lookNext').addEventListener('click',function(){go(4)});
 
 /* 3 Chat */
 var STAGES=['Start','Idea','Design','Tech plan','Build','Ship'];
@@ -772,7 +808,7 @@ function enterChat(){
       var p=document.createElement('div');p.className='plan';
       p.innerHTML='<b>Star Catcher: the plan</b><ul><li>Stars fall from the top of the screen</li><li>Tap a star to catch it and score a point</li><li>A round lasts 20 seconds, then you can play again</li></ul>';
       var go1=document.createElement('button');go1.className='kbtn';go1.textContent='Looks good, build it!';
-      go1.addEventListener('click',function(){if(my===tok)go(4)});
+      go1.addEventListener('click',function(){if(my===tok)go(5)});
       p.appendChild(go1);chat.appendChild(p);endScroll();go1.focus({preventScroll:true});
     }catch(e){if(e!=='cancel')throw e}
   })();
@@ -788,7 +824,7 @@ function enterBuild(){
   function set(k){for(var j=0;j<items.length;j++){items[j].className=j<k?'ok':j===k?'run':'';items[j].firstChild.textContent=j<k?'✅':j===k?theme.motifs[j%theme.motifs.length]:'⏳'}
     var pct=Math.round(k/BSTEPS.length*100);fill.style.width=pct+'%';bar.setAttribute('aria-valuenow',pct)}
   set(0);
-  for(let k=1;k<=BSTEPS.length;k++)later(function(){set(k);if(k===BSTEPS.length)later(function(){go(5)},600)},per*k);
+  for(let k=1;k<=BSTEPS.length;k++)later(function(){set(k);if(k===BSTEPS.length)later(function(){go(6)},600)},per*k);
 }
 
 /* 5 Game */
@@ -835,7 +871,7 @@ function startGame(){
     }
   },1000);
 }
-$('toShip').addEventListener('click',function(){go(6)});
+$('toShip').addEventListener('click',function(){go(7)});
 
 /* 6 Ship + shelf */
 var ICONS=['⭐','🚀','🌟','🪐'],icon='⭐';
@@ -858,7 +894,7 @@ $('shipBtn').addEventListener('click',function(){
   $('shipForm').hidden=true;$('shelfView').hidden=false;
   var h=$('shelfView').querySelector('h2');h.setAttribute('tabindex','-1');h.focus({preventScroll:true});
 });
-$('toReport').addEventListener('click',function(){go(7)});
+$('toReport').addEventListener('click',function(){go(8)});
 
 /* 7 Report */
 function enterReport(){$('repName').textContent=appName()}
