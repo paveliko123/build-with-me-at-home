@@ -174,10 +174,10 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 #s2 .choice{min-height:max(64px,16cqh);border-radius:22px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-size:max(16px,min(3.8cqh,24px));font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 #s2 .choice span{font-size:max(26px,min(7cqh,48px));line-height:1}
 #s2 .toast{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:max-content;max-width:90%;background:var(--t-ink);color:var(--t-bg);padding:8px 14px;border-radius:10px;font-size:14px}
-/* guide chat (screens 5 and 6): static mock-ups */
-:is(#s4,#s5,#s6) .inner{max-width:1100px;display:flex;flex-direction:column;height:100%}
-:is(#s5,#s6){padding:1.5cqh 16px;overflow:hidden}
-:is(#s5,#s6) .inner{max-width:1200px}
+/* guide chat (screens 5 to 8): static mock-ups */
+:is(#s4,#s5,#s6,#s7) .inner{max-width:1100px;display:flex;flex-direction:column;height:100%}
+:is(#s5,#s6,#s7){padding:1.5cqh 16px;overflow:hidden}
+:is(#s5,#s6,#s7) .inner{max-width:1200px}
 .topbar{display:flex;align-items:center;gap:10px;margin-bottom:1cqh;flex:0 0 auto}
 .topbar .pillbtn{min-height:36px;padding:2px 14px;border-radius:999px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-weight:700;font-size:14px;white-space:nowrap}
 .stepper{list-style:none;margin:0;padding:0;display:flex;align-items:center;justify-content:center;flex:1;min-width:0}
@@ -190,9 +190,9 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 @media (max-width:640px){.stepper li:not(.on) .lbl{display:none}.stepper li:not(.on){padding:3px}.topbar .pillbtn .lbl{display:none}.topbar .pillbtn{padding:2px 10px}}
 .chatlog{flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
 .chatlog>*{flex:0 0 auto}
-:is(#s4,#s5,#s6) .bubble{font-size:max(13px,min(2.9cqh,17px));line-height:1.35;margin:1cqh 0;animation:none}
-:is(#s4,#s5,#s6) .bubble p{margin:0 0 .6cqh}
-:is(#s4,#s5,#s6) .bubble p:last-child{margin-bottom:0}
+:is(#s4,#s5,#s6,#s7) .bubble{font-size:max(13px,min(2.9cqh,17px));line-height:1.35;margin:1cqh 0;animation:none}
+:is(#s4,#s5,#s6,#s7) .bubble p{margin:0 0 .6cqh}
+:is(#s4,#s5,#s6,#s7) .bubble p:last-child{margin-bottom:0}
 .chatlog .bubble.bot{align-self:flex-start}
 .chatlog .bubble.me{align-self:flex-end;margin-left:0}
 .chatlog .bubble.big{align-self:stretch;max-width:100%;background:var(--t-surface);border:2px solid var(--t-line);border-radius:24px;padding:1.6cqh 18px}
@@ -208,23 +208,23 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 .crow input[type=text]{flex:1;min-width:0;margin:0!important;min-height:max(46px,min(7cqh,52px))!important;font-size:max(15px,min(3.4cqh,18px))!important}
 .send{min-height:max(46px,min(7cqh,52px));padding:0 22px;border-radius:999px;border:none;background:var(--t-accent);color:#fff;font-weight:800;font-size:17px}
 .send:disabled,.crow input:disabled{opacity:.55}
-:is(#s5,#s6) .idea{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:16px}
-:is(#s5,#s6) .chatcol{display:flex;flex-direction:column;min-height:0}
-:is(#s5,#s6) .panel{display:flex;flex-direction:column;min-height:0;border:2px solid var(--t-line);border-radius:22px;background:var(--t-surface);overflow:hidden}
-:is(#s5,#s6) .panel header{display:flex;align-items:center;gap:10px;padding:1.2cqh 18px;border-bottom:2px solid var(--t-line);font-weight:800;font-size:max(14px,min(3cqh,18px))}
-:is(#s5,#s6) .approved{background:var(--t-accent);color:#fff;border-radius:999px;padding:2px 12px;font-size:max(12px,min(2.6cqh,15px))}
-:is(#s5,#s6) .panel .body{overflow-y:auto;padding:1.4cqh 18px;font-size:max(12px,min(2.7cqh,15px));line-height:1.45}
-:is(#s5,#s6) .panel h2{font-size:max(18px,min(4.6cqh,26px));margin:0 0 1.2cqh}
-:is(#s5,#s6) .panel details{border:2px solid var(--t-line);border-radius:16px;padding:1cqh 16px}
-:is(#s5,#s6) .panel summary{cursor:pointer;font-weight:800;color:var(--t-accent);min-height:36px;display:flex;align-items:center}
-:is(#s5,#s6) .panel h3{font-size:max(15px,min(3.3cqh,20px));margin:1.4cqh 0 .4cqh}
-:is(#s5,#s6) .panel p{margin:0 0 .6cqh}
+:is(#s5,#s6,#s7) .idea{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+:is(#s5,#s6,#s7) .chatcol{display:flex;flex-direction:column;min-height:0}
+:is(#s5,#s6,#s7) .panel{display:flex;flex-direction:column;min-height:0;border:2px solid var(--t-line);border-radius:22px;background:var(--t-surface);overflow:hidden}
+:is(#s5,#s6,#s7) .panel header{display:flex;align-items:center;gap:10px;padding:1.2cqh 18px;border-bottom:2px solid var(--t-line);font-weight:800;font-size:max(14px,min(3cqh,18px))}
+:is(#s5,#s6,#s7) .approved{background:var(--t-accent);color:#fff;border-radius:999px;padding:2px 12px;font-size:max(12px,min(2.6cqh,15px))}
+:is(#s5,#s6,#s7) .panel .body{overflow-y:auto;padding:1.4cqh 18px;font-size:max(12px,min(2.7cqh,15px));line-height:1.45}
+:is(#s5,#s6,#s7) .panel h2{font-size:max(18px,min(4.6cqh,26px));margin:0 0 1.2cqh}
+:is(#s5,#s6,#s7) .panel details{border:2px solid var(--t-line);border-radius:16px;padding:1cqh 16px}
+:is(#s5,#s6,#s7) .panel summary{cursor:pointer;font-weight:800;color:var(--t-accent);min-height:36px;display:flex;align-items:center}
+:is(#s5,#s6,#s7) .panel h3{font-size:max(15px,min(3.3cqh,20px));margin:1.4cqh 0 .4cqh}
+:is(#s5,#s6,#s7) .panel p{margin:0 0 .6cqh}
 @media (max-width:760px){
-  :is(#s5,#s6){overflow-y:auto}
-  :is(#s5,#s6) .inner{height:auto}
-  :is(#s5,#s6) .idea{grid-template-columns:1fr;display:flex;flex-direction:column}
-  :is(#s5,#s6) .chatcol{height:calc(100cqh - 70px)}
-  :is(#s5,#s6) .panel{min-height:70cqh}
+  :is(#s5,#s6,#s7){overflow-y:auto}
+  :is(#s5,#s6,#s7) .inner{height:auto}
+  :is(#s5,#s6,#s7) .idea{grid-template-columns:1fr;display:flex;flex-direction:column}
+  :is(#s5,#s6,#s7) .chatcol{height:calc(100cqh - 70px)}
+  :is(#s5,#s6,#s7) .panel{min-height:70cqh}
 }
 .rightcol{display:flex;flex-direction:column;min-height:0;gap:1cqh}
 .rightcol .panel{flex:1 1 auto}
@@ -235,8 +235,27 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 .pcard{background:var(--t-surface-2);border-radius:16px;padding:1.2cqh 14px}
 .pcard h3{margin:0 0 .4cqh!important;font-size:max(14px,min(3cqh,17px))!important}
 .pcard p{margin:0 0 .4cqh!important}
-:is(#s5,#s6) .panel ul{margin:0 0 .6cqh;padding-left:20px}
-@media (max-width:760px){.cardgrid{grid-template-columns:1fr}:is(#s5,#s6) .rightcol{min-height:70cqh}}
+:is(#s5,#s6,#s7) .panel ul{margin:0 0 .6cqh;padding-left:20px}
+@media (max-width:760px){.cardgrid{grid-template-columns:1fr}:is(#s5,#s6,#s7) .rightcol{min-height:70cqh}}
+.chatlink{display:inline-flex;align-items:center;gap:6px;margin:0 0 .8cqh;font-weight:700;color:var(--t-accent);font-size:max(13px,min(2.8cqh,15px))}
+#s7 .panel .body{display:flex;flex-direction:column;justify-content:center;align-items:stretch;overflow:hidden;padding:1.4cqh 6%}
+#s7 .robotbox{position:relative;align-self:center;width:min(30cqh,60%);aspect-ratio:1.5;display:grid;place-items:center;font-size:max(48px,min(15cqh,110px));margin-bottom:1.5cqh}
+#s7 .robotbox .motifs{position:absolute;inset:0;margin:0;display:block;font-size:max(16px,min(4.6cqh,30px))}
+#s7 .robotbox .motifs span{position:absolute}
+#s7 .robotbox .motifs span:nth-child(1){left:0;top:55%}
+#s7 .robotbox .motifs span:nth-child(2){right:2%;top:0}
+#s7 .robotbox .motifs span:nth-child(3){right:0;bottom:4%}
+#s7 .robotbox .motifs span:nth-child(4){left:12%;top:0}
+#s7 .buildhead{margin:0 0 1cqh;font-size:max(15px,min(3.8cqh,22px));font-weight:800}
+#s7 .kbar{height:max(12px,min(2.4cqh,18px));margin-bottom:1.6cqh}
+#s7 .kbar i{min-width:max(12px,min(2.4cqh,18px))}
+#s7 .planhead{font-weight:800;color:var(--t-accent);margin:0 0 .8cqh;font-size:max(13px,min(3cqh,17px))}
+#s7 .steplist{margin:0;padding:0}
+#s7 .steplist li{background:none;border:none;padding:.3cqh 0;margin:0;gap:12px;font-size:max(13px,min(2.9cqh,16px));font-weight:500;color:var(--t-ink)}
+#s7 .steplist .bx{flex:0 0 auto;width:max(16px,min(3cqh,20px));height:max(16px,min(3cqh,20px));border-radius:5px;background:var(--t-surface-2);border:2px solid var(--t-line);display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800;line-height:1}
+#s7 .steplist li.run .bx{border-color:var(--t-accent)}
+#s7 .steplist li.ok .bx{background:var(--t-accent);border-color:var(--t-accent)}
+@media (max-width:760px){#s7 .panel{order:-1;min-height:0}#s7 .robotbox{width:50%}}
 /* pick a look (screen 4) */
 #s3 h2{font-size:min(4.6cqh,28px);margin:0 0 .6cqh}
 #s3 .sub{font-size:max(12px,min(2.8cqh,16px));margin:0 0 1.2cqh}
@@ -719,13 +738,33 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
       </div>
     </section>
 
-    <!-- 4 Kid: build -->
+    <!-- 8 Kid: building the app -->
     <section class="screen kid" id="s7" aria-label="Building the app">
       <div class="inner">
-        <h2 id="buildLine">Building…</h2>
-        <div class="motifs" id="motifs3" aria-hidden="true"></div>
-        <div class="kbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="buildBar"><i></i></div>
-        <ul class="steplist" id="buildSteps"></ul>
+        <div class="topbar"><span class="pillbtn"><span class="lbl">＋ New app</span></span><ol class="stepper"><li class="done"><i>✓</i><span class="lbl">👋 Start</span></li><span class="line"></span><li class="done"><i>✓</i><span class="lbl">💡 Idea</span></li><span class="line"></span><li class="done"><i>✓</i><span class="lbl">🎨 Design</span></li><span class="line"></span><li class="done"><i>✓</i><span class="lbl">🛠️ Tech plan</span></li><span class="line"></span><li class="on"><i>5</i><span class="lbl">🏗️ Build</span></li><span class="line"></span><li class=""><i>6</i><span class="lbl">🎉 Ship</span></li></ol><span class="pillbtn"><span class="lbl">📚 My apps</span></span></div>
+        <div class="idea">
+          <div class="chatcol">
+            <div class="chatlog" role="log">
+              <div class="bubble bot">🛠️ I'll make one page with a space scene where stars fall from the sky, and tapping a star catches it and makes your score climb. Every round lasts 20 seconds!</div>
+              <div class="bubble bot">Building your app now! It takes a few minutes, so let's chat while you wait.</div>
+              <div class="bubble bot">Your Star Catcher game is being built right now. It usually takes a few minutes, so let's use the time. 🤖⚙️ I'll keep any ideas you have, and you can add them to your change list when it's ready. If you could add one fun surprise to the game, what would it be?</div>
+            </div>
+            <div class="composer">
+              <div class="cpills"><span class="cpill">🎤 Talk instead</span><span class="cpill">🔇 Voice off</span></div>
+              <span class="chatlink">💬 Chat while your app builds (ideas for later)</span>
+              <div class="crow"><input type="text" placeholder="Say something…" aria-label="Say something" disabled><button class="send" disabled>Send</button></div>
+            </div>
+          </div>
+          <aside class="panel" aria-label="Building progress">
+            <div class="body">
+              <div class="robotbox"><span aria-hidden="true">🤖</span><div class="motifs" id="motifs3" aria-hidden="true"></div></div>
+              <h2 class="buildhead" id="buildLine">📖 Reading your plans (idea, design, tech)…</h2>
+              <div class="kbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="buildBar"><i></i></div>
+              <p class="planhead">Your plan, turning into code:</p>
+              <ul class="steplist" id="buildSteps"></ul>
+            </div>
+          </aside>
+        </div>
       </div>
     </section>
 
@@ -836,7 +875,7 @@ document.querySelectorAll('[data-copy]').forEach(function(b){
 /* Flow */
 var N=11,cur=0,hist=[],tok=0,timers=[];
 var NAMES=['Parent Portal','Parent Report (sample)','Kid Landing Page','Pick a look','Guide Chat: Start','Guide Chat: Idea','Guide Chat: Design','Building the app','Star Catcher game','Ship and My apps','Parent Report'];
-var DESCS=['Parent control center.','What a parent sees after a kid finishes an app.','The kid\u2019s start page. Talk: their voice becomes text on this computer.','The kid chooses a color theme for their space.','The guide gets to know the kid, one friendly question at a time.','The Idea step: the guide asks for the whole idea, and the profile fills in on the right.','The Design step: the approved Idea plan is on the right while the guide walks through how it works.','The app gets built while the kid watches.','The kid plays the app they just made.','The kid names the app and adds it to their shelf.','The report the parent gets for this app.'];
+var DESCS=['Parent control center.','What a parent sees after a kid finishes an app.','The kid\u2019s start page. Talk: their voice becomes text on this computer.','The kid chooses a color theme for their space.','The guide gets to know the kid, one friendly question at a time.','The Idea step: the guide asks for the whole idea, and the profile fills in on the right.','The Design step: the approved Idea plan is on the right while the guide walks through how it works.','The app gets built while the kid keeps chatting with the guide and watches the plan turn into code.','The kid plays the app they just made.','The kid names the app and adds it to their shelf.','The report the parent gets for this app.'];
 var screens=[];for(var i=0;i<N;i++)screens.push($('s'+i));
 var dots=$('dots');dots.innerHTML=screens.map(function(){return '<i></i>'}).join('');
 function later(fn,ms){var id=setTimeout(fn,ms);timers.push(id);return id}
@@ -947,16 +986,17 @@ function enterIdea(){}
 function enterDesign(){}
 
 /* 4 Build */
-var BSTEPS=['Setting up the game board','Drawing the stars','Adding the score and timer','Final touches'];
+var BSTEPS=['the space scene with planets and a moon','the falling stars','tapping a star to catch it','the score going up with a sparkle','the 20-second timer','the Play again button'];
 function enterBuild(){
-  $('buildLine').textContent=theme.building;
-  var ul=$('buildSteps');ul.innerHTML=BSTEPS.map(function(s){return '<li><span aria-hidden="true">⏳</span><span>'+s+'</span></li>'}).join('');
-  var bar=$('buildBar'),fill=bar.firstChild;fill.style.width='0';
-  var total=6000,per=total/BSTEPS.length,items=ul.children;
-  function set(k){for(var j=0;j<items.length;j++){items[j].className=j<k?'ok':j===k?'run':'';items[j].firstChild.textContent=j<k?'✅':j===k?theme.motifs[j%theme.motifs.length]:'⏳'}
-    var pct=Math.round(k/BSTEPS.length*100);fill.style.width=pct+'%';bar.setAttribute('aria-valuenow',pct)}
+  var head=$('buildLine');head.textContent='\ud83d\udcd6 Reading your plans (idea, design, tech)\u2026';
+  var ul=$('buildSteps');ul.innerHTML=BSTEPS.map(function(x){return '<li><span class="bx" aria-hidden="true"></span><span>'+x+'</span></li>'}).join('');
+  var bar=$('buildBar'),fill=bar.firstChild;fill.style.width='0';bar.setAttribute('aria-valuenow',0);
+  var total=9000,per=total/BSTEPS.length,items=ul.children;
+  function set(k){for(var j=0;j<items.length;j++){items[j].className=j<k?'ok':j===k?'run':'';items[j].firstChild.textContent=j<k?'\u2713':''}
+    var pct=Math.round(k/BSTEPS.length*100);fill.style.width=pct+'%';bar.setAttribute('aria-valuenow',pct);
+    head.textContent=k===0?'\ud83d\udcd6 Reading your plans (idea, design, tech)\u2026':k<BSTEPS.length?'\ud83d\udd28 Now building: '+BSTEPS[k]+'\u2026':'\u2705 Your app is built!'}
   set(0);
-  for(let k=1;k<=BSTEPS.length;k++)later(function(){set(k);if(k===BSTEPS.length)later(function(){go(8)},600)},per*k);
+  for(let k=1;k<=BSTEPS.length;k++)later(function(){set(k);if(k===BSTEPS.length)later(function(){go(8)},900)},per*k);
 }
 
 /* 5 Game */
