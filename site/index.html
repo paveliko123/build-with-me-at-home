@@ -174,6 +174,29 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 #s2 .choice{min-height:max(64px,16cqh);border-radius:22px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-size:max(16px,min(3.8cqh,24px));font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 #s2 .choice span{font-size:max(26px,min(7cqh,48px));line-height:1}
 #s2 .toast{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:max-content;max-width:90%;background:var(--t-ink);color:var(--t-bg);padding:8px 14px;border-radius:10px;font-size:14px}
+/* chat (screen 5) */
+#s4 .inner{max-width:760px;justify-content:flex-start;position:relative}
+#s4 .stages{margin-bottom:1cqh;flex:0 0 auto}
+#s4 .stages div{font-size:11px;padding-top:2px}
+#chat{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding-right:2px;display:flex;flex-direction:column}
+#chat>*{flex:0 0 auto}
+#chat .bubble.bot{align-self:flex-start}
+#chat .bubble.me{align-self:flex-end}
+#chat .bubble.big{align-self:stretch}
+#s4 .bubble{font-size:max(13px,min(2.9cqh,17px));line-height:1.35;margin:1cqh 0}
+#s4 .bubble p{margin:0 0 .6cqh}
+#s4 .bubble p:last-child{margin-bottom:0}
+#s4 .bubble.big{max-width:100%;background:var(--t-surface);border:2px solid var(--t-line);border-radius:24px;padding:1.6cqh 18px}
+#s4 .bubble.big .q{font-size:max(17px,min(4.4cqh,28px));font-weight:800;line-height:1.2;margin:.8cqh 0 1.2cqh;color:var(--t-ink)}
+#s4 .bubble.big .kbtn{min-height:max(44px,min(7cqh,52px));font-size:max(15px,min(3.2cqh,18px))}
+.composer{flex:0 0 auto;padding-top:1cqh}
+.cpills{display:flex;gap:8px;margin-bottom:.8cqh}
+.cpill{min-height:36px;padding:2px 14px;border-radius:999px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-weight:700;font-size:14px}
+.crow{display:flex;gap:10px;align-items:center}
+.crow input[type=text]{flex:1;min-width:0;margin:0!important;min-height:max(46px,min(7cqh,52px))!important;font-size:max(15px,min(3.4cqh,18px))!important}
+.send{min-height:max(46px,min(7cqh,52px));padding:0 22px;border-radius:999px;border:none;background:var(--t-accent);color:#fff;font-weight:800;font-size:17px}
+.send:disabled,.crow input:disabled{opacity:.55}
+#s4 .toast{position:absolute;left:50%;bottom:20cqh;transform:translateX(-50%);width:max-content;max-width:90%;background:var(--t-ink);color:var(--t-bg);padding:8px 14px;border-radius:10px;font-size:14px}
 /* pick a look (screen 4) */
 #s3 h2{font-size:min(4.6cqh,28px);margin:0 0 .6cqh}
 #s3 .sub{font-size:max(12px,min(2.8cqh,16px));margin:0 0 1.2cqh}
@@ -544,11 +567,15 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 3 Kid: guide chat -->
-    <section class="screen kid" id="s4" aria-label="Chat with the guide">
+    <section class="screen kid fit" id="s4" aria-label="Chat with the guide">
       <div class="inner">
         <div class="stages" id="stages" aria-label="Progress"></div>
         <div id="chat" role="log" aria-live="polite"></div>
-        <div id="chatEnd"></div>
+        <div class="composer">
+          <div class="cpills"><button class="cpill" id="talkBtn">🎤 Talk instead</button><button class="cpill" id="voiceBtn" aria-pressed="false">🔇 Voice off</button></div>
+          <div class="crow"><input type="text" id="chatInput" aria-label="Your answer" autocomplete="off"><button class="send" id="sendBtn">Send</button></div>
+        </div>
+        <div class="toast" id="toast4" role="status" hidden>That's not part of this demo.</div>
       </div>
     </section>
 
@@ -778,14 +805,23 @@ var STAGES=['Start','Idea','Design','Tech plan','Build','Ship'];
 var choiceSpeed='Medium',starEmoji='⭐';
 var chat=$('chat');
 function setStage(n){$('stages').innerHTML=STAGES.map(function(s,k){return '<div class="'+(k<n?'done':k===n?'on':'')+'"'+(k===n?' aria-current="step"':'')+'>'+s+'</div>'}).join('')}
-function endScroll(){$('chatEnd').scrollIntoView({block:'end',behavior:reduce?'auto':'smooth'})}
+function endScroll(){chat.scrollTo({top:chat.scrollHeight,behavior:reduce?'auto':'smooth'})}
 function wait(ms,my){return new Promise(function(res,rej){later(function(){my===tok?res():rej('cancel')},ms)})}
-function bubble(text,cls){var d=document.createElement('div');d.className='bubble '+cls;d.textContent=text;chat.appendChild(d);endScroll();return d}
-function bot(text,my){
+function bubble(text,cls){var d=document.createElement('div');d.className='bubble '+cls;if(Array.isArray(text)){text.forEach(function(x){var e=document.createElement('p');e.textContent=x;d.appendChild(e)})}else d.textContent=text;chat.appendChild(d);endScroll();return d}
+function think(my){
   var t=document.createElement('div');t.className='bubble bot typing';t.innerHTML='<span></span> <b>.</b><b>.</b><b>.</b>';t.firstChild.textContent=theme.thinking;
   chat.appendChild(t);endScroll();
-  return wait(reduce?400:1100,my).then(function(){chat.removeChild(t);bubble(text,'bot');return wait(350,my)});
+  return wait(reduce?400:1100,my).then(function(){chat.removeChild(t)});
 }
+function bot(text,my){
+  return think(my).then(function(){bubble(text,'bot');return wait(350,my)});
+}
+var onSend=null;
+function sendNow(){if(onSend)onSend()}
+$('sendBtn').addEventListener('click',sendNow);
+$('chatInput').addEventListener('keydown',function(e){if(e.key==='Enter')sendNow()});
+$('talkBtn').addEventListener('click',function(){var t=$('toast4');t.hidden=false;later(function(){t.hidden=true},1800)});
+$('voiceBtn').addEventListener('click',function(){var on=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',on);this.textContent=on?'🔊 Voice on':'🔇 Voice off'});
 function choose(opts,my){
   return new Promise(function(res,rej){
     var box=document.createElement('div');box.className='choices';
@@ -801,12 +837,25 @@ function choose(opts,my){
   });
 }
 function enterChat(){
-  chat.innerHTML='';setStage(0);var my=tok;
+  chat.innerHTML='';setStage(0);var my=tok;onSend=null;
+  var inp=$('chatInput'),snd=$('sendBtn');
+  inp.value='space games';inp.placeholder='Type your answer';inp.disabled=false;snd.disabled=false;
+  $('toast4').hidden=true;$('voiceBtn').setAttribute('aria-pressed','false');$('voiceBtn').textContent='🔇 Voice off';
   (async function(){
     try{
-      await bot('Hi Sam! I\'m your guide. I\'m an AI, not a person. 👋',my);
-      await bot('Let\'s make an app together. Which idea sounds fun?',my);
+      await bot(['Hi there! '+theme.emoji+' I\'m an AI helper, not a person. I\'m here to help you make your very own app. First, I want to know about you!','What do you love doing most for fun?'],my);
+      var typed=await new Promise(function(res){onSend=function(){var v=inp.value.trim();if(!v||my!==tok)return;onSend=null;res(v)}});
+      inp.value='';inp.disabled=true;snd.disabled=true;inp.placeholder='Tap a choice above';
+      bubble(typed,'me');
+      await think(my);
+      var card=document.createElement('div');card.className='bubble bot big';
+      card.innerHTML='<p class="l"></p><p class="q">What would you love your app to be about?</p>';
+      card.firstChild.textContent=typed.charAt(0).toUpperCase()+typed.slice(1)+'! \ud83c\udf89 That sounds so fun.';
+      var si=document.createElement('button');si.className='kbtn';si.textContent='\ud83d\udca1 Show me ideas';
+      card.appendChild(si);chat.appendChild(card);endScroll();si.focus({preventScroll:true});
+      await new Promise(function(res){si.addEventListener('click',function(){if(my===tok){si.disabled=true;res()}})});
       setStage(1);
+      await bot('Here are three ideas. Which one sounds fun?',my);
       await choose([{e:'⭐',t:'A game where you catch falling stars'},{e:'🪐',t:'A planet facts explorer'},{e:'🚀',t:'A rocket launch countdown'}],my);
       await bot('Great pick! In this demo we\'ll build Star Catcher together.',my);
       setStage(2);
