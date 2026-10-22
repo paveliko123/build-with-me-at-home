@@ -174,21 +174,33 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 #s2 .choice{min-height:max(64px,16cqh);border-radius:22px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-size:max(16px,min(3.8cqh,24px));font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 #s2 .choice span{font-size:max(26px,min(7cqh,48px));line-height:1}
 #s2 .toast{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:max-content;max-width:90%;background:var(--t-ink);color:var(--t-bg);padding:8px 14px;border-radius:10px;font-size:14px}
-/* chat (screen 5) */
-#s4 .inner{max-width:760px;justify-content:flex-start;position:relative}
-#s4 .stages{margin-bottom:1cqh;flex:0 0 auto}
-#s4 .stages div{font-size:11px;padding-top:2px}
-#chat{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding-right:2px;display:flex;flex-direction:column}
-#chat>*{flex:0 0 auto}
-#chat .bubble.bot{align-self:flex-start}
-#chat .bubble.me{align-self:flex-end}
-#chat .bubble.big{align-self:stretch}
-#s4 .bubble{font-size:max(13px,min(2.9cqh,17px));line-height:1.35;margin:1cqh 0}
-#s4 .bubble p{margin:0 0 .6cqh}
-#s4 .bubble p:last-child{margin-bottom:0}
-#s4 .bubble.big{max-width:100%;background:var(--t-surface);border:2px solid var(--t-line);border-radius:24px;padding:1.6cqh 18px}
-#s4 .bubble.big .q{font-size:max(17px,min(4.4cqh,28px));font-weight:800;line-height:1.2;margin:.8cqh 0 1.2cqh;color:var(--t-ink)}
-#s4 .bubble.big .kbtn{min-height:max(44px,min(7cqh,52px));font-size:max(15px,min(3.2cqh,18px))}
+/* guide chat (screens 5 and 6): static mock-ups */
+:is(#s4,#s5) .inner{max-width:1100px;display:flex;flex-direction:column;height:100%}
+#s5{padding:1.5cqh 16px;overflow:hidden}
+#s5 .inner{max-width:1200px}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:1cqh;flex:0 0 auto}
+.topbar .pillbtn{min-height:36px;padding:2px 14px;border-radius:999px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-weight:700;font-size:14px;white-space:nowrap}
+.stepper{list-style:none;margin:0;padding:0;display:flex;align-items:center;justify-content:center;flex:1;min-width:0}
+.stepper li{display:flex;align-items:center;gap:6px;font-weight:700;font-size:max(11px,min(2.6cqh,15px));padding:3px 10px 3px 4px;border-radius:999px;color:var(--t-ink);white-space:nowrap}
+.stepper li i{font-style:normal;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:2px solid var(--t-accent);font-size:12px;color:var(--t-accent)}
+.stepper li.done i{background:var(--t-accent);color:#fff}
+.stepper li.on{background:var(--t-accent);color:#fff}
+.stepper li.on i{background:rgba(255,255,255,.28);border-color:transparent;color:#fff}
+.stepper .line{flex:0 1 26px;min-width:6px;height:2px;background:var(--t-accent);opacity:.6}
+@media (max-width:640px){.stepper li:not(.on) .lbl{display:none}.stepper li:not(.on){padding:3px}.topbar .pillbtn .lbl{display:none}.topbar .pillbtn{padding:2px 10px}}
+.chatlog{flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+.chatlog>*{flex:0 0 auto}
+:is(#s4,#s5) .bubble{font-size:max(13px,min(2.9cqh,17px));line-height:1.35;margin:1cqh 0;animation:none}
+:is(#s4,#s5) .bubble p{margin:0 0 .6cqh}
+:is(#s4,#s5) .bubble p:last-child{margin-bottom:0}
+.chatlog .bubble.bot{align-self:flex-start}
+.chatlog .bubble.me{align-self:flex-end;margin-left:0}
+.chatlog .bubble.big{align-self:stretch;max-width:100%;background:var(--t-surface);border:2px solid var(--t-line);border-radius:24px;padding:1.6cqh 18px}
+.chatlog .bubble.big .q{font-size:max(16px,min(4cqh,26px));font-weight:800;line-height:1.2;margin:.8cqh 0 1.2cqh;color:var(--t-ink)}
+.fakebtn{display:inline-flex;align-items:center;gap:8px;min-height:max(40px,min(6.5cqh,50px));padding:0 22px;border-radius:999px;font-weight:800;font-size:max(14px,min(3cqh,18px));border:2px solid var(--t-accent);color:var(--t-ink);background:transparent}
+.fakebtn.solid{background:var(--t-accent);color:#fff}
+.divider{display:flex;align-items:center;gap:12px;color:var(--t-muted);font-weight:700;font-size:max(12px,min(2.6cqh,15px));margin:1cqh 0}
+.divider::before,.divider::after{content:"";flex:1;height:2px;background:var(--t-line)}
 .composer{flex:0 0 auto;padding-top:1cqh}
 .cpills{display:flex;gap:8px;margin-bottom:.8cqh}
 .cpill{min-height:36px;padding:2px 14px;border-radius:999px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-weight:700;font-size:14px}
@@ -196,7 +208,24 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 .crow input[type=text]{flex:1;min-width:0;margin:0!important;min-height:max(46px,min(7cqh,52px))!important;font-size:max(15px,min(3.4cqh,18px))!important}
 .send{min-height:max(46px,min(7cqh,52px));padding:0 22px;border-radius:999px;border:none;background:var(--t-accent);color:#fff;font-weight:800;font-size:17px}
 .send:disabled,.crow input:disabled{opacity:.55}
-#s4 .toast{position:absolute;left:50%;bottom:20cqh;transform:translateX(-50%);width:max-content;max-width:90%;background:var(--t-ink);color:var(--t-bg);padding:8px 14px;border-radius:10px;font-size:14px}
+#s5 .idea{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+#s5 .chatcol{display:flex;flex-direction:column;min-height:0}
+#s5 .panel{display:flex;flex-direction:column;min-height:0;border:2px solid var(--t-line);border-radius:22px;background:var(--t-surface);overflow:hidden}
+#s5 .panel header{display:flex;align-items:center;gap:10px;padding:1.2cqh 18px;border-bottom:2px solid var(--t-line);font-weight:800;font-size:max(14px,min(3cqh,18px))}
+#s5 .approved{background:var(--t-accent);color:#fff;border-radius:999px;padding:2px 12px;font-size:max(12px,min(2.6cqh,15px))}
+#s5 .panel .body{overflow-y:auto;padding:1.4cqh 18px;font-size:max(12px,min(2.7cqh,15px));line-height:1.45}
+#s5 .panel h2{font-size:max(18px,min(4.6cqh,26px));margin:0 0 1.2cqh}
+#s5 .panel details{border:2px solid var(--t-line);border-radius:16px;padding:1cqh 16px}
+#s5 .panel summary{cursor:pointer;font-weight:800;color:var(--t-accent);min-height:36px;display:flex;align-items:center}
+#s5 .panel h3{font-size:max(15px,min(3.3cqh,20px));margin:1.4cqh 0 .4cqh}
+#s5 .panel p{margin:0 0 .6cqh}
+@media (max-width:760px){
+  #s5{overflow-y:auto}
+  #s5 .inner{height:auto}
+  #s5 .idea{grid-template-columns:1fr;display:flex;flex-direction:column}
+  #s5 .chatcol{height:calc(100cqh - 70px)}
+  #s5 .panel{min-height:70cqh}
+}
 /* pick a look (screen 4) */
 #s3 h2{font-size:min(4.6cqh,28px);margin:0 0 .6cqh}
 #s3 .sub{font-size:max(12px,min(2.8cqh,16px));margin:0 0 1.2cqh}
@@ -356,7 +385,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
 <div id="demo" hidden role="dialog" aria-label="Demo of Build With Me">
   <div class="demobanner">Demo: mock screens, not connected to anything.</div>
   <div class="demobar">
-    <div class="steps"><span id="stepLabel">Step 1 of 9</span><span class="dots" id="dots" aria-hidden="true"></span></div>
+    <div class="steps"><span id="stepLabel">Step 1 of 10</span><span class="dots" id="dots" aria-hidden="true"></span></div>
     <button class="btn ghost" id="restartBtn">Restart</button>
     <button class="btn ghost" id="backBtn">Back</button>
     <button class="btn" id="nextBtn">Next</button>
@@ -566,21 +595,67 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
       </div>
     </section>
 
-    <!-- 3 Kid: guide chat -->
-    <section class="screen kid fit" id="s4" aria-label="Chat with the guide">
+    <!-- 5 Kid: guide chat, Start (static) -->
+    <section class="screen kid fit" id="s4" aria-label="Guide chat, Start step">
       <div class="inner">
-        <div class="stages" id="stages" aria-label="Progress"></div>
-        <div id="chat" role="log" aria-live="polite"></div>
-        <div class="composer">
-          <div class="cpills"><button class="cpill" id="talkBtn">🎤 Talk instead</button><button class="cpill" id="voiceBtn" aria-pressed="false">🔇 Voice off</button></div>
-          <div class="crow"><input type="text" id="chatInput" aria-label="Your answer" autocomplete="off"><button class="send" id="sendBtn">Send</button></div>
+        <div class="topbar"><span class="pillbtn">＋<span class="lbl"> New app</span></span><ol class="stepper"><li class="on"><i>1</i><span class="lbl">👋 Start</span></li><span class="line"></span><li class=""><i>2</i><span class="lbl">💡 Idea</span></li><span class="line"></span><li class=""><i>3</i><span class="lbl">🎨 Design</span></li><span class="line"></span><li class=""><i>4</i><span class="lbl">🛠️ Tech plan</span></li><span class="line"></span><li class=""><i>5</i><span class="lbl">🏗️ Build</span></li><span class="line"></span><li class=""><i>6</i><span class="lbl">🎉 Ship</span></li></ol><span class="pillbtn">📚<span class="lbl"> My apps</span></span></div>
+        <div class="chatlog" role="log">
+          <div class="bubble bot"><p>Hi there! 🚀 I'm an AI helper, not a person. I'm here to help you make your very own app. First, I want to know about you!</p><p>What do you love doing most for fun?</p></div>
+          <div class="bubble me">playing space games</div>
+          <div class="bubble bot">Space games, cool! 🪐 Do you play on your own or with friends?</div>
+          <div class="bubble me">with my little brother</div>
+          <div class="bubble bot big"><p>A gaming team! 🎮 That sounds so fun.</p><p class="q">What would you love your app to be about?</p><span class="fakebtn solid">💡 Show me ideas</span></div>
         </div>
-        <div class="toast" id="toast4" role="status" hidden>That's not part of this demo.</div>
+        <div class="composer">
+          <div class="cpills"><span class="cpill">🎤 Talk instead</span><span class="cpill">🔇 Voice off</span></div>
+          <div class="crow"><input type="text" placeholder="Type your answer" aria-label="Your answer" disabled><button class="send" disabled>Send</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 Kid: guide chat, Idea (static) -->
+    <section class="screen kid" id="s5" aria-label="Guide chat, Idea step">
+      <div class="inner">
+        <div class="topbar"><span class="pillbtn">＋<span class="lbl"> New app</span></span><ol class="stepper"><li class="done"><i>✓</i><span class="lbl">👋 Start</span></li><span class="line"></span><li class="on"><i>2</i><span class="lbl">💡 Idea</span></li><span class="line"></span><li class=""><i>3</i><span class="lbl">🎨 Design</span></li><span class="line"></span><li class=""><i>4</i><span class="lbl">🛠️ Tech plan</span></li><span class="line"></span><li class=""><i>5</i><span class="lbl">🏗️ Build</span></li><span class="line"></span><li class=""><i>6</i><span class="lbl">🎉 Ship</span></li></ol><span class="pillbtn">📚<span class="lbl"> My apps</span></span></div>
+        <div class="idea">
+          <div class="chatcol">
+            <div class="chatlog" role="log">
+              <div class="bubble bot">What do players do in your game?</div>
+              <div class="bubble me">Catch falling stars</div>
+              <div class="divider">Step 2 · 💡 Idea</div>
+              <div class="bubble bot big"><p>Nice, we're at the Idea stage. Your starting idea is a game where stars fall from the sky and you catch them to score points. That's a solid base. Now I want to hear it all in your words, so don't worry about organizing it.</p><p class="q">Tell me everything about this game in your head: what does it look like, what's exciting about it, and who would play it?</p><span class="fakebtn">💡 Need inspiration?</span></div>
+            </div>
+            <div class="composer">
+          <div class="cpills"><span class="cpill">🎤 Talk instead</span><span class="cpill">🔇 Voice off</span></div>
+          <div class="crow"><input type="text" placeholder="Type your answer" aria-label="Your answer" disabled><button class="send" disabled>Send</button></div>
+        </div>
+          </div>
+          <aside class="panel" aria-label="About you">
+            <header>📋 About you <span class="approved">✓ Approved</span></header>
+            <div class="body">
+              <h2>🎯 Your Profile</h2>
+              <details open>
+                <summary>Show the whole plan</summary>
+                <h2 style="margin-top:1cqh">Your Profile</h2>
+                <h3>Starting idea</h3>
+                <p>A game where stars fall from the sky and players catch them to score points. This is a starting point, not a final plan.</p>
+                <h3>Coding and AI experience</h3>
+                <p>Not discussed.</p>
+                <h3>Experience with planning first</h3>
+                <p>Not discussed.</p>
+                <h3>What they want to learn</h3>
+                <p>Not discussed.</p>
+                <h3>Interests and goals</h3>
+                <p>Space games, playing together with a little brother.</p>
+              </details>
+            </div>
+          </aside>
+        </div>
       </div>
     </section>
 
     <!-- 4 Kid: build -->
-    <section class="screen kid" id="s5" aria-label="Building the app">
+    <section class="screen kid" id="s6" aria-label="Building the app">
       <div class="inner">
         <h2 id="buildLine">Building…</h2>
         <div class="motifs" id="motifs3" aria-hidden="true"></div>
@@ -590,7 +665,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 5 Kid: the game -->
-    <section class="screen kid" id="s6" aria-label="Star Catcher game">
+    <section class="screen kid" id="s7" aria-label="Star Catcher game">
       <div class="inner">
         <h2>Star Catcher is ready! ⭐</h2>
         <p class="muted">Tap the stars to catch them. A round lasts 20 seconds.</p>
@@ -601,7 +676,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 6 Kid: ship + shelf -->
-    <section class="screen kid" id="s7" aria-label="Ship and My apps">
+    <section class="screen kid" id="s8" aria-label="Ship and My apps">
       <div class="inner">
         <div id="shipForm">
           <h2>Ship it! 🎉</h2>
@@ -621,7 +696,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 7 Parent report -->
-    <section class="screen" id="s8" aria-label="Parent report">
+    <section class="screen" id="s9" aria-label="Parent report">
       <div class="inner">
         <p><span class="pill">Parent report</span></p>
         <h1 style="font-size:26px">Sam made <span id="repName">Star Catcher</span></h1>
@@ -671,7 +746,7 @@ var THEMES=[
  {id:'nature',name:'Nature',emoji:'🌿',motifs:['🌻','🦋','🍃','🌲'],thinking:'Letting that idea grow…',building:'Growing your app…',c:{bg:'#f7f7ee',surface:'#ffffff',surface2:'#ecefdc',ink:'#1f2a14',muted:'#4d6b2f',accent:'#55803a',line:'#c5d6a8'}}
 ];
 var theme=THEMES[0];
-var kidScreens=[2,3,4,5,6,7].map(function(i){return $('s'+i)});
+var kidScreens=[2,3,4,5,6,7,8].map(function(i){return $('s'+i)});
 function applyTheme(t){
   theme=t;
   var c=t.c, m={'--t-bg':c.bg,'--t-surface':c.surface,'--t-surface-2':c.surface2,'--t-ink':c.ink,'--t-muted':c.muted,'--t-accent':c.accent,'--t-line':c.line};
@@ -694,9 +769,9 @@ document.querySelectorAll('[data-copy]').forEach(function(b){
 });
 
 /* Flow */
-var N=9,cur=0,hist=[],tok=0,timers=[];
-var NAMES=['Parent Portal','Parent Report (sample)','Kid Landing Page','Pick a look','Chat with the guide','Building the app','Star Catcher game','Ship and My apps','Parent Report'];
-var DESCS=['Parent control center.','What a parent sees after a kid finishes an app.','The kid\u2019s start page. Talk: their voice becomes text on this computer.','The kid chooses a color theme for their space.','The kid and the AI guide plan the app together.','The app gets built while the kid watches.','The kid plays the app they just made.','The kid names the app and adds it to their shelf.','The report the parent gets for this app.'];
+var N=10,cur=0,hist=[],tok=0,timers=[];
+var NAMES=['Parent Portal','Parent Report (sample)','Kid Landing Page','Pick a look','Guide Chat: Start','Guide Chat: Idea','Building the app','Star Catcher game','Ship and My apps','Parent Report'];
+var DESCS=['Parent control center.','What a parent sees after a kid finishes an app.','The kid\u2019s start page. Talk: their voice becomes text on this computer.','The kid chooses a color theme for their space.','The guide gets to know the kid, one friendly question at a time.','The Idea step: the guide asks for the whole idea, and the profile fills in on the right.','The app gets built while the kid watches.','The kid plays the app they just made.','The kid names the app and adds it to their shelf.','The report the parent gets for this app.'];
 var screens=[];for(var i=0;i<N;i++)screens.push($('s'+i));
 var dots=$('dots');dots.innerHTML=screens.map(function(){return '<i></i>'}).join('');
 function later(fn,ms){var id=setTimeout(fn,ms);timers.push(id);return id}
@@ -709,7 +784,7 @@ function show(i,isBack){
   var kids=dots.children;for(var k=0;k<N;k++)kids[k].className=k===i?'on':(k<i?'done':'');
   $('stepLabel').textContent='Step '+(i+1)+' of '+N;$('screenName').textContent=NAMES[i];$('screenDesc').textContent=DESCS[i];$('nextBtn').disabled=i===N-1;
   screens[i].scrollTop=0;
-  var enter=[enterPass,enterSample,enterKidHome,enterLook,enterChat,enterBuild,enterGame,enterShip,enterReport][i];
+  var enter=[enterPass,enterSample,enterKidHome,enterLook,enterChat,enterIdea,enterBuild,enterGame,enterShip,enterReport][i];
   enter();
   var h=screens[i].querySelector('h1,h2');if(h){h.setAttribute('tabindex','-1');try{h.focus({preventScroll:true})}catch(e){}}
 }
@@ -800,81 +875,10 @@ Array.prototype.forEach.call($('s1').querySelectorAll('[data-inert2]'),function(
 function enterLook(){Array.prototype.forEach.call($('tiles').children,function(x,k){x.setAttribute('aria-pressed',THEMES[k].id===theme.id)})}
 $('lookNext').addEventListener('click',function(){go(4)});
 
-/* 3 Chat */
-var STAGES=['Start','Idea','Design','Tech plan','Build','Ship'];
+/* 5 and 6 Chat screens are static mock-ups */
 var choiceSpeed='Medium',starEmoji='⭐';
-var chat=$('chat');
-function setStage(n){$('stages').innerHTML=STAGES.map(function(s,k){return '<div class="'+(k<n?'done':k===n?'on':'')+'"'+(k===n?' aria-current="step"':'')+'>'+s+'</div>'}).join('')}
-function endScroll(){chat.scrollTo({top:chat.scrollHeight,behavior:reduce?'auto':'smooth'})}
-function wait(ms,my){return new Promise(function(res,rej){later(function(){my===tok?res():rej('cancel')},ms)})}
-function bubble(text,cls){var d=document.createElement('div');d.className='bubble '+cls;if(Array.isArray(text)){text.forEach(function(x){var e=document.createElement('p');e.textContent=x;d.appendChild(e)})}else d.textContent=text;chat.appendChild(d);endScroll();return d}
-function think(my){
-  var t=document.createElement('div');t.className='bubble bot typing';t.innerHTML='<span></span> <b>.</b><b>.</b><b>.</b>';t.firstChild.textContent=theme.thinking;
-  chat.appendChild(t);endScroll();
-  return wait(reduce?400:1100,my).then(function(){chat.removeChild(t)});
-}
-function bot(text,my){
-  return think(my).then(function(){bubble(text,'bot');return wait(350,my)});
-}
-var onSend=null;
-function sendNow(){if(onSend)onSend()}
-$('sendBtn').addEventListener('click',sendNow);
-$('chatInput').addEventListener('keydown',function(e){if(e.key==='Enter')sendNow()});
-$('talkBtn').addEventListener('click',function(){var t=$('toast4');t.hidden=false;later(function(){t.hidden=true},1800)});
-$('voiceBtn').addEventListener('click',function(){var on=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',on);this.textContent=on?'🔊 Voice on':'🔇 Voice off'});
-function choose(opts,my){
-  return new Promise(function(res,rej){
-    var box=document.createElement('div');box.className='choices';
-    opts.forEach(function(o){
-      var b=document.createElement('button');b.className='choice';b.innerHTML='<span class="e" aria-hidden="true">'+o.e+'</span><span></span>';b.lastChild.textContent=o.t;
-      b.addEventListener('click',function(){
-        if(my!==tok){return}
-        chat.removeChild(box);bubble(o.e+' '+o.t,'me');res(o);
-      });
-      box.appendChild(b);
-    });
-    chat.appendChild(box);endScroll();
-  });
-}
-function enterChat(){
-  chat.innerHTML='';setStage(0);var my=tok;onSend=null;
-  var inp=$('chatInput'),snd=$('sendBtn');
-  inp.value='space games';inp.placeholder='Type your answer';inp.disabled=false;snd.disabled=false;
-  $('toast4').hidden=true;$('voiceBtn').setAttribute('aria-pressed','false');$('voiceBtn').textContent='🔇 Voice off';
-  (async function(){
-    try{
-      await bot(['Hi there! '+theme.emoji+' I\'m an AI helper, not a person. I\'m here to help you make your very own app. First, I want to know about you!','What do you love doing most for fun?'],my);
-      var typed=await new Promise(function(res){onSend=function(){var v=inp.value.trim();if(!v||my!==tok)return;onSend=null;res(v)}});
-      inp.value='';inp.disabled=true;snd.disabled=true;inp.placeholder='Tap a choice above';
-      bubble(typed,'me');
-      await think(my);
-      var card=document.createElement('div');card.className='bubble bot big';
-      card.innerHTML='<p class="l"></p><p class="q">What would you love your app to be about?</p>';
-      card.firstChild.textContent=typed.charAt(0).toUpperCase()+typed.slice(1)+'! \ud83c\udf89 That sounds so fun.';
-      var si=document.createElement('button');si.className='kbtn';si.textContent='\ud83d\udca1 Show me ideas';
-      card.appendChild(si);chat.appendChild(card);endScroll();si.focus({preventScroll:true});
-      await new Promise(function(res){si.addEventListener('click',function(){if(my===tok){si.disabled=true;res()}})});
-      setStage(1);
-      await bot('Here are three ideas. Which one sounds fun?',my);
-      await choose([{e:'⭐',t:'A game where you catch falling stars'},{e:'🪐',t:'A planet facts explorer'},{e:'🚀',t:'A rocket launch countdown'}],my);
-      await bot('Great pick! In this demo we\'ll build Star Catcher together.',my);
-      setStage(2);
-      await bot('Let\'s make it yours. What should the stars look like?',my);
-      var s=await choose([{e:'⭐',t:'Gold stars'},{e:'🌟',t:'Glowing stars'},{e:'☄️',t:'Comets'}],my);
-      starEmoji=s.e;
-      await bot('Nice! And how fast should they fall?',my);
-      var sp=await choose([{e:'🐢',t:'Slow and easy'},{e:'🚗',t:'Medium'},{e:'🚀',t:'Speedy'}],my);
-      choiceSpeed=sp.t;
-      setStage(3);
-      await bot('Here\'s the plan. Take a look, then say go.',my);
-      var p=document.createElement('div');p.className='plan';
-      p.innerHTML='<b>Star Catcher: the plan</b><ul><li>Stars fall from the top of the screen</li><li>Tap a star to catch it and score a point</li><li>A round lasts 20 seconds, then you can play again</li></ul>';
-      var go1=document.createElement('button');go1.className='kbtn';go1.textContent='Looks good, build it!';
-      go1.addEventListener('click',function(){if(my===tok)go(5)});
-      p.appendChild(go1);chat.appendChild(p);endScroll();go1.focus({preventScroll:true});
-    }catch(e){if(e!=='cancel')throw e}
-  })();
-}
+function enterChat(){}
+function enterIdea(){}
 
 /* 4 Build */
 var BSTEPS=['Setting up the game board','Drawing the stars','Adding the score and timer','Final touches'];
@@ -886,7 +890,7 @@ function enterBuild(){
   function set(k){for(var j=0;j<items.length;j++){items[j].className=j<k?'ok':j===k?'run':'';items[j].firstChild.textContent=j<k?'✅':j===k?theme.motifs[j%theme.motifs.length]:'⏳'}
     var pct=Math.round(k/BSTEPS.length*100);fill.style.width=pct+'%';bar.setAttribute('aria-valuenow',pct)}
   set(0);
-  for(let k=1;k<=BSTEPS.length;k++)later(function(){set(k);if(k===BSTEPS.length)later(function(){go(6)},600)},per*k);
+  for(let k=1;k<=BSTEPS.length;k++)later(function(){set(k);if(k===BSTEPS.length)later(function(){go(7)},600)},per*k);
 }
 
 /* 5 Game */
@@ -933,7 +937,7 @@ function startGame(){
     }
   },1000);
 }
-$('toShip').addEventListener('click',function(){go(7)});
+$('toShip').addEventListener('click',function(){go(8)});
 
 /* 6 Ship + shelf */
 var ICONS=['⭐','🚀','🌟','🪐'],icon='⭐';
@@ -956,7 +960,7 @@ $('shipBtn').addEventListener('click',function(){
   $('shipForm').hidden=true;$('shelfView').hidden=false;
   var h=$('shelfView').querySelector('h2');h.setAttribute('tabindex','-1');h.focus({preventScroll:true});
 });
-$('toReport').addEventListener('click',function(){go(8)});
+$('toReport').addEventListener('click',function(){go(9)});
 
 /* 7 Report */
 function enterReport(){$('repName').textContent=appName()}
