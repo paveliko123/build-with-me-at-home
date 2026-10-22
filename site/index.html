@@ -72,7 +72,7 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 .dots i.on{background:var(--brand)}
 .dots i.done{background:var(--muted)}
 .demobar .btn{min-height:48px;padding:6px 16px}
-.demobar .sp{flex:1}
+.demobar .screenname{flex:1;min-width:0;text-align:center;font-weight:800;font-size:15px;line-height:1.2}
 #stage{position:relative;flex:1;overflow:hidden}
 .screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:18px 16px 40px;opacity:0;visibility:hidden;transform:translateX(48px);transition:opacity .35s ease,transform .35s ease,visibility 0s linear .35s}
 .screen.past{transform:translateX(-48px)}
@@ -85,44 +85,72 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 }
 
 /* parent portal (screen 1), scoped */
-#s0 .inner{max-width:1100px}
-#s0 .card{margin:0;padding:18px 20px}
-#s0 h1{font-size:24px;margin:0}
-#s0 h2{font-size:16px;margin:0 0 12px}
-#s0 button{min-height:48px}
-#s0 button.primary{background:var(--brand);color:var(--brand-ink);border:none;padding:11px 18px;border-radius:10px;font-weight:700}
-#s0 button.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);padding:7px 12px;border-radius:9px;font-weight:600}
+#s0{font-size:14px;line-height:1.45}
+#s0 .inner{max-width:1400px}
+#s0 .card{margin:0;padding:12px 14px;border-radius:14px}
+#s0 h1{font-size:22px;margin:0}
+#s0 h2{font-size:15px;margin:0 0 10px}
+#s0 .banner{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);border-radius:12px;padding:8px 14px;margin-bottom:12px;font-size:13px}
+#s0 button{min-height:36px;font-size:14px}
+@media (pointer:coarse),(max-width:820px){#s0 button{min-height:48px}}
+#s0 button.primary{background:var(--brand);color:var(--brand-ink);border:none;padding:8px 16px;border-radius:10px;font-weight:700}
+#s0 button.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);padding:5px 12px;border-radius:9px;font-weight:600}
+#s0 .pill{font-size:11px;padding:1px 8px}
 #s0 .pill.k{background:var(--kid-soft);color:var(--kid)} #s0 .pill.t{background:var(--teen-soft);color:var(--teen)}
 #s0 .pill.ok{background:var(--brand-soft);color:var(--brand)} #s0 .pill.warn{background:var(--warn-soft);color:var(--warn)}
-#s0 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-#s0 .status{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px}
-#s0 .stat b{display:block;font-size:13px;color:var(--muted);font-weight:600}
+#s0 .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+#s0 .top .hi{flex:0 0 auto}
+#s0 .top .btns{display:flex;gap:8px;margin-left:auto}
+#s0 .status{display:flex;gap:10px;flex:1 1 560px;flex-wrap:wrap}
+#s0 .status .card{flex:1 1 150px}
+#s0 .stat b{display:block;font-size:12px;color:var(--muted);font-weight:600}
+#s0 .meter{margin:4px 0 2px;height:8px}
 #s0 .meter i.mid{background:var(--warn)}
-#s0 .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
+#s0 .grid{display:grid;grid-template-columns:1.15fr 1fr .8fr;gap:12px;align-items:start}
+@media (max-width:1000px){#s0 .grid{grid-template-columns:1fr 1fr}#s0 .stack.third{grid-column:1/-1}}
 @media (max-width:820px){#s0 .grid{grid-template-columns:1fr}}
-#s0 .stack{display:grid;gap:14px;align-content:start}
-#s0 .kids{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-#s0 .kidbtn{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:10px 14px;text-align:left;min-width:120px}
+#s0 .stack{display:grid;gap:12px;align-content:start}
+#s0 .kids{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+#s0 .kidbtn{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:6px 12px;text-align:left;min-width:104px;display:flex;align-items:center;gap:8px}
 #s0 .kidbtn[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft)}
 #s0 .kidbtn:disabled{opacity:.55;cursor:default}
-#s0 .kidbtn .em{font-size:24px;display:block}
-#s0 .dur{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
-#s0 .dur button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 13px}
+#s0 .kidbtn .em{font-size:20px}
+#s0 .dur{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+#s0 .dur button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 12px}
 #s0 .dur button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-#s0 .dur input{width:72px;min-height:48px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
-#s0 .label{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin:0 0 8px}
-#s0 .qrbox{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:14px;padding:14px;border-radius:12px;background:var(--brand-soft)}
-#s0 .passrow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+#s0 .dur input{width:64px;min-height:36px;padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
+@media (pointer:coarse),(max-width:820px){#s0 .dur input{min-height:48px}}
+#s0 .label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin:0 0 6px}
+#s0 .qrbox{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:12px;padding:12px;border-radius:12px;background:var(--brand-soft)}
+#s0 .passrow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
 #s0 .passrow:last-child{border-bottom:none}
-@media (max-width:480px){#s0 .passrow{grid-template-columns:1fr}#s0 .passrow .acts{justify-content:flex-start}}
-#s0 .passrow .time{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+#s0 .passrow .time{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
 #s0 .passrow .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-#s0 .alert{display:flex;gap:10px;padding:10px 12px;border-radius:10px;margin-bottom:8px;align-items:flex-start}
-#s0 .alert.warn{background:var(--warn-soft)} #s0 .alert.bad{background:var(--bad-soft)}
-#s0 .rep{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);align-items:center}
+@media (max-width:480px){#s0 .passrow{grid-template-columns:1fr}#s0 .passrow .acts{justify-content:flex-start}}
+#s0 .alert{display:flex;gap:8px;padding:8px 10px;border-radius:10px;margin-bottom:6px;align-items:flex-start}
+#s0 .alert.warn{background:var(--warn-soft)}
+#s0 .rep{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);align-items:center}
 #s0 .rep:last-child{border-bottom:none}
-#s0 .foot{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+#s0 .foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
 #s0 .toast{position:sticky;bottom:8px;margin:12px auto 0;max-width:340px;background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;text-align:center;font-size:14px}
+
+/* sample parent report (screen 2), scoped */
+#s1 .head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#s1 .inner{max-width:820px}
+#s1 .card{margin-bottom:12px}
+#s1 .app{display:grid;grid-template-columns:140px 1fr;gap:16px;align-items:start}
+@media (max-width:520px){#s1 .app{grid-template-columns:1fr}}
+#s1 .shot{aspect-ratio:4/3;border-radius:12px;background:linear-gradient(135deg,#7b5cff,#3a8ee2);display:grid;place-items:center;color:#fff;font-weight:700;font-size:36px}
+#s1 .timeline{list-style:none;padding:0;margin:0}
+#s1 .timeline li{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line)}
+#s1 .timeline li:last-child{border-bottom:none}
+#s1 .timeline .when{font-weight:700;color:var(--muted);font-size:13px}
+#s1 .legend{font-size:13px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+#s1 .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle;background:var(--c)}
+#s1 .quote{background:var(--bg);border-radius:8px;padding:8px 12px;margin:6px 0}
+#s1 .quote b{font-size:12px;color:var(--muted);display:block}
+#s1 .okpill{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--brand-soft);color:var(--brand)}
+#s1 details{margin-top:8px} #s1 summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:center}
 /* parent screens */
 .kidcard{display:flex;align-items:center;gap:14px}
 .kidcard .em{font-size:40px}
@@ -274,26 +302,26 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
 <div id="demo" hidden role="dialog" aria-label="Demo of Build With Me">
   <div class="demobanner">Demo: mock screens, not connected to anything.</div>
   <div class="demobar">
-    <div class="steps"><span id="stepLabel">Step 1 of 7</span><span class="dots" id="dots" aria-hidden="true"></span></div>
+    <div class="steps"><span id="stepLabel">Step 1 of 8</span><span class="dots" id="dots" aria-hidden="true"></span></div>
     <button class="btn ghost" id="backBtn">Back</button>
     <button class="btn ghost" id="restartBtn">Restart</button>
-    <span class="sp"></span>
+    <span class="screenname" id="screenName"></span>
     <button class="btn ghost" id="exitBtn">Exit demo</button>
   </div>
   <div id="stage">
 
     <!-- 1 Parent portal -->
-    <section class="screen" id="s0" aria-label="Parent area">
+    <section class="screen" id="s0" aria-label="Parent Portal">
       <div class="inner">
+  <div class="banner"><b>Keep this window open while your kids use Build With Me.</b> Closing it stops the app about a minute later, on tablets too.</div>
   <div class="top">
-    <div><h1>Hi! 👋</h1><span class="muted">Parent area · Thu 22 Oct, 4:32 pm</span></div>
-    <div style="display:flex;gap:8px"><button class="ghost" data-inert>⚙️ Settings</button><button class="ghost" data-inert>🔒 Lock</button></div>
-  </div>
-
-  <div class="status">
-    <div class="card stat"><b>Claude Code</b><span class="pill ok">✓ Signed in · Max plan</span></div>
-    <div class="card stat"><b>5-hour limit</b><div class="meter"><i class="mid" style="width:64%"></i></div><span class="muted">64% used · resets 7:10 pm</span></div>
-    <div class="card stat"><b>Weekly limit</b><div class="meter"><i style="width:31%"></i></div><span class="muted">31% used · resets Sun</span></div>
+    <div class="hi"><h1>Hi! 👋</h1><span class="muted">Parent area · Thu, Oct 22</span></div>
+    <div class="status">
+      <div class="card stat"><b>Claude Code</b><span class="pill ok">✓ Signed in · subscription</span></div>
+      <div class="card stat"><b>5-hour limit</b><div class="meter"><i style="width:4%"></i></div><span class="muted">4% used · resets Oct 22, 10:10pm</span></div>
+      <div class="card stat"><b>Weekly limit</b><div class="meter"><i class="mid" style="width:83%"></i></div><span class="muted">83% used · resets Oct 25, 10pm</span></div>
+    </div>
+    <div class="btns"><button class="ghost" data-inert>⚙️ Settings</button><button class="ghost" data-inert>🔒 Lock</button></div>
   </div>
 
   <div class="grid">
@@ -320,7 +348,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
           <div>
             <b id="passTitle">Sam's pass · 1 hour</b><br>
             <span class="muted">Scan with the tablet, or</span> <a href="#" id="openLaptop">open on this laptop</a><br>
-            <span class="muted" style="font-size:13px" id="passNote">One use only: the first device that opens it gets the pass. Works on home Wi-Fi until 5:32 pm.</span>
+            <span class="muted" style="font-size:12px" id="passNote">One use only: the first device that opens it gets the pass. Works on home Wi-Fi until 5:32 pm.</span>
           </div>
         </div>
       </div>
@@ -343,23 +371,25 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     <div class="stack">
       <div class="card">
         <h2>🔔 Needs your attention</h2>
-        <div class="alert warn">⚠️ <span><b>1 flag, handled</b>: Leo asked for a violent effect; the guide redirected it. <a href="#">See report</a></span></div>
-        <div class="alert bad">⛔ <span><b>Limit reached yesterday at 7:40 pm</b> during Leo's build. He saw "Limit reached, ask your parent." The build resumed after the reset.</span></div>
+        <div class="alert warn">⚠️ <span><b>1 flag, handled</b>: Leo asked for a violent effect; the guide redirected it. <a href="#" id="seeReport">See report</a></span></div>
       </div>
 
       <div class="card">
         <h2>📄 Latest reports</h2>
-        <div class="rep"><div><b>Pixel Pet</b> · Leo<br><span class="muted">Today · 18% of 5-hr limit</span></div><span class="pill warn">1 flag</span></div>
-        <div class="rep"><div><b>Moon Diary</b> · Sam<br><span class="muted">Tue · 11% of 5-hr limit</span></div><span class="pill ok">No flags</span></div>
-        <div class="rep"><div><b>Homework Timer</b> · Leo<br><span class="muted">Mon · 22% of 5-hr limit</span></div><span class="pill ok">No flags</span></div>
-        <div class="foot"><a href="#">All reports →</a> <span class="muted">· also in C:\Users\you\Build With Me\Reports</span></div>
+        <div class="rep"><div><b>Pixel Pet</b> · Leo<br><span class="muted">Thu, Oct 22 · ≈18% of your 5-hour limit</span></div><span class="pill warn">1 flag</span></div>
+        <div class="rep"><div><b>Moon Diary</b> · Sam<br><span class="muted">Tue, Oct 20 · ≈11% of your 5-hour limit</span></div><span class="pill ok">No flags</span></div>
+        <div class="rep"><div><b>Homework Timer</b> · Leo<br><span class="muted">Mon, Oct 19 · ≈22% of your 5-hour limit</span></div><span class="pill ok">No flags</span></div>
+        <div class="foot"><a href="#">All reports →</a> <span class="muted">· also in your Build With Me\Reports folder</span></div>
       </div>
+    </div>
 
+    <div class="stack third">
       <div class="card">
         <h2>🧒 Kids &amp; their apps</h2>
         <div class="rep"><div>🚀 <b>Sam</b> <span class="pill k">Kid</span><br><span class="muted">1 app</span></div><button class="ghost" data-inert>Manage</button></div>
         <div class="rep"><div>🦄 <b>Leo</b> <span class="pill t">Teen</span><br><span class="muted">3 apps</span></div><button class="ghost" data-inert>Manage</button></div>
-        <div class="foot"><button class="ghost" data-inert>📱 Set up a tablet for talking</button></div>
+        <div class="foot"><button class="ghost" data-inert>＋ Add a kid</button></div>
+        <div class="foot"><button class="ghost" data-inert>📱 Set up a tablet or laptop for talking</button></div>
       </div>
     </div>
   </div>
@@ -367,8 +397,92 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
       </div>
     </section>
 
+    <!-- 2 Parent report (sample, opened from See report) -->
+    <section class="screen" id="s1" aria-label="Parent report sample">
+      <div class="inner">
+        <button class="btn ghost" id="repBack">← Back to the Parent Portal</button>
+        <div class="card" style="margin-top:12px">
+          <span class="muted">Parent report · Thu, Oct 22</span>
+          <h1 style="font-size:24px;margin:2px 0 8px">Leo built "Pixel Pet" 🐾</h1>
+          <div class="head"><span class="pill" style="background:var(--teen-soft);color:var(--teen)">Teen</span> <span class="pill" style="background:var(--warn-soft);color:var(--warn)">1 flag · handled by the guide</span></div>
+          <div class="facts">
+            <div class="fact"><b>55 min</b><span>time spent (pass: 2 hr)</span></div>
+            <div class="fact"><b>3</b><span>rounds of changes</span></div>
+            <div class="fact"><b>Leo's laptop</b><span>device</span></div>
+            <div class="fact"><b>Typing</b><span>how Leo answered</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>In one paragraph</h3>
+          <p style="margin:0">Leo wanted "a pet that lives on my screen and gets bored." The guide steered him toward one small game: feed it, play with it, keep it happy. He chose the look himself, a pixel-art style in a dark space theme. After testing he asked for three changes: a faster game clock, a sound when the pet eats, and a "you kept it happy" screen. One request about the pet "exploding" was redirected to a silly "poof into confetti" effect. Overall: creative, engaged, and he tested his own app carefully.</p>
+        </div>
+
+        <div class="card">
+          <h3>The app</h3>
+          <div class="app">
+            <div class="shot">🐾✨</div>
+            <div>
+              <b>Pixel Pet</b>
+              <p class="muted" style="margin:4px 0 8px">Keep a pixel pet happy by feeding it and playing before its mood bar runs out. Three levels, a win screen, a mute button.</p>
+              <p style="margin:0"><a href="#" data-inert2>Open the app ↗</a> &nbsp;·&nbsp; <span class="muted">works on this computer and on home Wi-Fi while Build With Me is running</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Safety</h3>
+          <div class="flag">
+            <b>⚠ Violent wording, redirected</b> <span class="muted">· 4:41 pm · Build step</span>
+            <p style="margin:6px 0 0">Leo said: <q>make the pet explode with blood when its mood hits zero</q>. The guide said it couldn't add that and suggested the pet "poofs into confetti" instead. Leo agreed and liked it.</p>
+          </div>
+          <ul style="margin:10px 0 0;padding-left:18px">
+            <li><span class="okpill">OK</span> No personal details shared (name, school, address).</li>
+            <li><span class="okpill">OK</span> Nothing unsuitable in what the guide said or built.</li>
+            <li><span class="okpill">OK</span> Stayed on the project the whole time.</li>
+          </ul>
+          <p class="muted" style="margin:10px 0 0;font-size:13px">Worth a chat? Probably not. This is typical game thinking, and he took the alternative happily.</p>
+        </div>
+
+        <div class="card">
+          <h3>Whose ideas?</h3>
+          <div class="bar" aria-hidden="true"><i style="width:70%;background:var(--kid)"></i><i style="width:30%;background:var(--brand)"></i></div>
+          <div class="legend"><span style="--c:var(--kid)">Leo's ideas: 70%</span><span style="--c:var(--brand)">Guide's suggestions: 30%</span></div>
+          <p class="muted" style="margin:8px 0 0">Leo came up with the pet, the mood bar and all three changes. The guide suggested keeping it to one small game and the "confetti" effect.</p>
+        </div>
+
+        <div class="card">
+          <h3>How it went</h3>
+          <ul class="timeline">
+            <li><span class="when">4:10 Start</span><span>Picked the <b>Space</b> look and chose typing.</span></li>
+            <li><span class="when">4:14 Idea</span><span>"A pet that lives on my screen." The guide shrank it to one simple game.</span></li>
+            <li><span class="when">4:22 Design</span><span>Picked look B (pixel art) out of two mock-ups.</span></li>
+            <li><span class="when">4:28 Build</span><span>First version ready after about 4 minutes.</span></li>
+            <li><span class="when">4:33 Changes</span><span>Faster clock · eating sound · "you kept it happy" screen (and the redirected request).</span></li>
+            <li><span class="when">5:05 Ship</span><span>Named it "Pixel Pet" and added it to My apps.</span></li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Talk about it together</h3>
+          <ul style="margin:0;padding-left:18px">
+            <li>Ask Leo to show you how the levels get harder. He asked for that himself.</li>
+            <li>"What would you add next?" He mentioned a second pet.</li>
+          </ul>
+          <details>
+            <summary>Full conversation (42 turns)</summary>
+            <div class="quote"><b>Guide</b>Hi! I'm your space helper. I'm an AI, not a person. What do you love?</div>
+            <div class="quote"><b>Leo</b>a pet on my screen that gets bored</div>
+            <div class="quote"><b>Guide</b>A pet that gets bored? Fun! What could you do to cheer it up?</div>
+            <p class="muted">…the full transcript continues here…</p>
+          </details>
+        </div>
+        <p class="muted" style="font-size:13px">Sample report. Leo and Pixel Pet are made up.</p>
+      </div>
+    </section>
+
     <!-- 2 Kid: pick a look -->
-    <section class="screen kid" id="s1" aria-label="Pick a look">
+    <section class="screen kid" id="s2" aria-label="Pick a look">
       <div class="inner">
         <h2>Hi Sam! Pick a look 🎨</h2>
         <p class="muted">Tap one. You can see the colors change.</p>
@@ -379,7 +493,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 3 Kid: guide chat -->
-    <section class="screen kid" id="s2" aria-label="Chat with the guide">
+    <section class="screen kid" id="s3" aria-label="Chat with the guide">
       <div class="inner">
         <div class="stages" id="stages" aria-label="Progress"></div>
         <div id="chat" role="log" aria-live="polite"></div>
@@ -388,7 +502,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 4 Kid: build -->
-    <section class="screen kid" id="s3" aria-label="Building the app">
+    <section class="screen kid" id="s4" aria-label="Building the app">
       <div class="inner">
         <h2 id="buildLine">Building…</h2>
         <div class="motifs" id="motifs3" aria-hidden="true"></div>
@@ -398,7 +512,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 5 Kid: the game -->
-    <section class="screen kid" id="s4" aria-label="Star Catcher game">
+    <section class="screen kid" id="s5" aria-label="Star Catcher game">
       <div class="inner">
         <h2>Star Catcher is ready! ⭐</h2>
         <p class="muted">Tap the stars to catch them. A round lasts 20 seconds.</p>
@@ -409,7 +523,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 6 Kid: ship + shelf -->
-    <section class="screen kid" id="s5" aria-label="Ship and My apps">
+    <section class="screen kid" id="s6" aria-label="Ship and My apps">
       <div class="inner">
         <div id="shipForm">
           <h2>Ship it! 🎉</h2>
@@ -429,7 +543,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 7 Parent report -->
-    <section class="screen" id="s6" aria-label="Parent report">
+    <section class="screen" id="s7" aria-label="Parent report">
       <div class="inner">
         <p><span class="pill">Parent report</span></p>
         <h1 style="font-size:26px">Sam made <span id="repName">Star Catcher</span></h1>
@@ -479,7 +593,7 @@ var THEMES=[
  {id:'nature',name:'Nature',emoji:'🌿',motifs:['🌻','🦋','🍃','🌲'],thinking:'Letting that idea grow…',building:'Growing your app…',c:{bg:'#f7f7ee',surface:'#ffffff',surface2:'#ecefdc',ink:'#1f2a14',muted:'#4d6b2f',accent:'#55803a',line:'#c5d6a8'}}
 ];
 var theme=THEMES[0];
-var kidScreens=[1,2,3,4,5].map(function(i){return $('s'+i)});
+var kidScreens=[2,3,4,5,6].map(function(i){return $('s'+i)});
 function applyTheme(t){
   theme=t;
   var c=t.c, m={'--t-bg':c.bg,'--t-surface':c.surface,'--t-surface-2':c.surface2,'--t-ink':c.ink,'--t-muted':c.muted,'--t-accent':c.accent,'--t-line':c.line};
@@ -502,7 +616,8 @@ document.querySelectorAll('[data-copy]').forEach(function(b){
 });
 
 /* Flow */
-var N=7,cur=0,hist=[],tok=0,timers=[];
+var N=8,cur=0,hist=[],tok=0,timers=[];
+var NAMES=['Parent Portal','Parent Report (sample)','Pick a look','Chat with the guide','Building the app','Star Catcher game','Ship and My apps','Parent Report'];
 var screens=[];for(var i=0;i<N;i++)screens.push($('s'+i));
 var dots=$('dots');dots.innerHTML=screens.map(function(){return '<i></i>'}).join('');
 function later(fn,ms){var id=setTimeout(fn,ms);timers.push(id);return id}
@@ -513,9 +628,9 @@ function show(i,isBack){
   cur=i;
   screens.forEach(function(el,k){el.classList.toggle('active',k===i);el.classList.toggle('past',k<i)});
   var kids=dots.children;for(var k=0;k<N;k++)kids[k].className=k===i?'on':(k<i?'done':'');
-  $('stepLabel').textContent='Step '+(i+1)+' of '+N;
+  $('stepLabel').textContent='Step '+(i+1)+' of '+N;$('screenName').textContent=NAMES[i];
   screens[i].scrollTop=0;
-  var enter=[enterPass,enterLook,enterChat,enterBuild,enterGame,enterShip,enterReport][i];
+  var enter=[enterPass,enterSample,enterLook,enterChat,enterBuild,enterGame,enterShip,enterReport][i];
   enter();
   var h=screens[i].querySelector('h1,h2');if(h){h.setAttribute('tabindex','-1');try{h.focus({preventScroll:true})}catch(e){}}
 }
@@ -544,6 +659,7 @@ function qrSvg(){
 var left={leo:4360,sam:3600};
 function fmtLeft(n){var h=Math.floor(n/3600),m=Math.floor(n%3600/60),x=n%60;return h+':'+(m<10?'0':'')+m+':'+(x<10?'0':'')+x+' left'}
 function paintTimes(){$('tLeo').textContent=fmtLeft(left.leo);$('tSam').textContent=fmtLeft(left.sam)}
+function enterSample(){}
 function enterPass(){
   $('passArea').hidden=true;$('rowSam').hidden=true;$('givePass').hidden=false;$('toast0').hidden=true;
   left={leo:4360,sam:3600};paintTimes();
@@ -576,9 +692,12 @@ Array.prototype.forEach.call($('s0').querySelectorAll('[data-add]'),function(b){
 });
 Array.prototype.forEach.call($('s0').querySelectorAll('[data-inert]'),function(b){b.addEventListener('click',inertToast)});
 Array.prototype.forEach.call($('s0').querySelectorAll('a[href="#"]'),function(a){
-  a.addEventListener('click',function(e){e.preventDefault();if(a.id!=='openLaptop')inertToast()});
+  a.addEventListener('click',function(e){e.preventDefault();if(a.id!=='openLaptop'&&a.id!=='seeReport')inertToast()});
 });
-$('openLaptop').addEventListener('click',function(){go(1)});
+$('openLaptop').addEventListener('click',function(){go(2)});
+$('seeReport').addEventListener('click',function(){go(1)});
+$('repBack').addEventListener('click',function(){$('backBtn').click()});
+Array.prototype.forEach.call($('s1').querySelectorAll('[data-inert2]'),function(a){a.addEventListener('click',function(e){e.preventDefault()})});
 
 /* 2 Look */
 (function(){
@@ -595,7 +714,7 @@ $('openLaptop').addEventListener('click',function(){go(1)});
   });
 })();
 function enterLook(){Array.prototype.forEach.call($('tiles').children,function(x,k){x.setAttribute('aria-pressed',THEMES[k].id===theme.id)})}
-$('lookNext').addEventListener('click',function(){go(2)});
+$('lookNext').addEventListener('click',function(){go(3)});
 
 /* 3 Chat */
 var STAGES=['Start','Idea','Design','Tech plan','Build','Ship'];
@@ -645,7 +764,7 @@ function enterChat(){
       var p=document.createElement('div');p.className='plan';
       p.innerHTML='<b>Star Catcher: the plan</b><ul><li>Stars fall from the top of the screen</li><li>Tap a star to catch it and score a point</li><li>A round lasts 20 seconds, then you can play again</li></ul>';
       var go1=document.createElement('button');go1.className='kbtn';go1.textContent='Looks good, build it!';
-      go1.addEventListener('click',function(){if(my===tok)go(3)});
+      go1.addEventListener('click',function(){if(my===tok)go(4)});
       p.appendChild(go1);chat.appendChild(p);endScroll();go1.focus({preventScroll:true});
     }catch(e){if(e!=='cancel')throw e}
   })();
@@ -661,7 +780,7 @@ function enterBuild(){
   function set(k){for(var j=0;j<items.length;j++){items[j].className=j<k?'ok':j===k?'run':'';items[j].firstChild.textContent=j<k?'✅':j===k?theme.motifs[j%theme.motifs.length]:'⏳'}
     var pct=Math.round(k/BSTEPS.length*100);fill.style.width=pct+'%';bar.setAttribute('aria-valuenow',pct)}
   set(0);
-  for(let k=1;k<=BSTEPS.length;k++)later(function(){set(k);if(k===BSTEPS.length)later(function(){go(4)},600)},per*k);
+  for(let k=1;k<=BSTEPS.length;k++)later(function(){set(k);if(k===BSTEPS.length)later(function(){go(5)},600)},per*k);
 }
 
 /* 5 Game */
@@ -708,7 +827,7 @@ function startGame(){
     }
   },1000);
 }
-$('toShip').addEventListener('click',function(){go(5)});
+$('toShip').addEventListener('click',function(){go(6)});
 
 /* 6 Ship + shelf */
 var ICONS=['⭐','🚀','🌟','🪐'],icon='⭐';
@@ -731,7 +850,7 @@ $('shipBtn').addEventListener('click',function(){
   $('shipForm').hidden=true;$('shelfView').hidden=false;
   var h=$('shelfView').querySelector('h2');h.setAttribute('tabindex','-1');h.focus({preventScroll:true});
 });
-$('toReport').addEventListener('click',function(){go(6)});
+$('toReport').addEventListener('click',function(){go(7)});
 
 /* 7 Report */
 function enterReport(){$('repName').textContent=appName()}
