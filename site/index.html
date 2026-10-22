@@ -174,10 +174,10 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 #s2 .choice{min-height:max(64px,16cqh);border-radius:22px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-size:max(16px,min(3.8cqh,24px));font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 #s2 .choice span{font-size:max(26px,min(7cqh,48px));line-height:1}
 #s2 .toast{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:max-content;max-width:90%;background:var(--t-ink);color:var(--t-bg);padding:8px 14px;border-radius:10px;font-size:14px}
-/* guide chat (screens 5 to 8): static mock-ups */
-:is(#s4,#s5,#s6,#s7) .inner{max-width:1100px;display:flex;flex-direction:column;height:100%}
-:is(#s5,#s6,#s7){padding:1.5cqh 16px;overflow:hidden}
-:is(#s5,#s6,#s7) .inner{max-width:1200px}
+/* guide chat (screens 5 to 9): static mock-ups */
+:is(#s4,#s5,#s6,#s7,#s8) .inner{max-width:1100px;display:flex;flex-direction:column;height:100%}
+:is(#s5,#s6,#s7,#s8){padding:1.5cqh 16px;overflow:hidden}
+:is(#s5,#s6,#s7,#s8) .inner{max-width:1200px}
 .topbar{display:flex;align-items:center;gap:10px;margin-bottom:1cqh;flex:0 0 auto}
 .topbar .pillbtn{min-height:36px;padding:2px 14px;border-radius:999px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-weight:700;font-size:14px;white-space:nowrap}
 .stepper{list-style:none;margin:0;padding:0;display:flex;align-items:center;justify-content:center;flex:1;min-width:0}
@@ -190,9 +190,9 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 @media (max-width:640px){.stepper li:not(.on) .lbl{display:none}.stepper li:not(.on){padding:3px}.topbar .pillbtn .lbl{display:none}.topbar .pillbtn{padding:2px 10px}}
 .chatlog{flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
 .chatlog>*{flex:0 0 auto}
-:is(#s4,#s5,#s6,#s7) .bubble{font-size:max(13px,min(2.9cqh,17px));line-height:1.35;margin:1cqh 0;animation:none}
-:is(#s4,#s5,#s6,#s7) .bubble p{margin:0 0 .6cqh}
-:is(#s4,#s5,#s6,#s7) .bubble p:last-child{margin-bottom:0}
+:is(#s4,#s5,#s6,#s7,#s8) .bubble{font-size:max(13px,min(2.9cqh,17px));line-height:1.35;margin:1cqh 0;animation:none}
+:is(#s4,#s5,#s6,#s7,#s8) .bubble p{margin:0 0 .6cqh}
+:is(#s4,#s5,#s6,#s7,#s8) .bubble p:last-child{margin-bottom:0}
 .chatlog .bubble.bot{align-self:flex-start}
 .chatlog .bubble.me{align-self:flex-end;margin-left:0}
 .chatlog .bubble.big{align-self:stretch;max-width:100%;background:var(--t-surface);border:2px solid var(--t-line);border-radius:24px;padding:1.6cqh 18px}
@@ -208,23 +208,23 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 .crow input[type=text]{flex:1;min-width:0;margin:0!important;min-height:max(46px,min(7cqh,52px))!important;font-size:max(15px,min(3.4cqh,18px))!important}
 .send{min-height:max(46px,min(7cqh,52px));padding:0 22px;border-radius:999px;border:none;background:var(--t-accent);color:#fff;font-weight:800;font-size:17px}
 .send:disabled,.crow input:disabled{opacity:.55}
-:is(#s5,#s6,#s7) .idea{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:16px}
-:is(#s5,#s6,#s7) .chatcol{display:flex;flex-direction:column;min-height:0}
-:is(#s5,#s6,#s7) .panel{display:flex;flex-direction:column;min-height:0;border:2px solid var(--t-line);border-radius:22px;background:var(--t-surface);overflow:hidden}
-:is(#s5,#s6,#s7) .panel header{display:flex;align-items:center;gap:10px;padding:1.2cqh 18px;border-bottom:2px solid var(--t-line);font-weight:800;font-size:max(14px,min(3cqh,18px))}
-:is(#s5,#s6,#s7) .approved{background:var(--t-accent);color:#fff;border-radius:999px;padding:2px 12px;font-size:max(12px,min(2.6cqh,15px))}
-:is(#s5,#s6,#s7) .panel .body{overflow-y:auto;padding:1.4cqh 18px;font-size:max(12px,min(2.7cqh,15px));line-height:1.45}
-:is(#s5,#s6,#s7) .panel h2{font-size:max(18px,min(4.6cqh,26px));margin:0 0 1.2cqh}
-:is(#s5,#s6,#s7) .panel details{border:2px solid var(--t-line);border-radius:16px;padding:1cqh 16px}
-:is(#s5,#s6,#s7) .panel summary{cursor:pointer;font-weight:800;color:var(--t-accent);min-height:36px;display:flex;align-items:center}
-:is(#s5,#s6,#s7) .panel h3{font-size:max(15px,min(3.3cqh,20px));margin:1.4cqh 0 .4cqh}
-:is(#s5,#s6,#s7) .panel p{margin:0 0 .6cqh}
+:is(#s5,#s6,#s7,#s8) .idea{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+:is(#s5,#s6,#s7,#s8) .chatcol{display:flex;flex-direction:column;min-height:0}
+:is(#s5,#s6,#s7,#s8) .panel{display:flex;flex-direction:column;min-height:0;border:2px solid var(--t-line);border-radius:22px;background:var(--t-surface);overflow:hidden}
+:is(#s5,#s6,#s7,#s8) .panel header{display:flex;align-items:center;gap:10px;padding:1.2cqh 18px;border-bottom:2px solid var(--t-line);font-weight:800;font-size:max(14px,min(3cqh,18px))}
+:is(#s5,#s6,#s7,#s8) .approved{background:var(--t-accent);color:#fff;border-radius:999px;padding:2px 12px;font-size:max(12px,min(2.6cqh,15px))}
+:is(#s5,#s6,#s7,#s8) .panel .body{overflow-y:auto;padding:1.4cqh 18px;font-size:max(12px,min(2.7cqh,15px));line-height:1.45}
+:is(#s5,#s6,#s7,#s8) .panel h2{font-size:max(18px,min(4.6cqh,26px));margin:0 0 1.2cqh}
+:is(#s5,#s6,#s7,#s8) .panel details{border:2px solid var(--t-line);border-radius:16px;padding:1cqh 16px}
+:is(#s5,#s6,#s7,#s8) .panel summary{cursor:pointer;font-weight:800;color:var(--t-accent);min-height:36px;display:flex;align-items:center}
+:is(#s5,#s6,#s7,#s8) .panel h3{font-size:max(15px,min(3.3cqh,20px));margin:1.4cqh 0 .4cqh}
+:is(#s5,#s6,#s7,#s8) .panel p{margin:0 0 .6cqh}
 @media (max-width:760px){
-  :is(#s5,#s6,#s7){overflow-y:auto}
-  :is(#s5,#s6,#s7) .inner{height:auto}
-  :is(#s5,#s6,#s7) .idea{grid-template-columns:1fr;display:flex;flex-direction:column}
-  :is(#s5,#s6,#s7) .chatcol{height:calc(100cqh - 70px)}
-  :is(#s5,#s6,#s7) .panel{min-height:70cqh}
+  :is(#s5,#s6,#s7,#s8){overflow-y:auto}
+  :is(#s5,#s6,#s7,#s8) .inner{height:auto}
+  :is(#s5,#s6,#s7,#s8) .idea{grid-template-columns:1fr;display:flex;flex-direction:column}
+  :is(#s5,#s6,#s7,#s8) .chatcol{height:calc(100cqh - 70px)}
+  :is(#s5,#s6,#s7,#s8) .panel{min-height:70cqh}
 }
 .rightcol{display:flex;flex-direction:column;min-height:0;gap:1cqh}
 .rightcol .panel{flex:1 1 auto}
@@ -235,8 +235,8 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 .pcard{background:var(--t-surface-2);border-radius:16px;padding:1.2cqh 14px}
 .pcard h3{margin:0 0 .4cqh!important;font-size:max(14px,min(3cqh,17px))!important}
 .pcard p{margin:0 0 .4cqh!important}
-:is(#s5,#s6,#s7) .panel ul{margin:0 0 .6cqh;padding-left:20px}
-@media (max-width:760px){.cardgrid{grid-template-columns:1fr}:is(#s5,#s6,#s7) .rightcol{min-height:70cqh}}
+:is(#s5,#s6,#s7,#s8) .panel ul{margin:0 0 .6cqh;padding-left:20px}
+@media (max-width:760px){.cardgrid{grid-template-columns:1fr}:is(#s5,#s6,#s7,#s8) .rightcol{min-height:70cqh}}
 .chatlink{display:inline-flex;align-items:center;gap:6px;margin:0 0 .8cqh;font-weight:700;color:var(--t-accent);font-size:max(13px,min(2.8cqh,15px))}
 #s7 .panel .body{display:flex;flex-direction:column;justify-content:center;align-items:stretch;overflow:hidden;padding:1.4cqh 6%}
 #s7 .robotbox{position:relative;align-self:center;width:min(30cqh,60%);aspect-ratio:1.5;display:grid;place-items:center;font-size:max(48px,min(15cqh,110px));margin-bottom:1.5cqh}
@@ -256,6 +256,21 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 #s7 .steplist li.run .bx{border-color:var(--t-accent)}
 #s7 .steplist li.ok .bx{background:var(--t-accent);border-color:var(--t-accent)}
 @media (max-width:760px){#s7 .panel{order:-1;min-height:0}#s7 .robotbox{width:50%}}
+.changes{flex:0 0 auto;border:2px solid var(--t-accent);border-radius:20px;background:var(--t-surface);padding:1.2cqh 14px;margin-top:1cqh}
+.changes h3{margin:0 0 .6cqh;font-size:max(14px,min(3cqh,17px))}
+.changes ol{margin:0 0 1cqh;padding-left:22px;font-size:max(13px,min(2.8cqh,16px));line-height:1.35}
+.changes li{padding-right:30px;position:relative;margin-bottom:.4cqh}
+.changes li .x{position:absolute;right:2px;top:0;color:var(--t-accent);font-weight:800}
+.changes .fakebtn{display:flex;justify-content:center;width:100%;box-sizing:border-box}
+#s8 .panel .body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:1.4cqh 3%}
+#s8 .panelhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex:0 0 auto;margin-bottom:1cqh}
+#s8 .panelhead{flex-wrap:wrap}
+#s8 .panelhead h2{margin:0;white-space:nowrap}
+#s8 .gamehud span{white-space:nowrap}
+#s8 .gamehud{margin:0;font-size:max(14px,min(3cqh,18px))}
+#s8 .gamehud span+span{margin-left:14px}
+#s8 .game{flex:1 1 auto;height:auto;min-height:200px;max-width:none;width:100%;margin:0}
+@media (max-width:760px){#s8 .panel{order:-1;min-height:70cqh}}
 /* pick a look (screen 4) */
 #s3 h2{font-size:min(4.6cqh,28px);margin:0 0 .6cqh}
 #s3 .sub{font-size:max(12px,min(2.8cqh,16px));margin:0 0 1.2cqh}
@@ -768,14 +783,38 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
       </div>
     </section>
 
-    <!-- 5 Kid: the game -->
-    <section class="screen kid" id="s8" aria-label="Star Catcher game">
+    <!-- 9 Kid: app improvement (the app on one side, chat with a change list on the other) -->
+    <section class="screen kid" id="s8" aria-label="App Improvement">
       <div class="inner">
-        <h2>Star Catcher is ready! ⭐</h2>
-        <p class="muted">Tap the stars to catch them. A round lasts 20 seconds.</p>
-        <div class="gamehud"><span>Score: <span id="score">0</span></span><span>Time: <span id="time">20</span></span></div>
-        <div class="game" id="game" aria-label="Game box"></div>
-        <div class="row2"><button class="kbtn" id="toShip">I love it, ship it!</button></div>
+        <div class="topbar"><span class="pillbtn"><span class="lbl">＋ New app</span></span><ol class="stepper"><li class="done"><i>✓</i><span class="lbl">👋 Start</span></li><span class="line"></span><li class="done"><i>✓</i><span class="lbl">💡 Idea</span></li><span class="line"></span><li class="done"><i>✓</i><span class="lbl">🎨 Design</span></li><span class="line"></span><li class="done"><i>✓</i><span class="lbl">🛠️ Tech plan</span></li><span class="line"></span><li class="on"><i>5</i><span class="lbl">🏗️ Build</span></li><span class="line"></span><li class=""><i>6</i><span class="lbl">🎉 Ship</span></li></ol><span class="pillbtn"><span class="lbl">📚 My apps</span></span></div>
+        <div class="idea">
+          <div class="chatcol">
+            <div class="chatlog" role="log">
+              <div class="bubble bot">Ta-da! Your app is ready. Try it out. Any changes, or ready to ship?</div>
+              <div class="bubble me">a couple ideas:<br>make the stars fall a bit faster after every round<br>add a golden star that is worth 5 points</div>
+              <div class="bubble bot">Nice ideas, I put them on your list. Nothing's built yet. Anything else you'd like to change?</div>
+            </div>
+            <div class="changes">
+              <h3>📝 Your changes (2)</h3>
+              <ol>
+                <li>Stars fall a bit faster after every round.<span class="x" aria-hidden="true">✕</span></li>
+                <li>Add a golden star worth 5 points.<span class="x" aria-hidden="true">✕</span></li>
+              </ol>
+              <span class="fakebtn solid">✅ That's all, build it!</span>
+            </div>
+            <div class="composer">
+              <div class="cpills"><span class="cpill">🎤 Talk instead</span><span class="cpill">🔇 Voice off</span></div>
+              <span class="chatlink">📝 Add another change, or build your list</span>
+              <div class="crow"><input type="text" placeholder="Like &quot;add a high score&quot;" aria-label="Add a change" disabled><button class="send" disabled>Send</button></div>
+            </div>
+          </div>
+          <aside class="panel" aria-label="Star Catcher">
+            <div class="body">
+              <div class="panelhead"><h2>⭐ Star Catcher</h2><div class="gamehud"><span>Score: <span id="score">0</span></span><span>Time: <span id="time">20</span></span></div></div>
+              <div class="game" id="game" aria-label="Game box. Tap the stars to catch them."></div>
+            </div>
+          </aside>
+        </div>
       </div>
     </section>
 
@@ -874,8 +913,8 @@ document.querySelectorAll('[data-copy]').forEach(function(b){
 
 /* Flow */
 var N=11,cur=0,hist=[],tok=0,timers=[];
-var NAMES=['Parent Portal','Parent Report (sample)','Kid Landing Page','Pick a look','Guide Chat: Start','Guide Chat: Idea','Guide Chat: Design','Building the app','Star Catcher game','Ship and My apps','Parent Report'];
-var DESCS=['Parent control center.','What a parent sees after a kid finishes an app.','The kid\u2019s start page. Talk: their voice becomes text on this computer.','The kid chooses a color theme for their space.','The guide gets to know the kid, one friendly question at a time.','The Idea step: the guide asks for the whole idea, and the profile fills in on the right.','The Design step: the approved Idea plan is on the right while the guide walks through how it works.','The app gets built while the kid keeps chatting with the guide and watches the plan turn into code.','The kid plays the app they just made.','The kid names the app and adds it to their shelf.','The report the parent gets for this app.'];
+var NAMES=['Parent Portal','Parent Report (sample)','Kid Landing Page','Pick a look','Guide Chat: Start','Guide Chat: Idea','Guide Chat: Design','Building the app','App Improvement','Ship and My apps','Parent Report'];
+var DESCS=['Parent control center.','What a parent sees after a kid finishes an app.','The kid\u2019s start page. Talk: their voice becomes text on this computer.','The kid chooses a color theme for their space.','The guide gets to know the kid, one friendly question at a time.','The Idea step: the guide asks for the whole idea, and the profile fills in on the right.','The Design step: the approved Idea plan is on the right while the guide walks through how it works.','The app gets built while the kid keeps chatting with the guide and watches the plan turn into code.','The kid tries the app on one side and adds change ideas to a list in the chat, to build them all at once.','The kid names the app and adds it to their shelf.','The report the parent gets for this app.'];
 var screens=[];for(var i=0;i<N;i++)screens.push($('s'+i));
 var dots=$('dots');dots.innerHTML=screens.map(function(){return '<i></i>'}).join('');
 function later(fn,ms){var id=setTimeout(fn,ms);timers.push(id);return id}
@@ -1043,7 +1082,6 @@ function startGame(){
     }
   },1000);
 }
-$('toShip').addEventListener('click',function(){go(9)});
 
 /* 6 Ship + shelf */
 var ICONS=['⭐','🚀','🌟','🪐'],icon='⭐';
