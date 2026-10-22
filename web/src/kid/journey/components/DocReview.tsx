@@ -34,11 +34,18 @@ export default function DocReview({ doc, className = '', onApprove, onChange, bu
         {!draft && <span className="rounded-full bg-accent px-3 py-0.5 text-sm font-bold text-white">✓ Approved</span>}
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 text-ink">
-        <PlanCard markdown={doc.markdown} />
-        <details className="mt-4 rounded-2xl border-2 border-line px-4 py-2">
-          <summary className="cursor-pointer font-bold text-muted">Show the whole plan</summary>
-          <div className="ppg-doc mt-2"><Md doc>{doc.markdown}</Md></div>
-        </details>
+        {doc.kind === 'learner-profile' ? (
+          // "About you" is short and isn't a plan: shown whole, in one layer, under the card's own title.
+          <div className="ppg-doc"><Md doc>{doc.markdown.replace(/^\s*#\s+[^\n]*\n/, '')}</Md></div>
+        ) : (
+          <>
+            <PlanCard markdown={doc.markdown} />
+            <details className="mt-4 rounded-2xl border-2 border-line px-4 py-2">
+              <summary className="cursor-pointer font-bold text-muted">Show the whole plan</summary>
+              <div className="ppg-doc mt-2"><Md doc>{doc.markdown}</Md></div>
+            </details>
+          </>
+        )}
       </div>
       {draft && onApprove && (
         <div className="sticky bottom-0 z-10 flex flex-wrap gap-2 rounded-b-3xl border-t-2 border-line bg-surface px-5 py-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
