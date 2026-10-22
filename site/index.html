@@ -38,13 +38,20 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(-
 .pill.kid{background:var(--kid-soft);color:var(--kid)}
 
 /* landing */
-#landing{max-width:760px;margin:0 auto;padding:28px 16px 60px}
-.hero{text-align:center;padding:12px 0 6px}
-.hero .icon{font-size:64px;line-height:1}
-.hero .lead{font-size:18px}
+#landing{max-width:760px;margin:0 auto;padding:16px 16px 40px}
+.hero{padding:0 0 4px}
+.hero .titlerow{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px}
+.hero .icon{font-size:48px;line-height:1}
+.hero h1{font-size:36px;margin:0}
+ul.intro{list-style:none;margin:0;padding:0;text-align:left}
+ul.intro li{display:flex;gap:10px;align-items:flex-start;font-size:16px;margin-bottom:8px;line-height:1.45}
+ul.intro li span.ic{flex:0 0 24px;text-align:center;font-size:20px;line-height:1.3}
 .note{border-left:4px solid var(--brand);background:var(--brand-soft);padding:10px 14px;border-radius:8px;margin:14px 0}
 .note.warn{border-color:var(--warn);background:var(--warn-soft)}
-.cta{text-align:center;margin:22px 0}
+.cta{max-width:420px;margin:14px auto}
+.cta .row{display:flex;justify-content:space-evenly}
+.cta .row .btn{width:150px;padding:12px 8px}
+.cta .cap{width:33%;margin:8px 0 0 calc((100% - 300px) / 3);font-size:13px;line-height:1.35;text-align:left}
 ul.need{padding-left:20px;margin:0}
 ul.need li{margin-bottom:6px}
 .codewrap{position:relative}
@@ -154,14 +161,15 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 
 <main id="landing">
   <div class="hero">
-    <div class="icon" aria-hidden="true">🏠</div>
-    <h1>Build With Me</h1>
-    <p class="lead">This open-source Claude Code plugin is for parents who love AI coding and want to introduce it to their kids.</p>
-    <p class="lead">Your kids plan and build their own small apps with a friendly AI guide and under your supervision, using a slightly modified Devpost Plan-First Skill.</p>
-    <p class="muted">Fully local: runs as a plug-in on your computer and your own Claude account. Nothing is ever sent to the developer of this plugin: no accounts, no analytics, no tracking.</p>
+    <div class="titlerow"><span class="icon" aria-hidden="true">🏠</span><h1>Build With Me</h1></div>
+    <ul class="intro">
+      <li><span class="ic" aria-hidden="true">👨‍👩‍👧</span><span>This open-source Claude Code plugin is for parents who love AI coding and want to introduce it to their kids.</span></li>
+      <li><span class="ic" aria-hidden="true">🛠️</span><span>Your kids plan and build their own small apps with a friendly AI guide and under your supervision, using a slightly modified Devpost Plan-First Skill.</span></li>
+      <li><span class="ic" aria-hidden="true">🔒</span><span>Fully local: runs as a plug-in on your computer and your own Claude account. Nothing is ever sent to the developer of this plugin: no accounts, no analytics, no tracking.</span></li>
+    </ul>
   </div>
 
-  <div class="cta"><button class="btn big" id="tryDemo">Try the demo</button> <button class="btn big ghost" id="installBtn">Install</button><p class="muted" style="margin-top:8px">About two minutes of mock screens. Nothing to install.</p></div>
+  <div class="cta"><div class="row"><button class="btn big" id="tryDemo">Try the Demo</button><button class="btn big ghost" id="installBtn">Install</button></div><p class="muted cap">About two minutes of mock screens. Nothing to install.</p></div>
 
   <div class="note warn"><b>Adults only hold the account.</b> Anthropic requires Claude account holders to be 18 or older, so this runs on <i>your</i> account. Your kids get in with a pass you give them, for as long as you choose, and you get a report after every app. You are responsible for how your kids use it, so stay nearby.</div>
 
