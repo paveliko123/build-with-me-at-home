@@ -55,6 +55,10 @@ export default function BuildProgress({ progress, young, fallback }: { progress:
       <div className="h-4 overflow-hidden rounded-full bg-accent-soft" aria-hidden>
         <div className="h-full rounded-full bg-accent transition-[width] duration-700" style={{ width: `${share}%` }} />
       </div>
+      {/* Learner (D-6): how long a first build takes (1.6 to 6.9 minutes in 9 family builds). */}
+      {(!p || (p.mode === 'full' && p.phase !== 'done' && p.phase !== 'failed')) && (
+        <p className="font-bold text-muted">{young ? '⏳ Building takes about 2 to 7 minutes. Chat with me while you wait!' : '⏳ This usually takes 2 to 7 minutes. Chat on the left while it builds.'}</p>
+      )}
       {!young && writing && p?.part && <p className="font-mono text-sm text-muted">Now writing: {p.part}()</p>}
       {p && p.steps.length > 0 && (
         <section aria-label="Your plan, turning into code">
