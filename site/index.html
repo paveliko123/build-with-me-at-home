@@ -175,9 +175,9 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 #s2 .choice span{font-size:max(26px,min(7cqh,48px));line-height:1}
 #s2 .toast{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:max-content;max-width:90%;background:var(--t-ink);color:var(--t-bg);padding:8px 14px;border-radius:10px;font-size:14px}
 /* guide chat (screens 5 and 6): static mock-ups */
-:is(#s4,#s5) .inner{max-width:1100px;display:flex;flex-direction:column;height:100%}
-#s5{padding:1.5cqh 16px;overflow:hidden}
-#s5 .inner{max-width:1200px}
+:is(#s4,#s5,#s6) .inner{max-width:1100px;display:flex;flex-direction:column;height:100%}
+:is(#s5,#s6){padding:1.5cqh 16px;overflow:hidden}
+:is(#s5,#s6) .inner{max-width:1200px}
 .topbar{display:flex;align-items:center;gap:10px;margin-bottom:1cqh;flex:0 0 auto}
 .topbar .pillbtn{min-height:36px;padding:2px 14px;border-radius:999px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-weight:700;font-size:14px;white-space:nowrap}
 .stepper{list-style:none;margin:0;padding:0;display:flex;align-items:center;justify-content:center;flex:1;min-width:0}
@@ -190,9 +190,9 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 @media (max-width:640px){.stepper li:not(.on) .lbl{display:none}.stepper li:not(.on){padding:3px}.topbar .pillbtn .lbl{display:none}.topbar .pillbtn{padding:2px 10px}}
 .chatlog{flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
 .chatlog>*{flex:0 0 auto}
-:is(#s4,#s5) .bubble{font-size:max(13px,min(2.9cqh,17px));line-height:1.35;margin:1cqh 0;animation:none}
-:is(#s4,#s5) .bubble p{margin:0 0 .6cqh}
-:is(#s4,#s5) .bubble p:last-child{margin-bottom:0}
+:is(#s4,#s5,#s6) .bubble{font-size:max(13px,min(2.9cqh,17px));line-height:1.35;margin:1cqh 0;animation:none}
+:is(#s4,#s5,#s6) .bubble p{margin:0 0 .6cqh}
+:is(#s4,#s5,#s6) .bubble p:last-child{margin-bottom:0}
 .chatlog .bubble.bot{align-self:flex-start}
 .chatlog .bubble.me{align-self:flex-end;margin-left:0}
 .chatlog .bubble.big{align-self:stretch;max-width:100%;background:var(--t-surface);border:2px solid var(--t-line);border-radius:24px;padding:1.6cqh 18px}
@@ -208,24 +208,35 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 .crow input[type=text]{flex:1;min-width:0;margin:0!important;min-height:max(46px,min(7cqh,52px))!important;font-size:max(15px,min(3.4cqh,18px))!important}
 .send{min-height:max(46px,min(7cqh,52px));padding:0 22px;border-radius:999px;border:none;background:var(--t-accent);color:#fff;font-weight:800;font-size:17px}
 .send:disabled,.crow input:disabled{opacity:.55}
-#s5 .idea{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:16px}
-#s5 .chatcol{display:flex;flex-direction:column;min-height:0}
-#s5 .panel{display:flex;flex-direction:column;min-height:0;border:2px solid var(--t-line);border-radius:22px;background:var(--t-surface);overflow:hidden}
-#s5 .panel header{display:flex;align-items:center;gap:10px;padding:1.2cqh 18px;border-bottom:2px solid var(--t-line);font-weight:800;font-size:max(14px,min(3cqh,18px))}
-#s5 .approved{background:var(--t-accent);color:#fff;border-radius:999px;padding:2px 12px;font-size:max(12px,min(2.6cqh,15px))}
-#s5 .panel .body{overflow-y:auto;padding:1.4cqh 18px;font-size:max(12px,min(2.7cqh,15px));line-height:1.45}
-#s5 .panel h2{font-size:max(18px,min(4.6cqh,26px));margin:0 0 1.2cqh}
-#s5 .panel details{border:2px solid var(--t-line);border-radius:16px;padding:1cqh 16px}
-#s5 .panel summary{cursor:pointer;font-weight:800;color:var(--t-accent);min-height:36px;display:flex;align-items:center}
-#s5 .panel h3{font-size:max(15px,min(3.3cqh,20px));margin:1.4cqh 0 .4cqh}
-#s5 .panel p{margin:0 0 .6cqh}
+:is(#s5,#s6) .idea{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+:is(#s5,#s6) .chatcol{display:flex;flex-direction:column;min-height:0}
+:is(#s5,#s6) .panel{display:flex;flex-direction:column;min-height:0;border:2px solid var(--t-line);border-radius:22px;background:var(--t-surface);overflow:hidden}
+:is(#s5,#s6) .panel header{display:flex;align-items:center;gap:10px;padding:1.2cqh 18px;border-bottom:2px solid var(--t-line);font-weight:800;font-size:max(14px,min(3cqh,18px))}
+:is(#s5,#s6) .approved{background:var(--t-accent);color:#fff;border-radius:999px;padding:2px 12px;font-size:max(12px,min(2.6cqh,15px))}
+:is(#s5,#s6) .panel .body{overflow-y:auto;padding:1.4cqh 18px;font-size:max(12px,min(2.7cqh,15px));line-height:1.45}
+:is(#s5,#s6) .panel h2{font-size:max(18px,min(4.6cqh,26px));margin:0 0 1.2cqh}
+:is(#s5,#s6) .panel details{border:2px solid var(--t-line);border-radius:16px;padding:1cqh 16px}
+:is(#s5,#s6) .panel summary{cursor:pointer;font-weight:800;color:var(--t-accent);min-height:36px;display:flex;align-items:center}
+:is(#s5,#s6) .panel h3{font-size:max(15px,min(3.3cqh,20px));margin:1.4cqh 0 .4cqh}
+:is(#s5,#s6) .panel p{margin:0 0 .6cqh}
 @media (max-width:760px){
-  #s5{overflow-y:auto}
-  #s5 .inner{height:auto}
-  #s5 .idea{grid-template-columns:1fr;display:flex;flex-direction:column}
-  #s5 .chatcol{height:calc(100cqh - 70px)}
-  #s5 .panel{min-height:70cqh}
+  :is(#s5,#s6){overflow-y:auto}
+  :is(#s5,#s6) .inner{height:auto}
+  :is(#s5,#s6) .idea{grid-template-columns:1fr;display:flex;flex-direction:column}
+  :is(#s5,#s6) .chatcol{height:calc(100cqh - 70px)}
+  :is(#s5,#s6) .panel{min-height:70cqh}
 }
+.rightcol{display:flex;flex-direction:column;min-height:0;gap:1cqh}
+.rightcol .panel{flex:1 1 auto}
+.ptabs{display:flex;gap:10px;flex:0 0 auto}
+.ptab{min-height:36px;padding:2px 16px;border-radius:999px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-weight:700;font-size:max(13px,min(2.8cqh,16px));display:inline-flex;align-items:center}
+.ptab.on{background:var(--t-accent);border-color:var(--t-accent);color:#fff}
+.cardgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:1.2cqh 0}
+.pcard{background:var(--t-surface-2);border-radius:16px;padding:1.2cqh 14px}
+.pcard h3{margin:0 0 .4cqh!important;font-size:max(14px,min(3cqh,17px))!important}
+.pcard p{margin:0 0 .4cqh!important}
+:is(#s5,#s6) .panel ul{margin:0 0 .6cqh;padding-left:20px}
+@media (max-width:760px){.cardgrid{grid-template-columns:1fr}:is(#s5,#s6) .rightcol{min-height:70cqh}}
 /* pick a look (screen 4) */
 #s3 h2{font-size:min(4.6cqh,28px);margin:0 0 .6cqh}
 #s3 .sub{font-size:max(12px,min(2.8cqh,16px));margin:0 0 1.2cqh}
@@ -385,7 +396,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
 <div id="demo" hidden role="dialog" aria-label="Demo of Build With Me">
   <div class="demobanner">Demo: mock screens, not connected to anything.</div>
   <div class="demobar">
-    <div class="steps"><span id="stepLabel">Step 1 of 10</span><span class="dots" id="dots" aria-hidden="true"></span></div>
+    <div class="steps"><span id="stepLabel">Step 1 of 11</span><span class="dots" id="dots" aria-hidden="true"></span></div>
     <button class="btn ghost" id="restartBtn">Restart</button>
     <button class="btn ghost" id="backBtn">Back</button>
     <button class="btn" id="nextBtn">Next</button>
@@ -654,8 +665,67 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
       </div>
     </section>
 
+    <!-- 7 Kid: guide chat, Design (static) -->
+    <section class="screen kid" id="s6" aria-label="Guide chat, Design step">
+      <div class="inner">
+        <div class="topbar"><span class="pillbtn">＋<span class="lbl"> New app</span></span><ol class="stepper"><li class="done"><i>✓</i><span class="lbl">👋 Start</span></li><span class="line"></span><li class="done"><i>✓</i><span class="lbl">💡 Idea</span></li><span class="line"></span><li class="on"><i>3</i><span class="lbl">🎨 Design</span></li><span class="line"></span><li class=""><i>4</i><span class="lbl">🛠️ Tech plan</span></li><span class="line"></span><li class=""><i>5</i><span class="lbl">🏗️ Build</span></li><span class="line"></span><li class=""><i>6</i><span class="lbl">🎉 Ship</span></li></ol><span class="pillbtn">📚<span class="lbl"> My apps</span></span></div>
+        <div class="idea">
+          <div class="chatcol">
+            <div class="chatlog" role="log">
+              <div class="bubble bot">Here's your Idea plan on the right. Does it look right to you?</div>
+              <div class="bubble me">Looks good!</div>
+              <div class="divider">Step 3 · 🎨 Design</div>
+              <div class="bubble bot big"><p>Welcome to Design! This is where we turn your Idea plan into the full picture of how the game works, step by step, so we know exactly what to build. Your plan is a star-catching game: stars fall from the top of the screen and you tap them to score. Let's walk through it like a story.</p><p class="q">You open the game. What's the first thing you see, and what do you want to be able to do right away?</p><span class="fakebtn">💡 Need inspiration?</span></div>
+            </div>
+            <div class="composer">
+              <div class="cpills"><span class="cpill">🎤 Talk instead</span><span class="cpill">🔇 Voice off</span></div>
+              <div class="crow"><input type="text" placeholder="Type your answer" aria-label="Your answer" disabled><button class="send" disabled>Send</button></div>
+            </div>
+          </div>
+          <div class="rightcol">
+            <div class="ptabs"><span class="ptab">📄 About you ✓</span><span class="ptab on">📄 Idea ✓</span></div>
+            <aside class="panel" aria-label="Idea plan">
+              <header>📋 Idea plan <span class="approved">✓ Approved</span></header>
+              <div class="body">
+                <h2>🎯 Star Catcher</h2>
+                <p>A game where stars fall from the sky and you tap them to catch them and score points.</p>
+                <div class="cardgrid">
+                  <div class="pcard"><h3>✨ What makes it special</h3><p>Glowing stars fall through a space scene. Every catch makes a happy sparkle, and the score climbs as you play.</p></div>
+                  <div class="pcard"><h3>⭐ How it works</h3><p>Stars fall from the top of the screen. The player taps a star to catch it and score a point. A round lasts 20 seconds, then they can play again.</p></div>
+                  <div class="pcard"><h3>🎨 Look and feel</h3><p>A bright space scene with stars, planets and a moon. Fun and easy-going, with big stars that are easy to tap.</p></div>
+                  <div class="pcard"><h3>✅ How we'll know it works</h3><p>The player opens the page and sees stars falling.</p><p>Tapping a star catches it and the score goes up.</p><p>When the 20 seconds are over, the score shows and Play again appears.</p></div>
+                </div>
+                <div class="pcard" style="max-width:60%"><h3>⏸️ Later</h3><p>Faster rounds</p><p>Other star shapes</p></div>
+                <details open style="margin-top:1.4cqh">
+                  <summary>Show the whole plan</summary>
+                  <h2 style="margin-top:1cqh">Star Catcher</h2>
+                  <p>A game where stars fall from the sky and you tap them to catch them and score points.</p>
+                  <h3>What makes it special</h3>
+                  <p>Glowing stars fall through a space scene. Every catch makes a happy sparkle, and the score climbs as you play.</p>
+                  <h3>Who it's for</h3>
+                  <p>Not discussed yet.</p>
+                  <h3>How it works</h3>
+                  <p>Stars fall from the top of the screen. The player taps a star to catch it and score a point, and keeps going until the 20 seconds are up.</p>
+                  <h3>Look and feel</h3>
+                  <p>A bright space scene with stars, planets and a moon. Fun and easy-going, with big stars that are easy to tap.</p>
+                  <h3>Why this matters to the player</h3>
+                  <p>Not discussed yet.</p>
+                  <h3>How we'll know it works</h3>
+                  <ul><li>The player opens the page and sees stars falling.</li><li>Tapping a star catches it and the score goes up.</li><li>When the 20 seconds are over, the score shows and Play again appears.</li></ul>
+                  <h3>What's in for now</h3>
+                  <ul><li>One space scene with falling stars</li><li>Tap to catch and a score</li><li>20-second rounds with Play again</li></ul>
+                  <h3>Later</h3>
+                  <ul><li>Faster rounds</li><li>Other star shapes</li></ul>
+                </details>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- 4 Kid: build -->
-    <section class="screen kid" id="s6" aria-label="Building the app">
+    <section class="screen kid" id="s7" aria-label="Building the app">
       <div class="inner">
         <h2 id="buildLine">Building…</h2>
         <div class="motifs" id="motifs3" aria-hidden="true"></div>
@@ -665,7 +735,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 5 Kid: the game -->
-    <section class="screen kid" id="s7" aria-label="Star Catcher game">
+    <section class="screen kid" id="s8" aria-label="Star Catcher game">
       <div class="inner">
         <h2>Star Catcher is ready! ⭐</h2>
         <p class="muted">Tap the stars to catch them. A round lasts 20 seconds.</p>
@@ -676,7 +746,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 6 Kid: ship + shelf -->
-    <section class="screen kid" id="s8" aria-label="Ship and My apps">
+    <section class="screen kid" id="s9" aria-label="Ship and My apps">
       <div class="inner">
         <div id="shipForm">
           <h2>Ship it! 🎉</h2>
@@ -696,7 +766,7 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
     </section>
 
     <!-- 7 Parent report -->
-    <section class="screen" id="s9" aria-label="Parent report">
+    <section class="screen" id="s10" aria-label="Parent report">
       <div class="inner">
         <p><span class="pill">Parent report</span></p>
         <h1 style="font-size:26px">Sam made <span id="repName">Star Catcher</span></h1>
@@ -746,7 +816,7 @@ var THEMES=[
  {id:'nature',name:'Nature',emoji:'🌿',motifs:['🌻','🦋','🍃','🌲'],thinking:'Letting that idea grow…',building:'Growing your app…',c:{bg:'#f7f7ee',surface:'#ffffff',surface2:'#ecefdc',ink:'#1f2a14',muted:'#4d6b2f',accent:'#55803a',line:'#c5d6a8'}}
 ];
 var theme=THEMES[0];
-var kidScreens=[2,3,4,5,6,7,8].map(function(i){return $('s'+i)});
+var kidScreens=[2,3,4,5,6,7,8,9].map(function(i){return $('s'+i)});
 function applyTheme(t){
   theme=t;
   var c=t.c, m={'--t-bg':c.bg,'--t-surface':c.surface,'--t-surface-2':c.surface2,'--t-ink':c.ink,'--t-muted':c.muted,'--t-accent':c.accent,'--t-line':c.line};
@@ -769,9 +839,9 @@ document.querySelectorAll('[data-copy]').forEach(function(b){
 });
 
 /* Flow */
-var N=10,cur=0,hist=[],tok=0,timers=[];
-var NAMES=['Parent Portal','Parent Report (sample)','Kid Landing Page','Pick a look','Guide Chat: Start','Guide Chat: Idea','Building the app','Star Catcher game','Ship and My apps','Parent Report'];
-var DESCS=['Parent control center.','What a parent sees after a kid finishes an app.','The kid\u2019s start page. Talk: their voice becomes text on this computer.','The kid chooses a color theme for their space.','The guide gets to know the kid, one friendly question at a time.','The Idea step: the guide asks for the whole idea, and the profile fills in on the right.','The app gets built while the kid watches.','The kid plays the app they just made.','The kid names the app and adds it to their shelf.','The report the parent gets for this app.'];
+var N=11,cur=0,hist=[],tok=0,timers=[];
+var NAMES=['Parent Portal','Parent Report (sample)','Kid Landing Page','Pick a look','Guide Chat: Start','Guide Chat: Idea','Guide Chat: Design','Building the app','Star Catcher game','Ship and My apps','Parent Report'];
+var DESCS=['Parent control center.','What a parent sees after a kid finishes an app.','The kid\u2019s start page. Talk: their voice becomes text on this computer.','The kid chooses a color theme for their space.','The guide gets to know the kid, one friendly question at a time.','The Idea step: the guide asks for the whole idea, and the profile fills in on the right.','The Design step: the approved Idea plan is on the right while the guide walks through how it works.','The app gets built while the kid watches.','The kid plays the app they just made.','The kid names the app and adds it to their shelf.','The report the parent gets for this app.'];
 var screens=[];for(var i=0;i<N;i++)screens.push($('s'+i));
 var dots=$('dots');dots.innerHTML=screens.map(function(){return '<i></i>'}).join('');
 function later(fn,ms){var id=setTimeout(fn,ms);timers.push(id);return id}
@@ -784,7 +854,7 @@ function show(i,isBack){
   var kids=dots.children;for(var k=0;k<N;k++)kids[k].className=k===i?'on':(k<i?'done':'');
   $('stepLabel').textContent='Step '+(i+1)+' of '+N;$('screenName').textContent=NAMES[i];$('screenDesc').textContent=DESCS[i];$('nextBtn').disabled=i===N-1;
   screens[i].scrollTop=0;
-  var enter=[enterPass,enterSample,enterKidHome,enterLook,enterChat,enterIdea,enterBuild,enterGame,enterShip,enterReport][i];
+  var enter=[enterPass,enterSample,enterKidHome,enterLook,enterChat,enterIdea,enterDesign,enterBuild,enterGame,enterShip,enterReport][i];
   enter();
   var h=screens[i].querySelector('h1,h2');if(h){h.setAttribute('tabindex','-1');try{h.focus({preventScroll:true})}catch(e){}}
 }
@@ -879,6 +949,7 @@ $('lookNext').addEventListener('click',function(){go(4)});
 var choiceSpeed='Medium',starEmoji='⭐';
 function enterChat(){}
 function enterIdea(){}
+function enterDesign(){}
 
 /* 4 Build */
 var BSTEPS=['Setting up the game board','Drawing the stars','Adding the score and timer','Final touches'];
@@ -890,7 +961,7 @@ function enterBuild(){
   function set(k){for(var j=0;j<items.length;j++){items[j].className=j<k?'ok':j===k?'run':'';items[j].firstChild.textContent=j<k?'✅':j===k?theme.motifs[j%theme.motifs.length]:'⏳'}
     var pct=Math.round(k/BSTEPS.length*100);fill.style.width=pct+'%';bar.setAttribute('aria-valuenow',pct)}
   set(0);
-  for(let k=1;k<=BSTEPS.length;k++)later(function(){set(k);if(k===BSTEPS.length)later(function(){go(7)},600)},per*k);
+  for(let k=1;k<=BSTEPS.length;k++)later(function(){set(k);if(k===BSTEPS.length)later(function(){go(8)},600)},per*k);
 }
 
 /* 5 Game */
@@ -937,7 +1008,7 @@ function startGame(){
     }
   },1000);
 }
-$('toShip').addEventListener('click',function(){go(8)});
+$('toShip').addEventListener('click',function(){go(9)});
 
 /* 6 Ship + shelf */
 var ICONS=['⭐','🚀','🌟','🪐'],icon='⭐';
@@ -960,7 +1031,7 @@ $('shipBtn').addEventListener('click',function(){
   $('shipForm').hidden=true;$('shelfView').hidden=false;
   var h=$('shelfView').querySelector('h2');h.setAttribute('tabindex','-1');h.focus({preventScroll:true});
 });
-$('toReport').addEventListener('click',function(){go(9)});
+$('toReport').addEventListener('click',function(){go(10)});
 
 /* 7 Report */
 function enterReport(){$('repName').textContent=appName()}
