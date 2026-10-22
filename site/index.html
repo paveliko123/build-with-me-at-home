@@ -72,7 +72,10 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 .dots i.on{background:var(--brand)}
 .dots i.done{background:var(--muted)}
 .demobar .btn{min-height:48px;padding:6px 16px}
-.demobar .screenname{flex:1;min-width:0;text-align:center;font-weight:800;font-size:15px;line-height:1.2}
+.demobar .screenname{flex:1;min-width:0;text-align:center}
+.demobar .screenname b{display:block;font-size:30px;line-height:1.15;font-weight:800}
+.demobar .screenname span{display:block;font-size:14px;color:var(--muted);margin-top:2px}
+@media (max-width:640px){.demobar .screenname{order:1;flex:1 1 100%}.demobar .screenname b{font-size:24px}.demobar .btn{padding:6px 10px;font-size:14px}.demobar{gap:6px}}
 #stage{position:relative;flex:1;overflow:hidden}
 .screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:18px 16px 40px;opacity:0;visibility:hidden;transform:translateX(48px);transition:opacity .35s ease,transform .35s ease,visibility 0s linear .35s}
 .screen.past{transform:translateX(-48px)}
@@ -103,6 +106,8 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 #s0 .top .btns{display:flex;gap:8px;margin-left:auto}
 #s0 .status{display:flex;gap:10px;flex:1 1 560px;flex-wrap:wrap}
 #s0 .status .card{flex:1 1 150px}
+#s0 .stat .muted{font-size:11px}
+@media (min-width:821px){#s0 .stat .muted{white-space:nowrap}}
 #s0 .stat b{display:block;font-size:12px;color:var(--muted);font-weight:600}
 #s0 .meter{margin:4px 0 2px;height:8px}
 #s0 .meter i.mid{background:var(--warn)}
@@ -303,9 +308,10 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
   <div class="demobanner">Demo: mock screens, not connected to anything.</div>
   <div class="demobar">
     <div class="steps"><span id="stepLabel">Step 1 of 8</span><span class="dots" id="dots" aria-hidden="true"></span></div>
-    <button class="btn ghost" id="backBtn">Back</button>
     <button class="btn ghost" id="restartBtn">Restart</button>
-    <span class="screenname" id="screenName"></span>
+    <button class="btn ghost" id="backBtn">Back</button>
+    <button class="btn" id="nextBtn">Next</button>
+    <div class="screenname"><b id="screenName"></b><span id="screenDesc"></span></div>
     <button class="btn ghost" id="exitBtn">Exit demo</button>
   </div>
   <div id="stage">
@@ -618,6 +624,7 @@ document.querySelectorAll('[data-copy]').forEach(function(b){
 /* Flow */
 var N=8,cur=0,hist=[],tok=0,timers=[];
 var NAMES=['Parent Portal','Parent Report (sample)','Pick a look','Chat with the guide','Building the app','Star Catcher game','Ship and My apps','Parent Report'];
+var DESCS=['Parent control center.','What a parent sees after a kid finishes an app.','The kid chooses a color theme for their space.','The kid and the AI guide plan the app together.','The app gets built while the kid watches.','The kid plays the app they just made.','The kid names the app and adds it to their shelf.','The report the parent gets for this app.'];
 var screens=[];for(var i=0;i<N;i++)screens.push($('s'+i));
 var dots=$('dots');dots.innerHTML=screens.map(function(){return '<i></i>'}).join('');
 function later(fn,ms){var id=setTimeout(fn,ms);timers.push(id);return id}
@@ -628,7 +635,7 @@ function show(i,isBack){
   cur=i;
   screens.forEach(function(el,k){el.classList.toggle('active',k===i);el.classList.toggle('past',k<i)});
   var kids=dots.children;for(var k=0;k<N;k++)kids[k].className=k===i?'on':(k<i?'done':'');
-  $('stepLabel').textContent='Step '+(i+1)+' of '+N;$('screenName').textContent=NAMES[i];
+  $('stepLabel').textContent='Step '+(i+1)+' of '+N;$('screenName').textContent=NAMES[i];$('screenDesc').textContent=DESCS[i];$('nextBtn').disabled=i===N-1;
   screens[i].scrollTop=0;
   var enter=[enterPass,enterSample,enterLook,enterChat,enterBuild,enterGame,enterShip,enterReport][i];
   enter();
@@ -637,6 +644,7 @@ function show(i,isBack){
 function go(i){show(i,false)}
 $('backBtn').addEventListener('click',function(){if(hist.length)show(hist.pop(),true)});
 $('restartBtn').addEventListener('click',function(){hist=[];applyTheme(THEMES[0]);show(0,true)});
+$('nextBtn').addEventListener('click',function(){if(cur<N-1)go(cur+1)});
 $('exitBtn').addEventListener('click',closeDemo);
 $('tryDemo').addEventListener('click',function(){$('demo').hidden=false;document.body.style.overflow='hidden';hist=[];applyTheme(THEMES[0]);show(0,true)});
 function closeDemo(){clearAll();$('demo').hidden=true;document.body.style.overflow='';$('tryDemo').focus()}
