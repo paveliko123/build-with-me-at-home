@@ -6,7 +6,7 @@ import { SAFETY_LAYER } from './safety.js';
 import { dialLayer } from './dial.js';
 import { stageInstructions } from '../stages.js';
 import { WAITING_INSTRUCTIONS } from './waitingLayer.js';
-import type { Profile, Stage, StageDoc } from '../types.js';
+import { ageGroupOf, type Profile, type Stage, type StageDoc } from '../types.js';
 
 const THEME_HINTS: Record<string, string> = {
   unicorns: 'unicorns, rainbows, sparkles',
@@ -42,7 +42,7 @@ export function buildSystemInstruction(profile: Profile, stage: Stage, approvedD
   return [
     WRAPPER_LAYER,
     SAFETY_LAYER,
-    `# STAGE INSTRUCTIONS\n\nCurrent stage: ${STAGE_NAMES[stage]}.\n\n${waiting ? WAITING_INSTRUCTIONS : stageInstructions(stage, profile.experience <= 1)}`,
+    `# STAGE INSTRUCTIONS\n\nCurrent stage: ${STAGE_NAMES[stage]}.\n\n${waiting ? WAITING_INSTRUCTIONS : stageInstructions(stage, profile.experience <= 1, ageGroupOf(profile) !== 'adult')}`,
     dialLayer(profile),
     `# THEME\n\nThe person chose the "${profile.theme}" theme (${THEME_HINTS[profile.theme] ?? profile.theme}). It is only Build With Me's own look and your personality (a playful word now and then), not a topic: it says nothing about what their app is about. Never suggest app ideas, examples, cards, or picture content from it, and never assume their app is about it; use their own words and interests instead.`,
     `# APPROVED DOCUMENTS\n\n${docs}`,

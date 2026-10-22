@@ -5805,6 +5805,37 @@ function skillsDir() {
   return found;
 }
 
+// server/journey/prompt/youngProfile.ts
+var YOUNG_PROFILE_TEMPLATE = `---
+doc: learner-profile
+---
+<!-- Kids' and teens' "About you". Short and plain. Only the sections below, in this order.
+     Never add the adult course sections (coding background, planning experience, vocabulary,
+     communication preferences, ownership, support needs, review format).
+     Fill sections from what you already know (the GUIDANCE DIAL and THEME layers) and from what
+     the person said or chose. A section with nothing to say is left out, never "not discussed". -->
+
+# About you
+
+## Age group and experience
+Their age group and their experience with building apps with AI, as the parent set them (the GUIDANCE DIAL), in plain words. For example: "A kid, new to building apps with AI."
+
+## Look
+The theme they picked for Build With Me, in a few words. It is Build With Me's look, not what their app is about.
+
+## What they like
+What they said they like doing, playing or imagining, in their words.
+
+## Starting idea
+Their idea in their own words, or that they'd like help finding one. If they picked a suggestion, say which. This is a starting point, not a final plan.
+
+## What they'd like to learn
+Only if they said it (teens, or kids who brought it up). Otherwise leave this section out.
+
+## Notes for later steps
+Short notes the next steps can use, and open questions to settle later. Leave the section out if there are none.
+`;
+
 // server/journey/stages.ts
 var STAGE_ORDER = ["start", "idea", "design", "tech", "build", "ship"];
 var GUIDE_STAGES = ["start", "idea", "design", "tech"];
@@ -5840,8 +5871,8 @@ function withoutSections(markdown, titles) {
   return out.join("\n");
 }
 var cache2 = /* @__PURE__ */ new Map();
-function stageInstructions(stage, guided = false) {
-  const key = `${stage}:${guided}`;
+function stageInstructions(stage, guided = false, young = false) {
+  const key = `${stage}:${guided}:${young && stage === "start"}`;
   const hit = cache2.get(key);
   if (hit) return hit;
   const source = SOURCES[stage];
@@ -5849,7 +5880,7 @@ function stageInstructions(stage, guided = false) {
   const root = join9(skillsDir(), source.dir);
   const skipped = stage === "build" ? [...SKIPPED_SECTIONS, ...SKIPPED_BUILD_SECTIONS] : SKIPPED_SECTIONS;
   const text = source.files.filter((file) => !(guided && file.startsWith("references/"))).map((file) => {
-    const body = readFileSync3(join9(root, file), "utf8").replace(/\r\n/g, "\n").trim();
+    const body = stage === "start" && young && file.startsWith("templates/") ? YOUNG_PROFILE_TEMPLATE.trim() : readFileSync3(join9(root, file), "utf8").replace(/\r\n/g, "\n").trim();
     return `----- ${source.dir}/${file} -----
 ${file === "SKILL.md" ? withoutSections(body, skipped).trim() : body}`;
   }).join("\n\n");
@@ -5903,7 +5934,7 @@ ${d.markdown.trim()}`).join("\n\n") : "(none yet)";
 
 Current stage: ${STAGE_NAMES[stage]}.
 
-${waiting2 ? WAITING_INSTRUCTIONS : stageInstructions(stage, profile.experience <= 1)}`,
+${waiting2 ? WAITING_INSTRUCTIONS : stageInstructions(stage, profile.experience <= 1, ageGroupOf(profile) !== "adult")}`,
     dialLayer(profile),
     `# THEME
 
