@@ -53,7 +53,7 @@ The main trip through the app from opening it to the fun part, as numbered steps
 The screens or parts of the page, and what's on each.
 
 ## The look
-The look they picked: colors, style, mood, in their words.
+The look they picked: colors, style, mood, in their words. Always included.
 
 ## What it does
 Each thing the app does, with its details (what happens when you tap, what changes, sounds, scores).
@@ -66,9 +66,6 @@ The choices they made and why, in a line each.
 
 ## Leaving out for now
 Only real cuts or ideas saved for later.
-
-## Open questions
-Only if any remain. At the "new to this" level, decide small details yourself instead and say so under "Choices you made".
 `;
 
 export const YOUNG_SPEC_TEMPLATE = `---
@@ -100,8 +97,5 @@ What it keeps on this device between visits (lists, progress, scores, settings),
 Things to handle so it doesn't break or confuse: empty states, fast tapping, the end of a game, small screens.
 
 ## Choices I made
-Your technical choices and simplifications, each in plain words with a short reason.
-
-## Open questions
-Only if any remain.
+Your technical choices and simplifications, each in plain words with a short reason, including anything that was still open.
 `;

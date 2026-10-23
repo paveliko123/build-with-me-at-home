@@ -5764,6 +5764,10 @@ var EXPERIENCED = `Level: FOLLOW THE COURSE CLOSELY (experienced).
 - When they say they don't know, ask what you suggest, or say "you choose": recommend ONE option for the current question with a one-sentence reason, and ask whether that works. Don't jump ahead to writing the document.
 - Show every document as a draft ("status": "draft", in "doc"), say in one short line that it's ready to look at (the app shows it as a card with \u{1F44D} Looks good and \u270F\uFE0F Change something), and ask whether it looks good or needs changes. Mark it "approved" and set "stageComplete": true only after a clear approval such as "looks good".
 - In the Start stage, include the question about what they'd like to get better at or understand by the end.`;
+var YOUNG_STAGE_RULES = `
+- Start stage: you already know their age group, experience level, and theme from the profile screens. Never ask about them (no "have you built an app before?"). Ask what they like doing and, above the GUIDED level, what they'd like to get better at or understand by the end.
+- Design stage: before the draft, settle every open question in the Idea plan: ask the person about what they'd see or choose, and decide technical ones yourself. Always write the chosen look under "The look".
+- Tech plan stage: decide anything still open yourself and list it under "Choices I made". The Tech plan has no open questions.`;
 var VOICE = {
   // Safety review: the course's Start questions are for adults ("work, hobbies, communities…
   // where would it fit into your life?"), which invites life details from a young child.
@@ -5778,7 +5782,7 @@ function dialLayer(profile) {
   const kidOnCourse = profile.experience >= 3 && ageGroupOf(profile) === "kid" ? `
 - This is a child following the full course: keep every step (drafts, approvals, one question at a time), but write everything, replies AND documents, in simple kid words.
 ${PLAIN}` : "";
-  const level = (profile.experience <= 1 ? YOUNG : profile.experience === 2 ? MIDDLE : EXPERIENCED) + kidOnCourse;
+  const level = (profile.experience <= 1 ? YOUNG : profile.experience === 2 ? MIDDLE : EXPERIENCED) + kidOnCourse + (ageGroupOf(profile) === "adult" ? "" : YOUNG_STAGE_RULES);
   const label = profile.experience <= 1 ? "No idea" : profile.experience === 2 ? "So-so" : "Experienced";
   const listening = profile.inputMode === "talk" ? '\n\nThe person is listening (talk mode): keep "say" to 2\u20133 short sentences (under about 60 words), and never put code, symbols, formulas, or file names in "say" or "question"; details belong in the document. Call the documents "your profile", "the Idea plan", "the Design plan", and "the Tech plan".' : "";
   return `# GUIDANCE DIAL
@@ -5883,7 +5887,7 @@ The main trip through the app from opening it to the fun part, as numbered steps
 The screens or parts of the page, and what's on each.
 
 ## The look
-The look they picked: colors, style, mood, in their words.
+The look they picked: colors, style, mood, in their words. Always included.
 
 ## What it does
 Each thing the app does, with its details (what happens when you tap, what changes, sounds, scores).
@@ -5896,9 +5900,6 @@ The choices they made and why, in a line each.
 
 ## Leaving out for now
 Only real cuts or ideas saved for later.
-
-## Open questions
-Only if any remain. At the "new to this" level, decide small details yourself instead and say so under "Choices you made".
 `;
 var YOUNG_SPEC_TEMPLATE = `---
 doc: spec
@@ -5929,10 +5930,7 @@ What it keeps on this device between visits (lists, progress, scores, settings),
 Things to handle so it doesn't break or confuse: empty states, fast tapping, the end of a game, small screens.
 
 ## Choices I made
-Your technical choices and simplifications, each in plain words with a short reason.
-
-## Open questions
-Only if any remain.
+Your technical choices and simplifications, each in plain words with a short reason, including anything that was still open.
 `;
 
 // server/journey/stages.ts

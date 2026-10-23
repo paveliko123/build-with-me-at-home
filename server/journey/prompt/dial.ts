@@ -38,6 +38,13 @@ const EXPERIENCED = `Level: FOLLOW THE COURSE CLOSELY (experienced).
 - Show every document as a draft ("status": "draft", in "doc"), say in one short line that it's ready to look at (the app shows it as a card with 👍 Looks good and ✏️ Change something), and ask whether it looks good or needs changes. Mark it "approved" and set "stageComplete": true only after a clear approval such as "looks good".
 - In the Start stage, include the question about what they'd like to get better at or understand by the end.`;
 
+// Kids and teens at every level (owner yes D-7, 2026-10-22, from a teen's real session: asked about
+// experience twice, open questions carried to the build, the chosen look missing from Design).
+const YOUNG_STAGE_RULES = `
+- Start stage: you already know their age group, experience level, and theme from the profile screens. Never ask about them (no "have you built an app before?"). Ask what they like doing and, above the GUIDED level, what they'd like to get better at or understand by the end.
+- Design stage: before the draft, settle every open question in the Idea plan: ask the person about what they'd see or choose, and decide technical ones yourself. Always write the chosen look under "The look".
+- Tech plan stage: decide anything still open yourself and list it under "Choices I made". The Tech plan has no open questions.`;
+
 const VOICE = {
   // Safety review: the course's Start questions are for adults ("work, hobbies, communities…
   // where would it fit into your life?"), which invites life details from a young child.
@@ -55,7 +62,7 @@ export function dialLayer(profile: Profile): string {
   const kidOnCourse = profile.experience >= 3 && ageGroupOf(profile) === 'kid'
     ? `\n- This is a child following the full course: keep every step (drafts, approvals, one question at a time), but write everything, replies AND documents, in simple kid words.\n${PLAIN}`
     : '';
-  const level = (profile.experience <= 1 ? YOUNG : profile.experience === 2 ? MIDDLE : EXPERIENCED) + kidOnCourse;
+  const level = (profile.experience <= 1 ? YOUNG : profile.experience === 2 ? MIDDLE : EXPERIENCED) + kidOnCourse + (ageGroupOf(profile) === 'adult' ? '' : YOUNG_STAGE_RULES);
   const label = profile.experience <= 1 ? 'No idea' : profile.experience === 2 ? 'So-so' : 'Experienced';
   // Live testing: long technical replies with code bits were read aloud word for word.
   const listening = profile.inputMode === 'talk'
