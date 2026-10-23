@@ -23,3 +23,7 @@ node_modules/
 key.properties
 keystore.properties
 service-account*.json
+
+# Local only: Claude Code session settings and review scratch files
+/.claude/
+/.tmp/
