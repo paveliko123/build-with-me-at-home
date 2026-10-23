@@ -39,7 +39,7 @@ function HowIPlanned({ slug, onClose }: { slug: string; onClose: () => void }) {
   );
 }
 
-export default function MyApps({ name, onClose }: { name: string; onClose: () => void }) {
+export default function MyApps({ name, onClose, onNewApp }: { name: string; onClose: () => void; onNewApp?: () => void }) {
   const [apps, setApps] = useState<ShelfApp[] | null>(null);
   const [planFor, setPlanFor] = useState<string | null>(null);
   useEffect(() => { myApps().then(setApps).catch(() => setApps([])); }, []);
@@ -60,6 +60,17 @@ export default function MyApps({ name, onClose }: { name: string; onClose: () =>
       )}
       {!!apps?.length && (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Learner request: start a new app from the shelf, as a card like the others. */}
+          {onNewApp && (
+            <li className="flex flex-col gap-3 rounded-3xl border-2 border-dashed border-accent bg-surface p-5">
+              <div className="text-5xl" aria-hidden>✨</div>
+              <div>
+                <p className="text-xl font-extrabold text-ink">Start a new app</p>
+                <p className="text-sm text-muted">Plan it, build it, ship it!</p>
+              </div>
+              <button onClick={onNewApp} className="mt-auto rounded-full bg-accent px-5 py-2 text-center font-extrabold text-white">＋ New app</button>
+            </li>
+          )}
           {apps.map(a => (
             <li key={a.slug} className="flex flex-col gap-3 rounded-3xl border-2 border-line bg-surface p-5">
               {a.iconUrl ? <img src={a.iconUrl} alt="" width={64} height={64} className="rounded-2xl" /> : <div className="text-5xl" aria-hidden>{a.emoji}</div>}

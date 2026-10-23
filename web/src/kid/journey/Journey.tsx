@@ -272,7 +272,7 @@ export default function Journey({ name, onPassEnded }: { name: string; onPassEnd
           </div>
         </div>
       )}
-      {shelfOpen && <MyApps name={name} onClose={() => setShelfOpen(false)} />}
+      {shelfOpen && <MyApps name={name} onClose={() => setShelfOpen(false)} onNewApp={() => { setShelfOpen(false); if (screen === 'guide') startOver(); }} />}
       {!shelfOpen && screen === 'welcome' && (
         <>
           <div className="flex items-center justify-end gap-2 px-3 pt-3"><span id="bwm-countdown-slot" className="mr-auto" /><button onClick={() => setShelfOpen(true)} className="rounded-full border-2 border-line bg-surface px-3 py-1 text-sm font-bold text-ink hover:border-accent">📚 My apps</button></div>
