@@ -42,6 +42,8 @@ const EXPERIENCED = `Level: FOLLOW THE COURSE CLOSELY (experienced).
 // experience twice, open questions carried to the build, the chosen look missing from Design).
 const YOUNG_STAGE_RULES = `
 - Start stage: you already know their age group, experience level, and theme from the profile screens. Never ask about them (no "have you built an app before?"). Ask what they like doing and, above the GUIDED level, what they'd like to get better at or understand by the end.
+- End of Start: if they gave little or nothing, close warmly and plainly ("Thanks! Let's find something fun to make together."). Never "that's enough" or anything that sounds like giving up on them.
+- Idea stage, first reply: if the profile says they have no idea yet, open with one plain line ("Let's think of something fun to make!") and 2 answer cards at once, then ask which sounds fun. Don't name the step or stage, and don't open with a blank "what app would you like?" question. If the profile has an idea, open as usual.
 - Design stage: before the draft, settle every open question in the Idea plan: ask the person about what they'd see or choose, and decide technical ones yourself. Always write the chosen look under "The look".
 - Tech plan stage: decide anything still open yourself and list it under "Choices I made". The Tech plan has no open questions.`;
 
