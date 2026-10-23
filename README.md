@@ -8,6 +8,9 @@
 
 🏠 **Nothing is ever sent to the developer** of this plugin: no accounts, no sign-ups, no analytics, no tracking.
 
+### ▶️ [Try the demo](https://paveliko123.github.io/build-with-me-at-home/)
+About two minutes of mock screens in your browser. Nothing to install.
+
 ![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757) ![Fully local](https://img.shields.io/badge/runs-100%25%20on%20your%20computer-2f9e6e) ![No tracking](https://img.shields.io/badge/analytics-none-2f9e6e) ![Windows | Mac](https://img.shields.io/badge/runs%20on-Windows%20%7C%20Mac-3a8ee2) ![License: MIT](https://img.shields.io/badge/license-MIT-8a5cd6)
 
 </div>
@@ -41,8 +44,8 @@
 1. 🎟️ **You give a pass** on your laptop: a QR code for a tablet, or "Open on this laptop".
 2. 🎨 **They pick a look**, then talk or type with the guide through six steps: **👋 Start → 💡 Idea → 🎨 Design → 🛠️ Tech plan → 🏗️ Build → 🎉 Ship**.
 3. 💡 **Stuck?** "Show me ideas" offers ideas from a built-in list of 128, or ideas for whatever the guide just asked.
-4. 🏗️ **Claude builds the app** while they watch their own plan turn into code, then they ask for changes until they love it.
-5. 🎉 **It goes on their *My apps* shelf**, with its own icon.
+4. 🏗️ **Claude builds the app** (usually 2 to 7 minutes) while they watch their own plan turn into code, then they ask for changes until they love it.
+5. 🎉 **It goes on their *My apps* shelf**, with its own icon. A **Start a new app** card there begins the next one.
 6. 📄 **You get a report**: what they made, whose ideas they were, anything worth a chat, and how much of your plan it used.
 
 Kids (under 13) get short questions and picture cards. Teens (13–17) see and approve the plans.
@@ -134,6 +137,7 @@ Questions or concerns? See [SECURITY.md](SECURITY.md).
 1. 🖱️ Double-click **Build With Me** on the desktop (or run `/build-with-me:start` in Claude Code) and enter your PIN.
 2. 🎟️ Under **Give a pass**, pick the kid and how long, then **Create pass**.
 3. 📲 The kid scans the QR code with a tablet, or you tap **Open on this laptop**. One device per pass; you can extend or end it from your laptop at any time.
+4. 🔐 **If Claude Code's sign-in runs out**, the guide stops answering, your kid sees "Your grown-up needs to fix something", and the Parent area shows **Claude needs you to sign in again**. Tap **Sign in to Claude** and finish on Anthropic's page in your browser (if it shows a code, paste it in the box). No terminal needed; your kid's work is saved.
 <a id="stopping"></a>
 
 > [!IMPORTANT]
