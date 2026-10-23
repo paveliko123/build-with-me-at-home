@@ -368,3 +368,7 @@ Activity mode: brief recap through the app map (not hands-on).
   - What the learner found: a kid who said nothing useful at Start heard "That's enough for me", then "Welcome to the Idea step!" and an open "what app would you like?" question.
   - What changed: two rules for kids and teens in `server/journey/prompt/dial.ts`. Start closes warmly and plainly when they gave little. The first Idea reply, when the profile says no idea yet, is one plain line plus two idea cards, with no step or stage names. A kid who already has an idea gets the normal question.
   - Checked: four real runs (kid with no idea twice, kid with an idea, teen with no idea): cards at once for the three no-idea cases, a normal open question for the kid with an idea. `typecheck` clean, `verify:revisions` 73/73.
+- **The guide's voice no longer swallows the first letter (owner yes D-9, 2026-10-22).**
+  - What the learner found: on the laptop the first letter of the spoken reply was still cut, even with the half-second wait added on Oct 6.
+  - What changed: `web/src/kid/journey/lib/voice.ts` plays a barely audible 0.3-second blip first to wake sleeping speakers, and starts the sentences when the silent warm-up has finished (at least half a second, at most 1.5 seconds). Nothing about the words changed.
+  - Checked: `typecheck` clean, `verify:revisions` 73/73, built. Not checked by ear: needs the learner's test on the laptop after a restart.

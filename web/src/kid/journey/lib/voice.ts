@@ -108,13 +108,27 @@ function say(clean: string, theme: ThemeId, mine: number, onDone?: () => void) {
   let finished = false;
   const done = () => { if (!finished) { finished = true; onDone?.(); } };
   // A silent warm-up wakes the audio output first, so the reply's first word isn't swallowed.
+  wakeOutput();
   const warmUp = new SpeechSynthesisUtterance('.');
   warmUp.volume = 0;
   if (voice) warmUp.voice = voice;
+  // Learner tests (2026-10-06, 2026-10-22): the first word was still cut on the laptop, so the
+  // sentences start once the warm-up has finished and at least half a second has passed (or
+  // after 1.5 seconds if the warm-up never reports back).
+  let started = false;
+  const begin = () => {
+    if (started || mine !== generation) return;
+    started = true;
+    queue();
+    // Safety net: some browsers never fire onend, so also finish once nothing is speaking.
+    window.setTimeout(() => { poll = window.setInterval(check, 700); }, 300);
+  };
+  const readyAt = Date.now() + LEAD_IN_MS;
+  const afterWarmUp = () => window.setTimeout(begin, Math.max(0, readyAt - Date.now()));
+  warmUp.onend = afterWarmUp;
+  warmUp.onerror = afterWarmUp;
   window.speechSynthesis.speak(warmUp);
-  // Learner test (2026-10-06): the first word was still cut in half on the laptop, so the
-  // sentences start half a second after the warm-up.
-  window.setTimeout(() => { if (mine === generation) queue(); }, LEAD_IN_MS);
+  window.setTimeout(begin, WARM_UP_MAX_MS);
   const queue = () => sentences.forEach((sentence, i) => {
     const u = new SpeechSynthesisUtterance(sentence);
     if (voice) u.voice = voice;
@@ -125,15 +139,30 @@ function say(clean: string, theme: ThemeId, mine: number, onDone?: () => void) {
     u.onerror = () => { if (mine === generation) done(); };
     window.speechSynthesis.speak(u);
   });
-  // Safety net: some browsers never fire onend, so also finish once nothing is speaking.
   let poll = 0;
-  window.setTimeout(() => { poll = window.setInterval(check, 700); }, LEAD_IN_MS + 300);
   const check = () => {
     if (mine !== generation || finished) { window.clearInterval(poll); return; }
     if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending) { window.clearInterval(poll); done(); }
   };
 }
 const LEAD_IN_MS = 500;
+const WARM_UP_MAX_MS = 1500;
+
+let wakeContext: AudioContext | null = null;
+/** A barely audible blip wakes speakers that sleep when idle (some laptops, Bluetooth headphones),
+ *  which otherwise swallow the first word. Does nothing where audio isn't allowed yet. */
+function wakeOutput() {
+  try {
+    wakeContext ??= new AudioContext();
+    void wakeContext.resume();
+    const tone = wakeContext.createOscillator(), level = wakeContext.createGain();
+    level.gain.value = 0.003;
+    tone.frequency.value = 220;
+    tone.connect(level).connect(wakeContext.destination);
+    tone.start();
+    tone.stop(wakeContext.currentTime + 0.3);
+  } catch { /* the warm-up and the wait still run */ }
+}
 
 // Build With Me's Build screen waited for its cloud voice before showing a line; the device voice
 // starts at once, so these are no-ops kept for the ported screens.
