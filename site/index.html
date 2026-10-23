@@ -293,6 +293,23 @@ summary{cursor:pointer;font-weight:700;min-height:48px;display:flex;align-items:
 #s9 .sky{position:relative;flex:1 1 auto;min-height:140px;border-radius:18px;border:3px solid rgba(125,211,252,.5);background:radial-gradient(circle at 70% 30%,rgba(240,171,252,.18),transparent 45%),linear-gradient(#0b1030,#1d2a6b);overflow:hidden}
 #s9 .sky span{position:absolute;font-size:max(22px,min(6cqh,40px));line-height:1}
 @media (max-width:760px){#s9 .formpanel{min-height:0}#s9 .scene{min-height:48cqh}}
+/* my apps (screen 11): static mock-up */
+#s10{padding:2cqh 16px;overflow-y:auto}
+#s10 .inner{max-width:1000px;margin:0 auto}
+#s10 .apphead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:2cqh}
+#s10 .apphead h2{margin:0;font-size:max(20px,min(5.4cqh,32px))}
+#s10 .backpill{min-height:max(34px,min(6cqh,44px));padding:2px 18px;display:inline-flex;align-items:center;border-radius:999px;border:2px solid var(--t-line);background:var(--t-surface);color:var(--t-ink);font-weight:700;font-size:max(13px,min(2.8cqh,16px))}
+#s10 .apps{display:grid;grid-template-columns:repeat(3,1fr);gap:1.8cqh 16px}
+#s10 .appcard{background:var(--t-surface);border:2px solid var(--t-line);border-radius:22px;padding:1.4cqh 16px;display:flex;flex-direction:column;gap:.8cqh}
+#s10 .appcard .ai{font-size:max(26px,min(6.4cqh,44px));line-height:1}
+#s10 .appcard h3{margin:0;font-size:max(14px,min(3.2cqh,18px))}
+#s10 .appcard .date{color:var(--t-muted);font-size:max(11px,min(2.4cqh,14px));margin-bottom:.6cqh}
+#s10 .appcard .fakebtn{display:flex;justify-content:center;min-height:max(34px,min(5.6cqh,44px));font-size:max(13px,min(2.8cqh,16px));padding:0 10px}
+#s10 .appcard .fakebtn:not(.solid){border-color:var(--t-line)}
+#s10 .cta{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:2.4cqh}
+#s10 .cta p{margin:0;font-weight:700}
+@media (max-width:760px){#s10 .apps{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){#s10 .apps{grid-template-columns:1fr}}
 /* pick a look (screen 4) */
 #s3 h2{font-size:min(4.6cqh,28px);margin:0 0 .6cqh}
 #s3 .sub{font-size:max(12px,min(2.8cqh,16px));margin:0 0 1.2cqh}
@@ -868,35 +885,19 @@ Skip ordinary bugs and hardening ideas. Answer in plain words with a verdict
       </div>
     </section>
 
-    <!-- 7 Parent report -->
-    <section class="screen" id="s10" aria-label="Parent report">
+    <!-- 11 Kid: My apps (static) -->
+    <section class="screen kid" id="s10" aria-label="Sam's apps">
       <div class="inner">
-        <p><span class="pill">Parent report</span></p>
-        <h1 style="font-size:26px">Sam made <span id="repName">Star Catcher</span></h1>
-        <div class="card">
-          <span class="pill">🟢 No flags</span>
-          <p style="margin-top:10px">Sam picked a space look, chose a star-catching game from three ideas, decided how the stars look and how fast they fall, approved the plan, and shipped it to the My apps shelf.</p>
-          <div class="facts">
-            <div class="fact"><b>38 min</b><span>time spent</span></div>
-            <div class="fact"><b>4</b><span>rounds of changes</span></div>
-            <div class="fact"><b>Typing</b><span>on this laptop</span></div>
-          </div>
+        <div class="apphead"><h2>📚 Sam's apps</h2><span class="backpill">← Back</span></div>
+        <div class="apps">
+          <div class="appcard"><div class="ai" aria-hidden="true">⭐</div><h3>Star Catcher</h3><div class="date">Oct 22, 2026</div><span class="fakebtn solid">Open ↗</span><span class="fakebtn">📄 How I planned it</span></div>
+          <div class="appcard"><div class="ai" aria-hidden="true">🌙</div><h3>Moon Diary</h3><div class="date">Oct 18, 2026</div><span class="fakebtn solid">Open ↗</span><span class="fakebtn">📄 How I planned it</span></div>
+          <div class="appcard"><div class="ai" aria-hidden="true">🪐</div><h3>Planet Quiz</h3><div class="date">Oct 14, 2026</div><span class="fakebtn solid">Open ↗</span><span class="fakebtn">📄 How I planned it</span></div>
+          <div class="appcard"><div class="ai" aria-hidden="true">🚀</div><h3>Rocket Race</h3><div class="date">Oct 11, 2026</div><span class="fakebtn solid">Open ↗</span><span class="fakebtn">📄 How I planned it</span></div>
+          <div class="appcard"><div class="ai" aria-hidden="true">🌿</div><h3>Knock-Knock Card Deck</h3><div class="date">Oct 6, 2026</div><span class="fakebtn solid">Open ↗</span><span class="fakebtn">📄 How I planned it</span></div>
+          <div class="appcard"><div class="ai" aria-hidden="true">🤖</div><h3>Robot Pet</h3><div class="date">Oct 2, 2026</div><span class="fakebtn solid">Open ↗</span><span class="fakebtn">📄 How I planned it</span></div>
         </div>
-        <div class="card">
-          <h3>💡 Whose ideas?</h3>
-          <div class="bar" aria-hidden="true"><i style="width:65%;background:var(--kid)"></i><i style="width:35%;background:var(--brand)"></i></div>
-          <p class="muted" style="margin:0">Sam 65%, the guide 35%. Sam started from the idea list, then chose the look and speed.</p>
-        </div>
-        <div class="card">
-          <h3>💬 Worth a chat</h3>
-          <div class="flag">Sam asked how to put the game online for friends. The app can't do that on its own, so it might be a good moment to talk about sharing and staying safe online.</div>
-        </div>
-        <div class="card">
-          <h3>⚡ Your Claude plan</h3>
-          <p style="margin:0">This app used about 3% of your 5-hour limit.</p>
-          <div class="meter"><i style="width:3%"></i></div>
-        </div>
-        <button class="btn big" id="installIt">Install it</button>
+        <div class="cta"><p>Like what you saw?</p><button class="btn big" id="installIt">Install it</button></div>
       </div>
     </section>
 
@@ -919,7 +920,7 @@ var THEMES=[
  {id:'nature',name:'Nature',emoji:'🌿',motifs:['🌻','🦋','🍃','🌲'],thinking:'Letting that idea grow…',building:'Growing your app…',c:{bg:'#f7f7ee',surface:'#ffffff',surface2:'#ecefdc',ink:'#1f2a14',muted:'#4d6b2f',accent:'#55803a',line:'#c5d6a8'}}
 ];
 var theme=THEMES[0];
-var kidScreens=[2,3,4,5,6,7,8,9].map(function(i){return $('s'+i)});
+var kidScreens=[2,3,4,5,6,7,8,9,10].map(function(i){return $('s'+i)});
 function applyTheme(t){
   theme=t;
   var c=t.c, m={'--t-bg':c.bg,'--t-surface':c.surface,'--t-surface-2':c.surface2,'--t-ink':c.ink,'--t-muted':c.muted,'--t-accent':c.accent,'--t-line':c.line};
@@ -943,8 +944,8 @@ document.querySelectorAll('[data-copy]').forEach(function(b){
 
 /* Flow */
 var N=11,cur=0,hist=[],tok=0,timers=[];
-var NAMES=['Parent Portal','Parent Report (sample)','Kid Landing Page','Pick a look','Guide Chat: Start','Guide Chat: Idea','Guide Chat: Design','Building the app','App Improvement','Ship your app','Parent Report'];
-var DESCS=['Parent control center.','What a parent sees after a kid finishes an app.','The kid\u2019s start page. Talk: their voice becomes text on this computer.','The kid chooses a color theme for their space.','The guide gets to know the kid, one friendly question at a time.','The Idea step: the guide asks for the whole idea, and the profile fills in on the right.','The Design step: the approved Idea plan is on the right while the guide walks through how it works.','The app gets built while the kid keeps chatting with the guide and watches the plan turn into code.','The kid tries the app on one side and adds change ideas to a list in the chat, to build them all at once.','The last step: the kid names the app and picks an icon, then ships it to their shelf.','The report the parent gets for this app.'];
+var NAMES=['Parent Portal','Parent Report (sample)','Kid Landing Page','Pick a look','Guide Chat: Start','Guide Chat: Idea','Guide Chat: Design','Building the app','App Improvement','Ship your app','My apps'];
+var DESCS=['Parent control center.','What a parent sees after a kid finishes an app.','The kid\u2019s start page. Talk: their voice becomes text on this computer.','The kid chooses a color theme for their space.','The guide gets to know the kid, one friendly question at a time.','The Idea step: the guide asks for the whole idea, and the profile fills in on the right.','The Design step: the approved Idea plan is on the right while the guide walks through how it works.','The app gets built while the kid keeps chatting with the guide and watches the plan turn into code.','The kid tries the app on one side and adds change ideas to a list in the chat, to build them all at once.','The last step: the kid names the app and picks an icon, then ships it to their shelf.','The shelf with every app the kid has shipped, each with how they planned it.'];
 var screens=[];for(var i=0;i<N;i++)screens.push($('s'+i));
 var dots=$('dots');dots.innerHTML=screens.map(function(){return '<i></i>'}).join('');
 function later(fn,ms){var id=setTimeout(fn,ms);timers.push(id);return id}
@@ -957,7 +958,7 @@ function show(i,isBack){
   var kids=dots.children;for(var k=0;k<N;k++)kids[k].className=k===i?'on':(k<i?'done':'');
   $('stepLabel').textContent='Step '+(i+1)+' of '+N;$('screenName').textContent=NAMES[i];$('screenDesc').textContent=DESCS[i];$('nextBtn').disabled=i===N-1;
   screens[i].scrollTop=0;
-  var enter=[enterPass,enterSample,enterKidHome,enterLook,enterChat,enterIdea,enterDesign,enterBuild,enterGame,enterShip,enterReport][i];
+  var enter=[enterPass,enterSample,enterKidHome,enterLook,enterChat,enterIdea,enterDesign,enterBuild,enterGame,enterShip,enterApps][i];
   enter();
   var h=screens[i].querySelector('h1,h2');if(h){h.setAttribute('tabindex','-1');try{h.focus({preventScroll:true})}catch(e){}}
 }
@@ -1115,10 +1116,9 @@ function startGame(){
 
 /* 10 Ship is a static mock-up */
 function enterShip(){}
-function appName(){return 'Star Catcher'}
 
 /* 7 Report */
-function enterReport(){$('repName').textContent=appName()}
+function enterApps(){}
 
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('demo').hidden)closeDemo()});
 applyTheme(THEMES[0]);
