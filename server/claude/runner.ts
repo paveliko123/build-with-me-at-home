@@ -150,7 +150,7 @@ function toTurnResult(msg: any, started: number, rateLimit?: RateLimitInfo): Tur
   };
 }
 
-// ---------- long-lived conversation (guide, checker) ----------
+// ---------- long-lived conversation (used only by the E1 isolation test) ----------
 
 export class Conversation {
   private proc: ChildProcessWithoutNullStreams;
@@ -222,7 +222,7 @@ export class Conversation {
   }
 }
 
-// ---------- one-shot job (builder, reporter, /usage) ----------
+// ---------- one-shot job (every app call: guide, checks, builder, reporter, /usage) ----------
 
 export interface OneShotOptions extends IsolationOptions, RunnerEvents {
   prompt: string;

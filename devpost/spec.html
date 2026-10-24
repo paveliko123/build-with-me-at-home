@@ -153,7 +153,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     <div class="piece" style="--c:var(--warn)"><h3>📦 1. The Claude Code plugin</h3><span class="nick">the delivery box</span>
       <ul><li>The parent adds it from the public GitHub repo</li><li>Carries the whole app</li><li>A <b>setup skill</b>: Claude checks what's missing (Node.js, the speech model…), fixes it with your normal approval prompts, or explains in the chat</li><li><code>/build-with-me:start</code> starts the app</li></ul></div>
     <div class="piece" style="--c:var(--accent)"><h3>🖥️ 2. The server</h3><span class="nick">the back office</span>
-      <ul><li>A small <b>Node.js</b> program, like Build With Me's Cloud Functions but on the laptop</li><li>Shows the screens to the laptop and to tablets on home Wi-Fi</li><li>Keeps the PIN, kids, passes, projects, apps and reports in <b>plain files</b> in <code>&lt;home&gt;\Build With Me</code></li><li>Turns speech into text <b>on this computer</b> (Whisper)</li><li>Asks Claude to guide, check, build and report</li></ul></div>
+      <ul><li>A small <b>Node.js</b> program, like Build With Me's Cloud Functions but on the laptop</li><li>Shows the screens to the laptop and to tablets on home Wi-Fi</li><li>Keeps the PIN, kids, passes, projects, apps and reports in <b>plain files</b> in <code>&lt;home&gt;\Build With Me</code></li><li>Turns speech into text <b>on this computer</b> (Moonshine)</li><li>Asks Claude to guide, check, build and report</li></ul></div>
     <div class="piece" style="--c:var(--claude)"><h3>🧠 3. The parent's Claude Code</h3><span class="nick">the brains</span>
       <ul><li>The server runs your own <code>claude</code> in the background, one conversation per job:</li><li><b>Guide</b> (Sonnet), talks with the kid</li><li><b>Checker</b> (Sonnet, a fork of the guide's call), reads every turn</li><li><b>Builder</b> (Opus), writes the app</li><li><b>Reporter</b> (Opus), writes the report</li><li>Each one <b>sealed off</b> from your setup: no tools, files, plugins or CLAUDE.md. The app never sees your sign-in</li></ul></div>
     <div class="piece" style="--c:var(--kid)"><h3>🎨 4. The screens</h3><span class="nick">the front end</span>
@@ -189,7 +189,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
       <text x="298" y="102">• screens (React build) + API + live updates (SSE)</text>
       <text x="298" y="122">• parent gate (PIN) · passes (QR, cookies)</text>
       <text x="298" y="142">• journey (ported) · safety · reports</text>
-      <text x="298" y="162">• 🎤 Whisper speech-to-text (on this PC)</text>
+      <text x="298" y="162">• 🎤 Moonshine speech-to-text (on this PC)</text>
       <text x="298" y="182">• 🔐 home certificate for tablets</text>
       <text x="298" y="202">• Claude Runner (isolated claude -p)</text>
       <text x="298" y="222">• /usage + rate-limit tracking</text>
@@ -213,7 +213,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
     <text x="445" y="352" text-anchor="middle" font-size="11" fill="var(--muted)">kept on uninstall</text>
     <rect x="28" y="270" width="200" height="92" rx="12" fill="var(--file-soft)" stroke="var(--file)" stroke-dasharray="4 4"/>
     <text x="128" y="294" text-anchor="middle" font-weight="700" font-size="13" fill="var(--ink)">🔒 Plugin private folder</text>
-    <text x="128" y="316" text-anchor="middle" font-size="12" fill="var(--ink)">packages · Whisper model</text>
+    <text x="128" y="316" text-anchor="middle" font-size="12" fill="var(--ink)">packages · Moonshine model</text>
     <text x="128" y="334" text-anchor="middle" font-size="12" fill="var(--ink)">certificates · sandbox</text>
     <text x="128" y="352" text-anchor="middle" font-size="11" fill="var(--muted)">deleted on uninstall</text>
     <!-- arrows inside -->
@@ -263,7 +263,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
         <tr><td>Front end</td><td><b>React 19 + Vite + Tailwind 4</b>, copied</td><td>Reuse the approved kid design</td><td><a href="https://react.dev/">react.dev</a>, <a href="https://vite.dev/">vite.dev</a></td></tr>
         <tr><td>Claude</td><td>Your <b>Claude Code CLI</b>, <code>claude -p</code> with stream-json</td><td>The terms allow an unmodified Claude Code signed in with your own subscription</td><td><a href="https://code.claude.com/docs/en/headless">Headless</a>, <a href="https://code.claude.com/docs/en/cli-reference">CLI</a></td></tr>
         <tr><td>Speech to text</td><td><b>Moonshine base</b> (MIT) via <b>Transformers.js</b> in Node; Whisper selectable</td><td>Runs locally, pure npm install, no Python. E2: 16/16 words, about 1.2 s wait (Whisper about 2.7 s) <span class="pill ok">build revision</span></td><td><a href="https://huggingface.co/docs/transformers.js">Transformers.js</a>, <a href="https://huggingface.co/onnx-community/moonshine-base-ONNX">Moonshine</a></td></tr>
-        <tr><td>Voice out</td><td>Browser <b>speechSynthesis</b>, device voices</td><td>No keys; laptop and tablet; stays local</td><td><a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis">MDN</a></td></tr>
+        <tr><td>Voice out</td><td>Browser <b>speechSynthesis</b>, device voices</td><td>No keys; laptop and tablet; device voices stay local; Chrome's Google and Edge's Online voices are remote</td><td><a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis">MDN</a></td></tr>
         <tr><td>QR codes</td><td><code>qrcode</code></td><td>Already used in Build With Me</td><td><a href="https://www.npmjs.com/package/qrcode">npm</a></td></tr>
         <tr><td>Certificates</td><td><code>@peculiar/x509</code> (or <code>node-forge</code>)</td><td>A certificate restricted to home addresses</td><td><a href="https://github.com/PeculiarVentures/x509">GitHub</a></td></tr>
         <tr><td>PIN</td><td>Node <code>crypto.scrypt</code></td><td>A hashed PIN, no extra library</td><td><a href="https://nodejs.org/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback">Node docs</a></td></tr>
@@ -378,8 +378,8 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
   <details id="c-gate"><summary><h3>🔐 Parent Gate</h3><span class="prd">prd › Parent Gate and Responsibility</span></summary><div class="body">
     <ul>
       <li><b>The PIN:</b> 4–8 digits, stored as <code>scrypt(pin, salt)</code> in <code>family.json</code>. Never logged.</li>
-      <li><b>Wrong PIN:</b> after 5 wrong tries, a 60-second lockout, in memory (the PRD assumption). During the lockout even the right PIN waits, so the lockout really slows guessing (the audit suggested otherwise, M3; you kept it).</li>
-      <li><b>The parent cookie:</b> <code>HttpOnly</code>, <code>SameSite=Strict</code>, loopback only. <b>🔒 Lock</b> clears it, and so does 12 hours idle.</li>
+      <li><b>Wrong PIN:</b> after 5 wrong tries, growing lockouts (1, 5, 15, 60, then 240 minutes), kept in family.json (the PRD assumed a flat minute; the safety review made it grow and saved it). During the lockout even the right PIN waits, so the lockout really slows guessing (the audit suggested otherwise, M3; you kept it).</li>
+      <li><b>The parent cookie:</b> <code>HttpOnly</code>, <code>SameSite=Strict</code>, loopback only. <b>🔒 Lock</b> clears it, and so do 2 hours without use or 8 hours in all.</li>
       <li><b>Forgot the PIN:</b> <code>/build-with-me:reset-pin</code> in Claude Code clears the hash, and the next opening asks for a new PIN. Only someone at your Claude Code can do it. <span class="pill ok">resolves the PRD question</span></li>
       <li><b>Never handles the Claude sign-in:</b> the server only runs <code>claude</code>. It never reads Claude's credential files or tokens.</li>
     </ul>
@@ -425,7 +425,8 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
 
   <details id="c-runner"><summary><h3>🧠 Claude Runner</h3><span class="prd">prd › The Kid's Journey · Safety · The Parent Report</span></summary><div class="body">
     <p style="margin:0 0 6px"><code>server/claude/runner.ts</code> starts your <code>claude</code> with <b>isolation flags</b> on every call:</p>
-<pre><code>claude -p --safe-mode --input-format stream-json --output-format stream-json --verbose
+<pre><code># (--input-format is used only by the E1 test's long-lived Conversation; every app call is one-shot and omits it)
+claude -p --safe-mode --input-format stream-json --output-format stream-json --verbose
        --model &lt;sonnet|haiku|opus&gt;
        --system-prompt-file &lt;privacy rule + layer file&gt;
        --tools "" --strict-mcp-config --mcp-config {"mcpServers":{}}
@@ -453,7 +454,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
         <ul>
           <li>Why: the ported turn logic asks again with app notes, writes plans in a separate call and changes the system prompt at every stage, which a single long-lived process can't do cleanly.</li>
           <li>Resume needs nothing special: the transcript is in <code>project.json</code>. E3 (slice 8) measures the cost.</li>
-          <li>The checker reads each kid message and each guide reply on its own, as in Build With Me.</li>
+          <li>In mix A the checker reads each kid message and each guide reply on its own, as in Build With Me; in the default mix B the main checks are forks of the guide's call and see the same conversation the guide sees.</li>
         </ul></li>
       <li><b>One-shot jobs:</b> the <b>builder</b> and <b>reporter</b> start a fresh process per job. The reporter uses <code>--json-schema</code> for the report fields. The builder keeps Build With Me's plain-text output: a whole HTML document, or small find-and-replace edits for changes and fixes, checked against the hard rules; what a change left out is found by a separate check and said honestly. Versions are saved as <code>versions/vN.html</code>. <span class="pill verify">build revision</span></li>
       <li><b>Structured guide replies:</b> Build With Me's reply shape (say, cards, mock-up, plan). It uses <code>--json-schema</code> if that works with stream-json <span class="pill verify">E1</span>; otherwise the system prompt asks for JSON and <code>replySchema.ts</code> validates it, with one automatic retry.</li>
@@ -467,26 +468,26 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
   <details id="c-safety"><summary><h3>🛡️ Safety</h3><span class="prd">prd › Safety</span></summary><div class="body">
     <ul>
       <li><b>Layer 1, age-aware guide:</b> Build With Me's <code>prompt/safety.ts</code>, <code>dial.ts</code> and <code>wrapperLayer.ts</code>, with the age group from <code>family.json</code>.</li>
-      <li><b>Layer 2, live check</b> (<code>server/safety.ts</code>):
+      <li><b>Layer 2, live check</b> (<code>server/journey/safetyCheck.ts</code>):
         <ul>
           <li><code>personal.ts</code> masks the obvious details first.</li>
-          <li>The checker gets "KID SAID: …" alongside the guide, then "GUIDE SAID: …" before display. It answers <code>{ok, kind: unsuitable|personal|offtopic, note}</code>.</li>
-          <li><b>Unsuitable input:</b> the guide's reply is discarded and the guide is asked again with "redirect kindly to a kid-friendly alternative."</li>
-          <li><b>Unsuitable output:</b> regenerated once, then a safe fallback line.</li>
-          <li>Every non-ok verdict appends a <b>flag</b> <code>{time, step, kidSaid, guideDid, kind}</code>.</li>
+          <li>The checker gets "What the person just said to the helper" alongside the guide, then "What the helper is about to say to the person" before display. It answers <code>{verdict: ok|unsuitable|personal|wellbeing, category, masked}</code>.</li>
+          <li><b>Unsuitable input:</b> the guide's reply is discarded and replaced by a fixed kind redirect (or, for wellbeing, the trusted-grown-up message); the guide isn't asked again.</li>
+          <li><b>Unsuitable output:</b> the reply is replaced by the same fixed redirect; it isn't regenerated.</li>
+          <li>Every non-ok verdict appends a <b>flag</b> <code>{at, stage, direction, verdict, category, text}</code>.</li>
         </ul></li>
       <li><b>Layer 3, the report:</b> see <a href="#c-report">Reporter and Reports</a>.</li>
       <li><b>README review:</b> a <code>wellbeing</code> verdict also adds a <code>wellbeing</code> alert at once (<code>flag()</code> in <code>server/journey/safetyCheck.ts</code> → <code>addAlert</code>), shown in red on the parent home with the masked words. Kids' apps can't open a website: <code>appCheck.ts</code> catches website links, <code>window.open</code> and <code>location</code> changes to a website before a version ships, and the kid and parent screens are served with <code>Content-Security-Policy: frame-src 'self'</code>, so a preview frame can't be navigated to a website (checked in Chrome); the shelf's app page already had <code>frame-src 'none'</code>.</li>
       <li><b>Pre-install review (your decision: block it):</b> a safety check that can't run (claude didn't start, crashed, timed out) is tried twice, then the text is held back: <code>heldBack()</code> records an <code>unchecked</code> note and the turn fails with the usual "try again" (guide chat, change list, and a version's app words, where the last working version stays). The report shows a note, not a flag. A real refusal (claude answered but wouldn't judge) still counts as unsuitable.</li>
       <li><b>Builder output:</b> the app's HTML text also goes through one checker pass before it's shown, including words drawn in pictures (SVG text). The hard rules also catch an app that reaches the internet from code (a script, picture, CSS <code>url()</code> or <code>import</code> from a web address), which the app's page rules block anyway <span class="pill verify">security audit B1, B2</span>.</li>
     </ul>
-    <div class="files">server/safety.ts · server/journey/personal.ts · server/journey/prompt/safety.ts</div>
+    <div class="files">server/journey/safetyCheck.ts · server/journey/personal.ts · server/journey/prompt/safety.ts</div>
   </div></details>
 
   <details id="c-speech"><summary><h3>🎤 Speech</h3><span class="prd">prd › Talking</span></summary><div class="body">
     <ul>
       <li><b>In the browser</b> (<code>web/src/kid/journey/lib/speech.ts</code>, rewritten over <code>public/lib/recorder.js</code>): <code>getUserMedia</code> microphone, an AudioWorklet resampling to <b>16 kHz mono PCM</b>, sent in ~1-second chunks to <code>POST /api/speech/:utteranceId</code>. Quiet-detection ends the utterance (4 s for kids, 3 s for teens), and there's an "I'm done" button. Build With Me's browser speech recognition, which sends audio to an outside service, is gone. <span class="pill verify">build revision</span></li>
-      <li><b>On the server</b> (<code>server/speech.ts</code>): a Transformers.js <code>automatic-speech-recognition</code> pipeline, <b>Moonshine base</b> (replaced Whisper after E2: about 1.2 s vs 2.7 s), loaded once at startup from <code>${CLAUDE_PLUGIN_DATA}/models</code>. Chunks are transcribed as they arrive; the final text is returned when the utterance ends. <b>No audio is saved.</b> Talking needs a live pass or the parent; at most 20 recordings at once, 60 seconds each <span class="pill verify">security audit M1</span>.</li>
+      <li><b>On the server</b> (<code>server/speech.ts</code>): a Transformers.js <code>automatic-speech-recognition</code> pipeline, <b>Moonshine base</b> (replaced Whisper after E2: about 1.2 s vs 2.7 s), loaded once at startup from <code>${CLAUDE_PLUGIN_DATA}/models</code>. Chunks are buffered and transcribed once, when the speech ends. <b>No audio is saved.</b> Talking needs a live pass or the parent; at most 20 recordings at once, 60 seconds each <span class="pill verify">security audit M1</span>.</li>
       <li><b>Voice out:</b> Build With Me's <code>voice.ts</code>, using <code>speechSynthesis</code> with a voice per theme from the device's voices and a slower rate for kids. The ⚙️ menu is kept; Neural2 is removed.</li>
       <li><b>No microphone, or the tablet isn't set up:</b> the text box with a "tap 🎤 on your keyboard to talk" hint. The parent sees "Set up this tablet for talking."</li>
     </ul>
@@ -708,7 +709,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
       </tbody>
     </table>
     <h4>Plugin private folder (<code>${CLAUDE_PLUGIN_DATA}</code>): kept across updates, deleted on uninstall</h4>
-    <p style="margin:0"><code>node_modules/</code> · <code>models/</code> (Whisper) · <code>sandbox/</code> (empty working folder for Claude) · <code>server.lock</code></p>
+    <p style="margin:0"><code>node_modules/</code> · <code>models/</code> (Moonshine) · <code>sandbox/</code> (empty working folder for Claude) · <code>server.lock</code></p>
     <h4>Not kept anywhere</h4>
     <p style="margin:0">Audio. Claude Code's own session history for these runs (<code>--no-session-persistence</code> keeps kids' chats out of your history).</p>
   </div>
@@ -736,14 +737,13 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
 │   ├── passes.ts                    <span class="c"># create / open / extend / end / expire</span>
 │   ├── kids.ts                      <span class="c"># family.json kids</span>
 │   ├── certs.ts                     <span class="c"># home certificate authority + server cert</span>
-│   ├── speech.ts                    <span class="c"># Whisper (Transformers.js) streaming transcription</span>
-│   ├── safety.ts                    <span class="c"># checker orchestration, flags</span>
+│   ├── speech.ts                    <span class="c"># Moonshine (Transformers.js) speech-to-text</span>
 │   ├── usage.ts                     <span class="c"># /usage readings, rate-limit tracking</span>
 │   ├── claude/
 │   │   └── runner.ts                <span class="c"># isolated claude -p (guide, checker, builder, reporter)</span>
 │   ├── journey/                     <span class="c"># ported from Build With Me functions/src</span>
 │   │   ├── guideTurn.ts  startSession.ts  getSession.ts  changeTurn.ts
-│   │   ├── generateApp.ts  edits.ts  checklist.ts  stages.ts  personal.ts
+│   │   ├── generateApp.ts  edits.ts  checklist.ts  stages.ts  personal.ts  safetyCheck.ts
 │   │   └── prompt/                  <span class="c"># buildPrompt, wrapperLayer, safety, dial, builderLayer, …</span>
 │   └── report/
 │       ├── reporter.ts              <span class="c"># reporter call + schema</span>
@@ -775,7 +775,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
       <tbody>
         <tr><td><b>Claude Code CLI</b> (yours)</td><td><code>claude -p</code> with isolation flags; stream-json in and out; <code>--json-schema</code> for builder and reporter; <code>claude -p "/usage"</code></td><td>Your existing sign-in; the app never touches it</td><td>Your plan's 5-hour and weekly limits; <code>rate_limit_event</code> reports status</td><td><a href="https://code.claude.com/docs/en/headless">Headless</a> · <a href="https://code.claude.com/docs/en/cli-reference">CLI</a> · <a href="https://code.claude.com/docs/en/agent-sdk/typescript">SDK types</a> · <a href="https://code.claude.com/docs/en/legal-and-compliance">Legal</a></td></tr>
         <tr><td><b>Claude Code plugins</b></td><td><code>plugin.json</code>, <code>marketplace.json</code>, <code>commands/</code>, <code>skills/</code>, <code>${CLAUDE_PLUGIN_ROOT}</code>, <code>${CLAUDE_PLUGIN_DATA}</code></td><td>None</td><td>None</td><td><a href="https://code.claude.com/docs/en/plugins-reference">Plugins ref</a></td></tr>
-        <tr><td><b>Hugging Face model download</b> (once)</td><td>Transformers.js fetches <code>Xenova/whisper-base.en</code> into the models folder</td><td>None</td><td>~75–150 MB once; free</td><td><a href="https://huggingface.co/docs/transformers.js">Transformers.js</a></td></tr>
+        <tr><td><b>Hugging Face model download</b> (once)</td><td>Transformers.js fetches <code>onnx-community/moonshine-base-ONNX</code> into the models folder</td><td>None</td><td>about 250 MB once; free</td><td><a href="https://huggingface.co/docs/transformers.js">Transformers.js</a></td></tr>
         <tr><td><b>npm registry</b> (setup and updates)</td><td><code>npm ci --omit=dev</code></td><td>None</td><td>Free</td><td><a href="https://docs.npmjs.com/cli/commands/npm-ci">npm ci</a></td></tr>
         <tr><td><b>Node.js</b></td><td>Runtime</td><td>None</td><td>Free</td><td><a href="https://nodejs.org/">nodejs.org</a></td></tr>
         <tr><td><b>Learn AI Basics skills</b></td><td>Copied into <code>app/skills/</code> at release</td><td>None</td><td>MIT <span class="pill verify">verify</span></td><td>Devpost's skill-pack repo</td></tr>
@@ -791,7 +791,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
     <div><b>🧠 <code>claude</code> fails</b> (signed out, crashed, slow). One retry, then "My brain needs a quick break — try again in a minute." The parent home shows "Claude Code isn't responding — check that you're signed in." A failed build keeps the last working version.</div>
     <div><b>💤 Laptop sleeps or the server stops</b>The tablet's live connection drops: "Can't reach the computer — ask your parent to start Build With Me." Work is saved every turn.</div>
     <div><b>🎤 Tablet mic not allowed</b>Typing plus the keyboard-dictation hint.</div>
-    <div><b>👂 Whisper mishears</b>The recognized text shows in the answer box before sending, with "Oops, say it again."</div>
+    <div><b>👂 Moonshine mishears</b>The recognized text shows in the answer box before sending, with "Oops, say it again."</div>
     <div><b>🧱 Firewall blocks tablets</b>The Set up a tablet page self-tests the home address and explains the Windows "private network" allow step.</div>
   </div>
 
@@ -805,8 +805,8 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
       </ul></li>
     <li><b>Device names come from the browser</b> ("iPad," "Windows laptop"), not names you type. Enough to tell devices apart in Active passes.</li>
     <li><b>Per-app plan usage is an estimate from the app's own calls at a learned rate,</b> shown next to the whole account's change in <code>/usage</code>, because <code>/usage</code> is one number for the whole account and Claude Code doesn't expose per-app plan accounting.</li>
-    <li><b>One English Whisper model,</b> not a language picker. Swappable later.</li>
-    <li><b>Lockout and sessions are in memory:</b> a restart clears the wrong-PIN counter. Fine for a home app.</li>
+    <li><b>One English Moonshine model,</b> not a language picker. Swappable later.</li>
+    <li><b>Sessions are in memory; the PIN lockout is saved in <code>family.json</code>:</b> a restart signs the parent out but doesn't clear wrong-PIN lockouts.</li>
     <li><b>The release build is committed</b> (<code>app/dist</code>), so families never build anything, at the cost of repo size.</li>
   </ul></div>
 
@@ -868,9 +868,9 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
 
   <h4>Agent-made implementation choices (follow from your decisions; you can change them)</h4>
   <div class="card"><ul>
-    <li>Express, SSE, Transformers.js, <code>whisper-base.en</code>, <code>@peculiar/x509</code></li>
-    <li>Ports 4747 and 4748, and the data folder in Documents</li>
-    <li>The guide and checker as long-lived processes; at most 2 builds at once</li>
+    <li>Express, SSE, Transformers.js, <code>onnx-community/moonshine-base-ONNX</code>, <code>@peculiar/x509</code></li>
+    <li>Ports 4747 and 4748, and the family folder in your home folder (Build With Me)</li>
+    <li>The guide and checker as one-shot calls, one per turn (build revision, slice 5); at most 2 builds at once</li>
     <li><code>--no-session-persistence</code></li>
     <li>Forgotten PIN reset through <code>/build-with-me:reset-pin</code> (resolves the PRD open question)</li>
   </ul></div>
@@ -899,7 +899,7 @@ const steps=[
  {t:'Opening',hops:[['parent','Double-clicks Build With Me on the desktop.'],['plugin','The start file runs launch.mjs (starts the server if needed) and opens the browser.'],['parent','Note, PIN, Enter.'],['server','Checks the PIN against the stored hash; sets a parent cookie valid only on this laptop.']]},
  {t:'Give a pass',hops:[['parent','Picks Maya, 1 hour.'],['server','Writes a pass with a random one-use code.'],['files','passes.json'],['parent','The screen shows a QR code for https://<laptop address>:4748/p/<code>, plus "open on this laptop."']]},
  {t:'Kid scans',hops:[['kid','The tablet opens the link.'],['server','Code unused and unexpired? Mark used, record the device, set the pass cookie. That browser is Maya\'s for an hour.'],['kid','A second scan gets "already used."']]},
- {t:'A guide turn',hops:[['kid','Talks. The browser records and streams 16 kHz audio to the server.'],['server','Whisper turns it into text on the laptop; obvious personal details are masked.'],['claude','At the same time: the guide (Sonnet) gets the turn, and the checker (a Sonnet fork of the guide\'s call) judges the kid\'s words.'],['server','If the checker objects: discard the reply, gentle redirect, save a flag. Then the checker reads the guide\'s reply.'],['kid','The reply appears and the browser speaks it with a device voice.'],['files','Every turn, plan and flag saved in project.json, so nothing is lost if the pass ends.']]},
+ {t:'A guide turn',hops:[['kid','Talks. The browser records and streams 16 kHz audio to the server.'],['server','Moonshine turns it into text on the laptop; obvious personal details are masked.'],['claude','At the same time: the guide (Sonnet) gets the turn, and the checker (a Sonnet fork of the guide\'s call) judges the kid\'s words.'],['server','If the checker objects: discard the reply, gentle redirect, save a flag. Then the checker reads the guide\'s reply.'],['kid','The reply appears and the browser speaks it with a device voice.'],['files','Every turn, plan and flag saved in project.json, so nothing is lost if the pass ends.']]},
  {t:'Build',hops:[['claude','The builder (Opus) gets its instructions plus the Idea and Design plans and returns one self-contained HTML file.'],['files','Saved as versions/vN.html.'],['kid','The ⅔ pane shows it in a sandboxed frame. Change rounds repeat this.']]},
  {t:'Ship',hops:[['kid','Names the app.'],['files','Copied to kids/maya/apps/space-cat-feeder/index.html + apps.json.'],['kid','Served at /apps/maya/space-cat-feeder, with its QR code.']]},
  {t:'Report',hops:[['claude','The reporter (Opus) gets the transcript, flags, timeline and usage numbers, and returns the report content as JSON.'],['server','Fills the report template.'],['files','Reports\\2026-10-06 Maya - Space Cat Feeder.html + report-data/<id>.json'],['parent','Parent home shows it; Needs your attention too if there are flags.']]},

@@ -1,6 +1,6 @@
 // spec.md > Kid Safety Check: the instant mask. Obvious personal details in what a kid types or
-// says are replaced before anything is saved or sent to a model. Patterns only (no AI); the Haiku
-// check in safetyCheck.ts catches what these miss.
+// says are replaced before anything is saved or sent to a model. Patterns only (no AI); the Claude safety check
+// in safetyCheck.ts catches what these miss.
 
 export type PersonalKind = 'name' | 'school' | 'email' | 'phone' | 'address';
 

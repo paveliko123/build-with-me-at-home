@@ -47,7 +47,7 @@ export interface GuideReply {
   stageComplete: boolean;
 }
 
-/** spec.md > Model Mix: which Claude model answers, and how hard it thinks (Haiku 4.5 takes no effort). */
+/** spec.md > Model Mix: which Claude model answers, and how hard it thinks (Haiku takes no effort). */
 export type Effort = 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 export interface ModelChoice {
   model: string;
