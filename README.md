@@ -11,12 +11,12 @@
 ### ▶️ [Try the demo](https://paveliko123.github.io/build-with-me-at-home/)
 About two minutes of mock screens in your browser. Nothing to install.
 
-![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757) ![Fully local](https://img.shields.io/badge/data-stored%20on%20your%20computer-2f9e6e) ![No tracking](https://img.shields.io/badge/analytics-none-2f9e6e) ![Windows | Mac](https://img.shields.io/badge/runs%20on-Windows%20%7C%20Mac-3a8ee2) ![License: MIT](https://img.shields.io/badge/license-MIT-8a5cd6)
+![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757) ![Data stored on your computer](https://img.shields.io/badge/data-stored%20on%20your%20computer-2f9e6e) ![No tracking](https://img.shields.io/badge/analytics-none-2f9e6e) ![Windows | Mac](https://img.shields.io/badge/runs%20on-Windows%20%7C%20Mac-3a8ee2) ![License: MIT](https://img.shields.io/badge/license-MIT-8a5cd6)
 
 </div>
 
 > [!NOTE]
-> **Fully local.** The app, your kids' profiles, their conversations, their apps and your reports all live on your computer. The kids' chat with Claude goes to Anthropic through *your own* Claude Code, exactly like your own Claude use. Talking is turned into text on this computer too. The one other thing that can leave is the guide's spoken words, in Chrome and Edge, if you leave its voice on. Details in [Privacy](#privacy).
+> **Fully local.** The app, your kids' profiles, their conversations, their apps and your reports all live on your computer. The kids' chat with Claude goes to Anthropic through *your own* Claude Code, exactly like your own Claude use. Talking is turned into text on this computer too. The only other thing that can leave is spoken words: in Chrome and Edge, the guide's voice (when it's on) and read-aloud inside a kid's app use online voices. Details in [Privacy](#privacy).
 
 > [!IMPORTANT]
 > **You're responsible for how your kids use this.**
