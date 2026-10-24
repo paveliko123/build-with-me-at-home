@@ -584,8 +584,8 @@ Riskiest first, so nothing depends on an unproven piece:
 **Agent-made implementation choices** (follow from the decisions above; the learner can change them):
 - Express, SSE, Transformers.js, `onnx-community/moonshine-base-ONNX`, `@peculiar/x509`
 - ports 4747 and 4748
-- the data folder in Documents
-- the guide and checker as long-lived processes
+- the family folder in your home folder (Build With Me)
+- the guide and checker as one-shot calls, one per turn (build revision, slice 5)
 - at most 2 builds at once
 - `--no-session-persistence`
 - forgotten PIN reset through `/build-with-me:reset-pin` (resolves the PRD open question)

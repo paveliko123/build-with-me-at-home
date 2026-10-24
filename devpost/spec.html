@@ -869,8 +869,8 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
   <h4>Agent-made implementation choices (follow from your decisions; you can change them)</h4>
   <div class="card"><ul>
     <li>Express, SSE, Transformers.js, <code>onnx-community/moonshine-base-ONNX</code>, <code>@peculiar/x509</code></li>
-    <li>Ports 4747 and 4748, and the data folder in Documents</li>
-    <li>The guide and checker as long-lived processes; at most 2 builds at once</li>
+    <li>Ports 4747 and 4748, and the family folder in your home folder (Build With Me)</li>
+    <li>The guide and checker as one-shot calls, one per turn (build revision, slice 5); at most 2 builds at once</li>
     <li><code>--no-session-persistence</code></li>
     <li>Forgotten PIN reset through <code>/build-with-me:reset-pin</code> (resolves the PRD open question)</li>
   </ul></div>

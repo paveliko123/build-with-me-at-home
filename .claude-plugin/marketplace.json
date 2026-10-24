@@ -6,7 +6,7 @@
     {
       "name": "build-with-me",
       "source": "./",
-      "description": "Introduce your kids to Claude Code and plan-first building, on your own account, with you supervising. Fully local: nothing is sent to the developer, no analytics."
+      "description": "Introduce your kids to Claude Code and plan-first building, on your own account, with you supervising. Kids' data stays on your computer: nothing is sent to the developer, no analytics."
     }
   ]
 }

@@ -1,6 +1,6 @@
 // The guide's voice (prd.md > Talking): the device's own speech synthesis, a voice per theme and
 // a slower pace for kids, with a ⚙️ menu for the voice and speed. Ported from Build With Me's
-// voice.ts without the cloud voice (option B): no cloud voice of our own; the browser's online voices (Chrome Google, Edge Online) do send the text out.
+// voice.ts without its cloud voice (option B). The browser's online voices (Chrome's Google, Edge's Online) still send the text out.
 import type { AgeGroup, GuideReply, ThemeId } from '../types';
 
 const CHARACTER: Record<ThemeId, { pitch: number; rate: number; pick: number }> = {
