@@ -60,11 +60,21 @@ async function check() {
   if (!claude) add('claude-installed', false, 'The claude command-line tool was not found', 'Install Claude Code with the official installer (Windows PowerShell: irm https://claude.ai/install.ps1 | iex · Mac: curl -fsSL https://claude.ai/install.sh | bash).');
   else {
     add('claude-installed', true, claude);
-    const r = spawnSync(claude, ['-p', '/usage', '--safe-mode', '--model', 'haiku', '--tools', '', '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}', '--setting-sources', '', '--no-session-persistence', '--output-format', 'json'],
-      { encoding: 'utf8', env: cleanEnv({ IS_DEMO: '1' }), cwd: DATA, timeout: 60_000, input: '' });
-    let text = r.stdout || r.stderr || '';
-    try { text = JSON.parse(r.stdout).result ?? text; } catch {}
-    const signedIn = r.status === 0 && !/not logged in|please run \/login/i.test(text);
+    // Ask the claude program first (`claude auth status`: no model call; it exits 1 when signed out, so
+    // only its answer counts). Only if it can't answer (older Claude Code) read the /usage text instead.
+    let signedIn = null;
+    try {
+      const a = spawnSync(claude, ['auth', 'status'], { encoding: 'utf8', env: cleanEnv({ IS_DEMO: '1' }), cwd: DATA, timeout: 15_000, input: '', windowsHide: true });
+      const v = JSON.parse(a.stdout).loggedIn;
+      if (typeof v === 'boolean') signedIn = v;
+    } catch {}
+    if (signedIn === null) {
+      const r = spawnSync(claude, ['-p', '/usage', '--safe-mode', '--model', 'haiku', '--tools', '', '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}', '--setting-sources', '', '--no-session-persistence', '--output-format', 'json'],
+        { encoding: 'utf8', env: cleanEnv({ IS_DEMO: '1' }), cwd: DATA, timeout: 60_000, input: '' });
+      let text = r.stdout || r.stderr || '';
+      try { text = JSON.parse(r.stdout).result ?? text; } catch {}
+      signedIn = r.status === 0 && !/not logged in|please run \/login/i.test(text);
+    }
     add('claude-signed-in', signedIn, signedIn ? 'Signed in' : 'Not signed in', 'The parent opens a terminal, runs `claude`, types /login and finishes sign-in in the browser (Anthropic’s own page), then /exit.');
   }
 

@@ -1219,6 +1219,50 @@ function reportSignedOut(kid) {
     text: `Claude Code's sign-in ran out, so the guide can't answer${kid ? ` (found during ${kid.nickname}'s session; their work is saved)` : ""}. Sign in again to fix it.`
   });
 }
+var loggedInCache = null;
+function claudeLoggedIn(fresh = false) {
+  if (!fresh && loggedInCache && Date.now() - loggedInCache.at < 1e4) return Promise.resolve(loggedInCache.value);
+  return new Promise((resolve2) => {
+    const bin = findClaude();
+    if (!bin) {
+      resolve2(null);
+      return;
+    }
+    let out = "";
+    let done = false;
+    let p;
+    const finish = (value) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      loggedInCache = { value, at: Date.now() };
+      resolve2(value);
+    };
+    try {
+      p = spawn2(bin, ["auth", "status"], { env: cleanEnv(), windowsHide: true });
+    } catch {
+      resolve2(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      p.kill();
+      finish(null);
+    }, 15e3);
+    p.stdout.on("data", (b) => {
+      out = (out + b.toString("utf8")).slice(0, 2e4);
+    });
+    p.on("error", () => finish(null));
+    p.on("close", () => {
+      try {
+        const v = JSON.parse(out)?.loggedIn;
+        finish(typeof v === "boolean" ? v : null);
+      } catch {
+        finish(null);
+      }
+    });
+    p.stdin.end();
+  });
+}
 var current = { state: "idle" };
 var child = null;
 var signInState = () => current;
@@ -7655,8 +7699,9 @@ function parentRoutes(opts) {
       res.json({ found: false, signedIn: false });
       return;
     }
-    const usage = await currentUsage(req.query.fresh ? 0 : 6e4);
-    res.json({ found: true, signedIn: !/not logged in|please run \/login/i.test(usage.raw) });
+    const loggedIn = await claudeLoggedIn(!!req.query.fresh);
+    const signedIn = loggedIn ?? !/not logged in|please run \/login/i.test((await currentUsage(req.query.fresh ? 0 : 6e4)).raw);
+    res.json({ found: true, signedIn });
   });
   r.post("/setup", async (req, res) => {
     if (!isLoopback(req)) {
@@ -7779,8 +7824,8 @@ function parentRoutes(opts) {
       res.json({ claude: { found: false, signedIn: false } });
       return;
     }
-    const usage = await currentUsage(req.query.fresh ? 0 : 6e4);
-    const signedIn = !/not logged in|please run \/login/i.test(usage.raw);
+    const [loggedIn, usage] = await Promise.all([claudeLoggedIn(!!req.query.fresh), currentUsage(req.query.fresh ? 0 : 6e4)]);
+    const signedIn = loggedIn ?? !/not logged in|please run \/login/i.test(usage.raw);
     res.json({
       claude: { found: true, signedIn, subscription: /subscription/i.test(usage.raw) },
       usage: usage.ok ? { fiveHourPct: usage.fiveHourPct, fiveHourResets: usage.fiveHourResets, weeklyPct: usage.weeklyPct, weeklyResets: usage.weeklyResets, at: usage.at } : null
