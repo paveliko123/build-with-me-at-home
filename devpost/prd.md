@@ -27,7 +27,7 @@ Source: `scope.md > The Core Loop`, `scope.md > What "Working" Looks Like`.
 3. **The kid opens the pass.** They scan the QR code on a tablet on the home Wi-Fi, or the parent opens it on the laptop. That device gets the pass, and the QR code stops working.
 4. **The kid's journey.** Welcome ("your helper is an AI, not a person," talk or type), then Theme, then the six steps. The guide adjusts to the kid's age group from their profile (see **The Kid's Journey**).
 5. **Ship.** The kid names the app. It goes on their **My apps** shelf with a link and a home-Wi-Fi QR code.
-6. **The parent report.** A separate Opus 5.5 review of the whole conversation is saved in the Parent area and in the reports folder. Flags also show under **Needs your attention**.
+6. **The parent report.** A separate Claude Opus review of the whole conversation is saved in the Parent area and in the reports folder. Flags also show under **Needs your attention**.
 7. **Time.** Ten minutes before the pass ends, the kid sees a countdown. The parent can extend the pass from the parent home on the laptop. At zero, a friendly "Time's up" screen appears, and the work waits for the next pass.
 
 **Success:** a kid has a working app on their shelf, and the parent has a report for it.
@@ -157,7 +157,7 @@ Source: `scope.md > The POC Boundary` ("the existing design and flow"). This is 
 | | Kid (under 13) | Teen (13–17) |
 |---|---|---|
 | Teaching | None spoken. The process is the lesson | The guide names the ideas: design first, test and fix |
-| Questions | Open first; 1–2 picture idea cards if stuck | Open first; cards only when unsure |
+| Questions | Open first; 2 picture idea cards if stuck | Open first; cards only when unsure |
 | Who decides | The kid owns the idea and the look; the guide does the tech and writes the plans behind the scenes | The teen owns the idea and the look and approves the Idea and Design plans |
 | Ideas | Lean toward useful and creative over games | Their own idea first, sharpened |
 | Plans | Never shown | Shown in plain words for approval |
@@ -169,14 +169,14 @@ Source: `scope.md > The POC Boundary` ("the existing design and flow"). This is 
   - [ ] The theme is the only choice. It sets the helper's look and voice.
 - **Start:**
   - [ ] Kids get at most two easy questions.
-  - [ ] Teens hear in one or two sentences that we plan first, then build.
+  - [ ] Teens get the course welcome, which explains planning before building.
 - **Idea:**
-  - [ ] "I don't know" gets 1–2 opposite-end idea cards with pictures (kids).
+  - [ ] "I don't know" gets 2 opposite-end idea cards with pictures (kids).
   - [ ] **💡 Show me ideas** (kids; "Need inspiration?" for teens) is there from the very first question, at every guide step. While the kid is still choosing what app to make, it shows three ideas from the idea library at once, matched to the age group and the theme's mood, with **✨ Something else** and **🔀 More ideas**; picking one starts the customizing: the guide asks its "make it yours" questions. After that (and at Start, Design and Tech plan) the guide gives three ideas for the current question as answer cards (after Dot to Dot, "What are the secret pictures?" gets a unicorn, a castle, a rainbow), with **🔀 Other ideas**. A stuck answer ("I don't know", "idk", "help") gets the same ideas right away; after about 20 seconds of quiet the button glows, and in talk mode the guide asks gently. *(revision round, polish round)*
   - [ ] A too-big idea gets a friendly pushback and a smaller version.
   - [ ] Teens approve the idea plan, shown as a short plan card under "Your plan is ready: have a look. Happy with it?" with **👍 Looks good** and **✏️ Change something** (the whole plan folds underneath; no Markdown). *(revision round)*
 - **Design:**
-  - [ ] "Pick a look" from two mock-ups.
+  - [ ] Kids pick a look from two mock-ups; teens describe the look they want.
   - [ ] Teens approve the design plan.
   - [ ] The build honors the chosen look.
 - **Tech plan:**
@@ -245,7 +245,7 @@ Source: `scope.md > The POC Boundary` (three safety layers). Everything runs on 
 ### The Parent Report
 Source: `scope.md > The Unique Kernel`. Laid out as in `report-mockup.html`.
 - As a parent, I want a report on every app my kid makes, so I know what happened in my account.
-  - [ ] A report is made automatically when an app is shipped, by a **separate Opus 5.5 review** of the whole conversation, from the idea to the final app.
+  - [ ] A report is made automatically when an app is shipped, by a **separate Claude Opus review** of the whole conversation, from the idea to the final app.
   - [ ] A session that ends without shipping (time's up and never resumed, or ended by the parent) gets a "(not finished)" report once the parent ends the pass or it expires.
   - [ ] **Every report contains:**
     - **Header:** the kid, their age group, the date, the safety badge
@@ -308,7 +308,7 @@ Source: `scope.md > The Unique Kernel`. Laid out as in `report-mockup.html`.
 - safety: an age-aware guide, a live check both ways, flags
 - Limit reached for the kid and an alert for the parent
 - My apps per kid, local links, and home-Wi-Fi QR codes
-- the parent report (Opus 5.5), All reports, and the reports folder, with plan usage %
+- the parent report (Claude Opus), All reports, and the reports folder, with plan usage %
 
 ## Deferred From the POC
 - **Sharing outside the home (hosting):** to evaluate in step 5 (`scope.md > Later`). For now, links work only at home while the app is running.

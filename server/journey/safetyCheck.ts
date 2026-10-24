@@ -1,8 +1,7 @@
-// spec.md > Safety, layer 2: a small, fast Claude (Haiku, on the parent's Claude Code) reads each
+// spec.md > Safety, layer 2: a separate Claude check (Sonnet in the default mix B, as a fork of the guide's call; Haiku only in mix A) reads each
 // kid message and each guide reply, alongside other work, for anything unsuitable or personal.
 // Ported from Build With Me's functions/src/safetyCheck.ts. Flags go into the project for the
-// parent report. If the check itself fails twice, the turn goes through and is logged: the
-// guide still runs under the strict safety layer.
+// parent report. If the check fails twice, the text is held back (heldBack) and the turn asks the kid to try again.
 import { callCheck, LimitError, type CallMeta, type ForkFrom } from './claude.js';
 import type { Project } from './project.js';
 import { addAlert } from '../report/alerts.js';

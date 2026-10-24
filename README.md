@@ -257,10 +257,10 @@ After every app (or when a pass ends before the app is finished), Claude Opus re
 ## 🔒 Privacy: what's stored and what leaves your computer
 
 - 🏠 **Everything is stored on your computer**, in your family's folder: `C:\Users\<you>\Build With Me` on Windows, `~/Build With Me` on a Mac. It holds the kids' profiles, their conversations and plans, their apps and the reports, plus the home certificate for tablets (a hidden `.home-certificate` folder, kept here so tablets keep working after updates) and a few small files the desktop shortcut uses. Build With Me refuses to use a cloud-synced folder (like OneDrive) for it.
-- 🧩 **App files** (the program, its packages, the speech model, a log) live in Claude Code's plugin data folder.
-- 📤 **What leaves your computer:** the kids' conversations and plans go to Anthropic through *your* Claude Code, the same way your own Claude Code use does, to run the guide, build the apps, check safety and write your reports. Nothing else is sent anywhere, and **nothing at all is sent to the developer of this plugin**: no accounts, no analytics, no tracking, no crash reports.
+- 🧩 **App files** (the program, its packages, the speech model, a log, and short-lived prompt files that include the kids' approved plans, deleted after a week) live in Claude Code's plugin data folder.
+- 📤 **What leaves your computer:** the kids' conversations and plans go to Anthropic through *your* Claude Code, the same way your own Claude Code use does, to run the guide, build the apps, check safety and write your reports. Nothing else leaves your computer through Build With Me (one exception is below: the guide's voice), and **nothing at all is sent to the developer of this plugin**: no accounts, no analytics, no tracking, no crash reports.
 - 📥 **Downloads:** the app's packages (from npm) and the speech model (from Hugging Face), once each, during setup (the model also at the first start, if setup skipped it). Nothing about you or your kids is sent with them.
-- 🎤 **Talking stays local:** speech-to-text runs on this computer; the guide's voice is your device's built-in voice.
+- 🎤 **Talking stays local:** speech-to-text runs on this computer. The guide's spoken voice is your browser's own voice: Windows and Mac built-in voices stay on the device, but some browsers' best voices (Chrome's Google voices, Edge's Online voices) are run by the browser maker, so the guide's words may be sent there. Choose a built-in voice in your browser or turn the guide's voice off if you don't want that.
 - 📶 **Your network:** other devices can reach Build With Me only while a pass is live or tablet setup is open on your laptop; otherwise they see a "resting" page and nothing else. Even then, kids' devices reach the kid side only, with a pass, and the Parent area only opens on the laptop itself. On a public Wi-Fi (a café, a hotel), close the Build With Me window first: the app stops about a minute later.
 - 🗑️ **Deleting:** removing a kid in **Kids & their apps** deletes all of their data (conversations, apps, reports and passes) after a warning. Nothing is deleted automatically otherwise.
 
@@ -271,7 +271,7 @@ After every app (or when a pass ends before the app is finished), Claude Opus re
 
 Build With Me uses your Claude Code plan. A typical app takes a few percent of the 5-hour limit (each report shows that app's share). The per-pass caps mean one pass can't use up your plan, and the Parent area shows your 5-hour and weekly limits.
 
-Besides the kids' own chats and builds, it makes a few small calls on its own: the safety checks, a quick reading of your plan's usage (when an app starts and finishes, and when the Parent area shows your limits), the sign-in check during setup, and the Opus report after each app.
+Besides the kids' own chats and builds, it makes a few small calls on its own: the safety checks, a check that each change was really made, a quick reading of your plan's usage (when an app starts and finishes, and when the Parent area shows your limits), the sign-in check during setup, and the Opus report after each app.
 
 ---
 

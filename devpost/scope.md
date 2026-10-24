@@ -13,7 +13,7 @@ A parent and their kid build real apps together through the plan-first journey. 
 - Everything runs on the parent's own Claude, on the family's own computer. There is no per-app cost and no data on someone else's server.
 - Every finished app ends in two places:
   - **for the kid:** a link to try the app
-  - **for the parent:** a report from a separate Opus 5.5 review of the whole conversation, from the idea to the final app. It covers what was built, any red flags (the kid trying to do something they shouldn't), and the app's link.
+  - **for the parent:** a report from a separate Claude Opus review of the whole conversation, from the idea to the final app. It covers what was built, any red flags (the kid trying to do something they shouldn't), and the app's link.
 
 ## Who It's For
 - **The parent:** has a Claude subscription and Claude Code installed, and "likes coding or at least is not afraid of it." They install it once and own the account it runs on.

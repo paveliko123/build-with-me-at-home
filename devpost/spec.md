@@ -18,7 +18,7 @@ The app has five pieces, all on the parent's computer:
 2. **The server** (the *back office*). A small **Node.js** program, the same kind of code as Build With Me's Cloud Functions, now running on the laptop. It:
    - shows the screens to the laptop's browser and to tablets on the home Wi-Fi
    - keeps the PIN, kids, passes, projects, apps and reports in **plain files** in `<home>\Build With Me`
-   - turns kids' speech into text **on this computer** (Whisper), so voices never leave the house
+   - turns kids' speech into text **on this computer** (Moonshine), so voices never leave the house
    - asks Claude to guide, check, build and report
 3. **The parent's Claude Code** (the *brains*). The server runs the parent's own `claude` program in the background ("non-interactive mode"), one conversation per job:
    - the **guide** (Sonnet), which talks with the kid
@@ -61,7 +61,7 @@ PRD ref: `prd.md > The Core Journey`.
    - From now on, that browser is Maya's for an hour.
    - A second scan gets "already used."
 5. **Welcome, Theme, then Start → Tech plan.** Each turn:
-   1. The kid talks. The browser records and streams audio to the server, and **Whisper turns it into text** on the laptop.
+   1. The kid talks. The browser records and streams audio to the server, and **Moonshine turns it into text** on the laptop.
    2. The obvious personal details are masked instantly.
    3. **At the same time:** the **guide** gets the turn, and the **checker** judges the kid's words.
    4. If the checker objects, the guide's reply is thrown away, the kid gets a gentle redirect, and a **flag** is saved.
@@ -186,8 +186,8 @@ Implements the plumbing for every PRD feature.
 ### Parent Gate
 Implements `prd.md > Parent Gate and Responsibility`.
 - **The PIN:** 4–8 digits, stored as `scrypt(pin, salt)` in `family.json`. It's never logged.
-- **Wrong PIN:** after 5 wrong tries, a 60-second lockout, kept in memory (the PRD assumption). During the lockout even the right PIN waits, so the lockout really slows guessing (the audit suggested otherwise, M3; the learner kept it).
-- **The parent cookie:** `HttpOnly`, `SameSite=Strict`, loopback only. **🔒 Lock** clears it, and so does 12 hours without use.
+- **Wrong PIN:** after 5 wrong tries, growing lockouts (1, 5, 15, 60, then 240 minutes), kept in family.json (the PRD assumption). During the lockout even the right PIN waits, so the lockout really slows guessing (the audit suggested otherwise, M3; the learner kept it).
+- **The parent cookie:** `HttpOnly`, `SameSite=Strict`, loopback only. **🔒 Lock** clears it, and so do 2 hours without use or 8 hours in all.
 - **Forgot the PIN:** `/build-with-me:reset-pin` in Claude Code, a small command that clears the PIN hash so the next opening asks for a new PIN. Only someone at the parent's Claude Code can do it. This resolves the PRD open question.
 - **Never handles the Claude sign-in:** the server only runs `claude`. It never reads Claude's credential files or tokens.
 
@@ -222,6 +222,7 @@ Implements `prd.md > The Kid's Journey`.
 Implements the AI behind `prd.md > The Kid's Journey`, `prd.md > Safety`, `prd.md > The Parent Report`.
 - `server/claude/runner.ts` starts the parent's `claude` with **isolation flags** on every call:
   ```
+  # (the long-lived guide conversation only; one-shot calls omit --input-format)
   claude -p --safe-mode --input-format stream-json --output-format stream-json --verbose
          --model <sonnet|haiku|opus>
          --system-prompt-file <privacy rule + layer file>
@@ -244,7 +245,7 @@ Implements the AI behind `prd.md > The Kid's Journey`, `prd.md > Safety`, `prd.m
   - It finds `claude` on PATH, then in the official install locations (`~/.local/bin`), with an override setting.
   - The `--setting-sources ""` form and isolation from `~/.claude/CLAUDE.md` are **to verify** in experiment E1. If CLAUDE.md still loads, a fallback is chosen there.
 - **One call per turn** (build revision, slice 5): the guide, the plan writer and the checker each run as one sealed-off `claude -p` call with the stage's system prompt (identical for every turn of a stage, so Claude Code's prompt cache reuses it) and the conversation so far as JSON. The ported turn logic asks again with app notes, writes plans in a separate call and changes the system prompt at every stage, which a single long-lived process can't do cleanly. Resume needs nothing special: the transcript is in `project.json`. E3 (slice 8) measures the cost.
-  - The checker reads each kid message and each guide reply on its own, as in Build With Me.
+  - The checker reads each kid message and each guide reply on its own in mix A; in the default mix B the main checks are forks that carry the whole conversation, as in Build With Me.
 - **One-shot jobs:** the **builder** and the **reporter** each start a fresh process per job. The reporter uses `--json-schema` for the report fields. The builder keeps Build With Me's plain-text output (build revision, slice 6): a whole HTML document, or small find-and-replace edits for changes and fixes, checked against the hard rules; what a change left out is found by a separate check and said honestly. Versions are saved as `versions/vN.html`.
 - **Structured guide replies:** the guide must return Build With Me's reply shape (say, cards, mock-up, plan). It uses `--json-schema` if that works with stream-json (to verify in E1). Otherwise it's told in its system prompt to answer in JSON, and `replySchema.ts` validates it, with one automatic retry.
 - **Limits:** every `rate_limit_event` is watched:
@@ -257,12 +258,12 @@ Implements the AI behind `prd.md > The Kid's Journey`, `prd.md > Safety`, `prd.m
 ### Safety
 Implements `prd.md > Safety`.
 - **Layer 1, an age-aware guide:** Build With Me's `prompt/safety.ts`, `dial.ts` and `wrapperLayer.ts`, with the age group from `family.json`.
-- **Layer 2, the live check** (`server/safety.ts`):
+- **Layer 2, the live check** (`server/journey/safetyCheck.ts`):
   - `personal.ts` masks the obvious details first.
-  - The checker gets "KID SAID: …" at the same time as the guide, then "GUIDE SAID: …" before display. It answers `{ok, kind: unsuitable|personal|offtopic, note}`.
-  - **Unsuitable input:** the guide's reply is discarded, and the guide is asked again with a "redirect kindly to a kid-friendly alternative" note.
-  - **Unsuitable output:** the reply is regenerated once, and then a safe fallback line is used.
-  - Every non-ok verdict appends a **flag** `{time, step, kidSaid, guideDid, kind}` to the project.
+  - The checker gets "KID SAID: …" at the same time as the guide, then "GUIDE SAID: …" before display. It answers `{verdict: ok|unsuitable|personal|wellbeing, category, masked}`.
+  - **Unsuitable input:** the guide's reply is discarded and replaced by a fixed kind redirect (or, for wellbeing, the trusted-grown-up message); the guide isn't asked again.
+  - **Unsuitable output:** the reply is replaced by the same fixed redirect; it isn't regenerated.
+  - Every non-ok verdict appends a **flag** `{at, stage, direction, verdict, category, text}` to the project.
 - **Layer 3, the report:** described under **Reporter and Reports**.
 - **README review:** a `wellbeing` verdict also adds a `wellbeing` alert at once (`flag()` in `server/journey/safetyCheck.ts` → `addAlert`), shown in red on the parent home with the masked words. Kids' apps can't open a website: `appCheck.ts` catches website links, `window.open` and `location` changes to a website before a version ships, and the kid and parent screens are served with `Content-Security-Policy: frame-src 'self'`, so a preview frame can't be navigated to a website (checked in Chrome); the shelf's app page already had `frame-src 'none'`.
 - **Pre-install review (learner decision: block it):** a safety check that can't run (claude didn't start, crashed, timed out) is tried twice, then the text is held back: `heldBack()` records an `unchecked` note and the turn fails with the usual "try again" (guide chat, change list, and a version's app words, where the last working version stays). The report shows a note, not a flag. A real refusal (claude answered but wouldn't judge) still counts as unsuitable.
@@ -271,7 +272,7 @@ Implements `prd.md > Safety`.
 ### Speech
 Implements `prd.md > Talking`.
 - **In the browser** (`web/src/kid/journey/lib/speech.ts`, rewritten over `public/lib/recorder.js`): `getUserMedia` microphone, an AudioWorklet resampling to **16 kHz mono PCM**, sent in ~1-second chunks over `POST /api/speech/:utteranceId`. A quiet-detection step ends the utterance (4 s for kids, 3 s for teens), and there's an "I'm done" button. Build With Me's browser speech recognition (which sends audio to an outside service) is gone.
-- **On the server** (`server/speech.ts`): a Transformers.js `automatic-speech-recognition` pipeline with **Moonshine base**, loaded once at startup from `${CLAUDE_PLUGIN_DATA}/models`. Moonshine replaced Whisper after E2 (see `checklist.md > Revisions`). Chunks are transcribed as they arrive, and the final text is returned when the utterance ends. No audio is saved. Talking needs a live pass or the parent; at most 20 recordings at once, 60 seconds each (security audit M1).
+- **On the server** (`server/speech.ts`): a Transformers.js `automatic-speech-recognition` pipeline with **Moonshine base**, loaded once at startup from `${CLAUDE_PLUGIN_DATA}/models`. Moonshine replaced Whisper after E2 (see `checklist.md > Revisions`). Chunks are buffered and transcribed once, when the speech ends. No audio is saved. Talking needs a live pass or the parent; at most 20 recordings at once, 60 seconds each (security audit M1).
 - **Voice out:** Build With Me's `voice.ts`, using `speechSynthesis` with a voice chosen per theme from the device's voices and a slower rate for kids. The ⚙️ menu is kept. Neural2 is removed.
 - **No microphone, or the tablet isn't set up** (the page isn't secure): the talk button is replaced by the text box with a "tap 🎤 on your keyboard to talk" hint. The parent sees "Set up this tablet for talking" in **Kids & their apps**.
 
@@ -426,7 +427,7 @@ Everything lives in **`<home>\Build With Me`**, unless noted:
 
 In the plugin's private folder (`${CLAUDE_PLUGIN_DATA}`), kept across updates and deleted on uninstall:
 - `node_modules/`
-- `models/` (Whisper)
+- `models/` (Moonshine)
 - `sandbox/` (an empty working folder for Claude)
 - `server.lock`
 
@@ -456,7 +457,7 @@ build-with-me-home/                  # repo root = plugin root = marketplace
 │   ├── passes.ts                    # create / open / extend / end / expire
 │   ├── kids.ts                      # family.json kids
 │   ├── certs.ts                     # home certificate authority + server cert
-│   ├── speech.ts                    # Whisper (Transformers.js) streaming transcription
+│   ├── speech.ts                    # Moonshine (Transformers.js) speech-to-text
 │   ├── safety.ts                    # checker orchestration, flags
 │   ├── usage.ts                     # /usage readings, rate-limit tracking
 │   ├── claude/
@@ -494,7 +495,7 @@ build-with-me-home/                  # repo root = plugin root = marketplace
 |---|---|---|---|---|
 | **Claude Code CLI** (parent's) | `claude -p` with the isolation flags; stream-json in and out; `--json-schema` for builder and reporter; `claude -p "/usage"` for plan usage | The parent's existing sign-in; the app never touches it | The parent's plan limits (5-hour and weekly); `rate_limit_event` reports status | [Headless](https://code.claude.com/docs/en/headless), [CLI](https://code.claude.com/docs/en/cli-reference), [SDK message types](https://code.claude.com/docs/en/agent-sdk/typescript), [Legal and compliance](https://code.claude.com/docs/en/legal-and-compliance) |
 | **Claude Code plugins** | `.claude-plugin/plugin.json`, `marketplace.json`, `commands/`, `skills/`, `${CLAUDE_PLUGIN_ROOT}`, `${CLAUDE_PLUGIN_DATA}` | None | None | [Plugins reference](https://code.claude.com/docs/en/plugins-reference) |
-| **Hugging Face model download** (once, during setup) | Transformers.js fetches `Xenova/whisper-base.en` files into the models folder | None | ~75–150 MB once; free | [Transformers.js](https://huggingface.co/docs/transformers.js) |
+| **Hugging Face model download** (once, during setup) | Transformers.js fetches `onnx-community/moonshine-base-ONNX` files into the models folder | None | about 250 MB once; free | [Transformers.js](https://huggingface.co/docs/transformers.js) |
 | **npm registry** (once, during setup and updates) | `npm ci --omit=dev` | None | Free | [npm ci](https://docs.npmjs.com/cli/commands/npm-ci) |
 | **Node.js** | Runtime | None | Free | [nodejs.org](https://nodejs.org/) |
 | **The Learn AI Basics skills** | Copied into `app/skills/` at release | None | MIT (to verify) | Devpost's skill-pack repo |
@@ -507,7 +508,7 @@ No other network calls. Kids' apps get a CSP that blocks network access.
 - **`claude` fails** (signed out, crashed, slow) → one automatic retry. Then the kid sees "My brain needs a quick break — try again in a minute," and the parent home shows "Claude Code isn't responding — check that you're signed in." A failed build keeps the last working version.
 - **The laptop sleeps or the server stops** → the tablet's SSE drops and it shows "Can't reach the computer — ask your parent to start Build With Me." The work is saved after every turn.
 - **The tablet microphone isn't allowed** (no certificate) → typing plus the keyboard-dictation hint.
-- **Whisper mishears a kid** → the recognized text shows in the answer box before sending, with an "Oops, say it again" button.
+- **Moonshine mishears a kid** → the recognized text shows in the answer box before sending, with an "Oops, say it again" button.
 - **The firewall blocks tablets** → the "Set up a tablet" page on the laptop runs a self-test against the home address and explains the Windows firewall "private network" allow step.
 
 ## What Was Simplified and Why
@@ -517,7 +518,7 @@ No other network calls. Kids' apps get a CSP that blocks network access.
   - **Idea and Design pictures:** Build With Me's mock-ups stay. There's no image service, because the PRD has no keys.
 - **Device names come from the browser** ("iPad," "Windows laptop"), instead of names the parent types in. That's enough to tell devices apart in Active passes.
 - **The plan usage per app is an estimate from the app's own calls at a learned rate,** shown next to the whole account's before-and-after change in `/usage`, because `/usage` is one number for the whole account and Claude Code doesn't expose per-app plan accounting.
-- **One English Whisper model,** instead of a language picker. The PRD didn't ask for other languages. It's swappable in settings later.
+- **One English Moonshine model,** instead of a language picker. The PRD didn't ask for other languages. It's swappable in settings later.
 - **Lockout and sessions are in memory:** a restart clears the wrong-PIN counter, which is acceptable for a home app.
 - **The release build is committed** (`app/dist`), instead of building on each family's computer. That trades repo size for a no-build install.
 
@@ -582,7 +583,7 @@ Riskiest first, so nothing depends on an unproven piece:
   - apps can't be shared outside the house
 
 **Agent-made implementation choices** (follow from the decisions above; the learner can change them):
-- Express, SSE, Transformers.js, `whisper-base.en`, `@peculiar/x509`
+- Express, SSE, Transformers.js, `onnx-community/moonshine-base-ONNX`, `@peculiar/x509`
 - ports 4747 and 4748
 - the data folder in Documents
 - the guide and checker as long-lived processes
