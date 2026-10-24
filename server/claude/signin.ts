@@ -7,7 +7,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { cleanEnv, findClaude } from './runner.js';
-import { pluginDataDir } from '../paths.js';
+import { pluginDataDir, sandboxDir } from '../paths.js';
 import { addAlert, dismissAlertsOfKind } from '../report/alerts.js';
 
 /** A Claude call failed because the sign-in is gone, not because of the request. */
@@ -33,6 +33,14 @@ export function reportSignedOut(kid?: { id: string; nickname: string }): void {
 // ---------- asking Claude Code whether it's signed in ----------
 
 let loggedInCache: { value: boolean | null; at: number } | null = null;
+let loggedInPending: Promise<boolean | null> | null = null;
+
+/** Signed in or not, from `claude auth status` (loggedIn) and the /usage text. That status is only a
+ *  local check, so a "true" next to text saying the sign-in is gone (expired, revoked) still counts as signed out. */
+export function signedInFrom(loggedIn: boolean | null, usageText: string): boolean {
+  if (loggedIn === false) return false;
+  return !(/not logged in|please run \/login/i.test(usageText) || isSignedOutError(usageText));
+}
 
 /** Asks the claude program itself (`claude auth status`: no model call, nothing read by the app).
  *  true / false = what it says; null = it couldn't answer (older Claude Code, missing, timed out).
@@ -40,7 +48,8 @@ let loggedInCache: { value: boolean | null; at: number } | null = null;
  *  `fresh` skips that. Never throws. */
 export function claudeLoggedIn(fresh = false): Promise<boolean | null> {
   if (!fresh && loggedInCache && Date.now() - loggedInCache.at < 10_000) return Promise.resolve(loggedInCache.value);
-  return new Promise((resolve) => {
+  if (loggedInPending) return loggedInPending;
+  const run = new Promise<boolean | null>((resolve) => {
     const bin = findClaude();
     if (!bin) { resolve(null); return; }
     let out = '';
@@ -53,17 +62,22 @@ export function claudeLoggedIn(fresh = false): Promise<boolean | null> {
       loggedInCache = { value, at: Date.now() };
       resolve(value);
     };
-    try { p = spawn(bin, ['auth', 'status'], { env: cleanEnv(), windowsHide: true }); }
+    try { p = spawn(bin, ['auth', 'status'], { cwd: sandboxDir(), env: cleanEnv(), windowsHide: true }); }
     catch { resolve(null); return; }
     const timer = setTimeout(() => { p.kill(); finish(null); }, 15_000);
     p.stdout.on('data', (b: Buffer) => { out = (out + b.toString('utf8')).slice(0, 20_000); });
+    p.stderr.resume(); // not read, but a chatty CLI mustn't fill the pipe
     p.on('error', () => finish(null));
     p.on('close', () => { // signed out may exit with 1, so the exit code doesn't matter
-      try { const v = JSON.parse(out)?.loggedIn; finish(typeof v === 'boolean' ? v : null); }
+      try { const v = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1))?.loggedIn; finish(typeof v === 'boolean' ? v : null); }
       catch { finish(null); }
     });
     p.stdin.end();
   });
+  loggedInPending = run;
+  const clear = () => { if (loggedInPending === run) loggedInPending = null; };
+  run.then(clear, clear);
+  return run;
 }
 
 // ---------- the sign-in button ----------
@@ -104,7 +118,7 @@ export function startSignIn(): SignInState {
     clearTimeout(timer);
     child = null;
     console.warn(JSON.stringify({ event: 'signin', ok: code === 0 }));
-    if (code === 0) { current = { state: 'done' }; dismissAlertsOfKind('signin'); }
+    if (code === 0) { current = { state: 'done' }; loggedInCache = null; dismissAlertsOfKind('signin'); }
     else if (current.state === 'waiting') current = { state: 'failed', message: 'The sign-in did not finish. Try again.' };
   });
   return current;

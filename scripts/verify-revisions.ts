@@ -394,6 +394,8 @@ async function main() {
     // Claude Code's sign-in ran out (family trial, 2026-10-19: the guide just went silent).
     const signin = await import('../server/claude/signin.js');
     add('the expired sign-in error from the real log is recognized (and an ordinary error isn\'t)', signin.isSignedOutError('api_error: Failed to authenticate: OAuth session expired and could not be refreshed') && !signin.isSignedOutError('timed out after 120 s'), 'matched');
+    const sf = signin.signedInFrom;
+    add('signed in only when auth status AND the usage text agree (a local "true" can\'t hide an expired token)', sf(false, 'Total cost') === false && sf(true, 'Total cost: $0') === true && sf(true, 'Please run /login') === false && sf(true, 'OAuth session expired') === false && sf(null, 'Not logged in') === false && sf(null, 'Total cost') === true, 'false+any, true+ok, true+/login, true+expired, null+not logged in, null+ok');
     const { rmSync: rm1 } = await import('node:fs');
     rm1(join(PLUGIN, 'simulate-limit'));
     writeFileSync(join(PLUGIN, 'simulate-signed-out'), '');

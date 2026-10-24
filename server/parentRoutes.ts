@@ -16,7 +16,7 @@ import { deleteApp, shelf } from './journey/apps.js';
 import { listReports, readReport } from './report/reporter.js';
 import { renderReport } from './report/template.js';
 import { addAlert, dismissAlert, listAlerts } from './report/alerts.js';
-import { cancelSignIn, claudeLoggedIn, sendSignInCode, signInState, startSignIn } from './claude/signin.js';
+import { cancelSignIn, claudeLoggedIn, sendSignInCode, signedInFrom, signInState, startSignIn } from './claude/signin.js';
 
 let usageCache: { reading: UsageReading; at: number } | null = null;
 let usageInFlight: Promise<UsageReading> | null = null;
@@ -49,7 +49,8 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
     if (readFamily().pin) { res.status(409).json({ error: 'already-set-up' }); return; }
     if (!findClaude()) { res.json({ found: false, signedIn: false }); return; }
     const loggedIn = await claudeLoggedIn(!!req.query.fresh);
-    const signedIn = loggedIn ?? !/not logged in|please run \/login/i.test((await currentUsage(req.query.fresh ? 0 : 60_000)).raw);
+    // First run only: a "true" from auth status is taken as is (the /status strip also checks the /usage text).
+    const signedIn = loggedIn ?? signedInFrom(null, (await currentUsage(req.query.fresh ? 0 : 60_000)).raw);
     res.json({ found: true, signedIn });
   });
 
@@ -132,7 +133,7 @@ export function parentRoutes(opts: { httpPort: number; httpsPort: number; caName
     const bin = findClaude();
     if (!bin) { res.json({ claude: { found: false, signedIn: false } }); return; }
     const [loggedIn, usage] = await Promise.all([claudeLoggedIn(!!req.query.fresh), currentUsage(req.query.fresh ? 0 : 60_000)]);
-    const signedIn = loggedIn ?? !/not logged in|please run \/login/i.test(usage.raw);
+    const signedIn = signedInFrom(loggedIn, usage.raw);
     res.json({
       claude: { found: true, signedIn, subscription: /subscription/i.test(usage.raw) },
       usage: usage.ok ? { fiveHourPct: usage.fiveHourPct, fiveHourResets: usage.fiveHourResets, weeklyPct: usage.weeklyPct, weeklyResets: usage.weeklyResets, at: usage.at } : null,

@@ -65,7 +65,7 @@ async function check() {
     let signedIn = null;
     try {
       const a = spawnSync(claude, ['auth', 'status'], { encoding: 'utf8', env: cleanEnv({ IS_DEMO: '1' }), cwd: DATA, timeout: 15_000, input: '', windowsHide: true });
-      const v = JSON.parse(a.stdout).loggedIn;
+      const v = JSON.parse(a.stdout.slice(a.stdout.indexOf('{'), a.stdout.lastIndexOf('}') + 1)).loggedIn;
       if (typeof v === 'boolean') signedIn = v;
     } catch {}
     if (signedIn === null) {

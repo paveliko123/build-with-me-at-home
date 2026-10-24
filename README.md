@@ -173,6 +173,8 @@ claude plugin marketplace update build-with-me-home
 claude plugin update build-with-me@build-with-me-home
 ```
 
+After updating, run `/build-with-me:start` once so the desktop shortcut uses the new version.
+
 The next start picks up the new version by itself (the first start after an update takes about a minute longer). Your kids, their apps, the reports and your PIN are kept.
 
 ---

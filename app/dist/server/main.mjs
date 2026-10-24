@@ -1220,9 +1220,15 @@ function reportSignedOut(kid) {
   });
 }
 var loggedInCache = null;
+var loggedInPending = null;
+function signedInFrom(loggedIn, usageText) {
+  if (loggedIn === false) return false;
+  return !(/not logged in|please run \/login/i.test(usageText) || isSignedOutError(usageText));
+}
 function claudeLoggedIn(fresh = false) {
   if (!fresh && loggedInCache && Date.now() - loggedInCache.at < 1e4) return Promise.resolve(loggedInCache.value);
-  return new Promise((resolve2) => {
+  if (loggedInPending) return loggedInPending;
+  const run = new Promise((resolve2) => {
     const bin = findClaude();
     if (!bin) {
       resolve2(null);
@@ -1239,7 +1245,7 @@ function claudeLoggedIn(fresh = false) {
       resolve2(value);
     };
     try {
-      p = spawn2(bin, ["auth", "status"], { env: cleanEnv(), windowsHide: true });
+      p = spawn2(bin, ["auth", "status"], { cwd: sandboxDir(), env: cleanEnv(), windowsHide: true });
     } catch {
       resolve2(null);
       return;
@@ -1251,10 +1257,11 @@ function claudeLoggedIn(fresh = false) {
     p.stdout.on("data", (b) => {
       out = (out + b.toString("utf8")).slice(0, 2e4);
     });
+    p.stderr.resume();
     p.on("error", () => finish(null));
     p.on("close", () => {
       try {
-        const v = JSON.parse(out)?.loggedIn;
+        const v = JSON.parse(out.slice(out.indexOf("{"), out.lastIndexOf("}") + 1))?.loggedIn;
         finish(typeof v === "boolean" ? v : null);
       } catch {
         finish(null);
@@ -1262,6 +1269,12 @@ function claudeLoggedIn(fresh = false) {
     });
     p.stdin.end();
   });
+  loggedInPending = run;
+  const clear = () => {
+    if (loggedInPending === run) loggedInPending = null;
+  };
+  run.then(clear, clear);
+  return run;
 }
 var current = { state: "idle" };
 var child = null;
@@ -1296,6 +1309,7 @@ function startSignIn() {
     console.warn(JSON.stringify({ event: "signin", ok: code === 0 }));
     if (code === 0) {
       current = { state: "done" };
+      loggedInCache = null;
       dismissAlertsOfKind("signin");
     } else if (current.state === "waiting") current = { state: "failed", message: "The sign-in did not finish. Try again." };
   });
@@ -7700,7 +7714,7 @@ function parentRoutes(opts) {
       return;
     }
     const loggedIn = await claudeLoggedIn(!!req.query.fresh);
-    const signedIn = loggedIn ?? !/not logged in|please run \/login/i.test((await currentUsage(req.query.fresh ? 0 : 6e4)).raw);
+    const signedIn = loggedIn ?? signedInFrom(null, (await currentUsage(req.query.fresh ? 0 : 6e4)).raw);
     res.json({ found: true, signedIn });
   });
   r.post("/setup", async (req, res) => {
@@ -7825,7 +7839,7 @@ function parentRoutes(opts) {
       return;
     }
     const [loggedIn, usage] = await Promise.all([claudeLoggedIn(!!req.query.fresh), currentUsage(req.query.fresh ? 0 : 6e4)]);
-    const signedIn = loggedIn ?? !/not logged in|please run \/login/i.test(usage.raw);
+    const signedIn = signedInFrom(loggedIn, usage.raw);
     res.json({
       claude: { found: true, signedIn, subscription: /subscription/i.test(usage.raw) },
       usage: usage.ok ? { fiveHourPct: usage.fiveHourPct, fiveHourResets: usage.fiveHourResets, weeklyPct: usage.weeklyPct, weeklyResets: usage.weeklyResets, at: usage.at } : null
