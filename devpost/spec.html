@@ -263,7 +263,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
         <tr><td>Front end</td><td><b>React 19 + Vite + Tailwind 4</b>, copied</td><td>Reuse the approved kid design</td><td><a href="https://react.dev/">react.dev</a>, <a href="https://vite.dev/">vite.dev</a></td></tr>
         <tr><td>Claude</td><td>Your <b>Claude Code CLI</b>, <code>claude -p</code> with stream-json</td><td>The terms allow an unmodified Claude Code signed in with your own subscription</td><td><a href="https://code.claude.com/docs/en/headless">Headless</a>, <a href="https://code.claude.com/docs/en/cli-reference">CLI</a></td></tr>
         <tr><td>Speech to text</td><td><b>Moonshine base</b> (MIT) via <b>Transformers.js</b> in Node; Whisper selectable</td><td>Runs locally, pure npm install, no Python. E2: 16/16 words, about 1.2 s wait (Whisper about 2.7 s) <span class="pill ok">build revision</span></td><td><a href="https://huggingface.co/docs/transformers.js">Transformers.js</a>, <a href="https://huggingface.co/onnx-community/moonshine-base-ONNX">Moonshine</a></td></tr>
-        <tr><td>Voice out</td><td>Browser <b>speechSynthesis</b>, device voices</td><td>No keys; laptop and tablet; stays local</td><td><a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis">MDN</a></td></tr>
+        <tr><td>Voice out</td><td>Browser <b>speechSynthesis</b>, device voices</td><td>No keys; laptop and tablet; device voices stay local; Chrome's Google and Edge's Online voices are remote</td><td><a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis">MDN</a></td></tr>
         <tr><td>QR codes</td><td><code>qrcode</code></td><td>Already used in Build With Me</td><td><a href="https://www.npmjs.com/package/qrcode">npm</a></td></tr>
         <tr><td>Certificates</td><td><code>@peculiar/x509</code> (or <code>node-forge</code>)</td><td>A certificate restricted to home addresses</td><td><a href="https://github.com/PeculiarVentures/x509">GitHub</a></td></tr>
         <tr><td>PIN</td><td>Node <code>crypto.scrypt</code></td><td>A hashed PIN, no extra library</td><td><a href="https://nodejs.org/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback">Node docs</a></td></tr>
@@ -378,7 +378,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
   <details id="c-gate"><summary><h3>🔐 Parent Gate</h3><span class="prd">prd › Parent Gate and Responsibility</span></summary><div class="body">
     <ul>
       <li><b>The PIN:</b> 4–8 digits, stored as <code>scrypt(pin, salt)</code> in <code>family.json</code>. Never logged.</li>
-      <li><b>Wrong PIN:</b> after 5 wrong tries, growing lockouts (1, 5, 15, 60, then 240 minutes), kept in family.json (the PRD assumption). During the lockout even the right PIN waits, so the lockout really slows guessing (the audit suggested otherwise, M3; you kept it).</li>
+      <li><b>Wrong PIN:</b> after 5 wrong tries, growing lockouts (1, 5, 15, 60, then 240 minutes), kept in family.json (the PRD assumed a flat minute; the safety review made it grow and saved it). During the lockout even the right PIN waits, so the lockout really slows guessing (the audit suggested otherwise, M3; you kept it).</li>
       <li><b>The parent cookie:</b> <code>HttpOnly</code>, <code>SameSite=Strict</code>, loopback only. <b>🔒 Lock</b> clears it, and so do 2 hours without use or 8 hours in all.</li>
       <li><b>Forgot the PIN:</b> <code>/build-with-me:reset-pin</code> in Claude Code clears the hash, and the next opening asks for a new PIN. Only someone at your Claude Code can do it. <span class="pill ok">resolves the PRD question</span></li>
       <li><b>Never handles the Claude sign-in:</b> the server only runs <code>claude</code>. It never reads Claude's credential files or tokens.</li>
@@ -425,7 +425,7 @@ footer{margin-top:40px;color:var(--muted);font-size:13px}
 
   <details id="c-runner"><summary><h3>🧠 Claude Runner</h3><span class="prd">prd › The Kid's Journey · Safety · The Parent Report</span></summary><div class="body">
     <p style="margin:0 0 6px"><code>server/claude/runner.ts</code> starts your <code>claude</code> with <b>isolation flags</b> on every call:</p>
-<pre><code># (the long-lived guide conversation only; one-shot calls omit --input-format)
+<pre><code># (--input-format is used only by the E1 test's long-lived Conversation; every app call is one-shot and omits it)
 claude -p --safe-mode --input-format stream-json --output-format stream-json --verbose
        --model &lt;sonnet|haiku|opus&gt;
        --system-prompt-file &lt;privacy rule + layer file&gt;
@@ -454,7 +454,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
         <ul>
           <li>Why: the ported turn logic asks again with app notes, writes plans in a separate call and changes the system prompt at every stage, which a single long-lived process can't do cleanly.</li>
           <li>Resume needs nothing special: the transcript is in <code>project.json</code>. E3 (slice 8) measures the cost.</li>
-          <li>The checker reads each kid message and each guide reply on its own in mix A; in the default mix B the main checks are forks that carry the whole conversation, as in Build With Me.</li>
+          <li>In mix A the checker reads each kid message and each guide reply on its own, as in Build With Me; in the default mix B the main checks are forks of the guide's call and see the same conversation the guide sees.</li>
         </ul></li>
       <li><b>One-shot jobs:</b> the <b>builder</b> and <b>reporter</b> start a fresh process per job. The reporter uses <code>--json-schema</code> for the report fields. The builder keeps Build With Me's plain-text output: a whole HTML document, or small find-and-replace edits for changes and fixes, checked against the hard rules; what a change left out is found by a separate check and said honestly. Versions are saved as <code>versions/vN.html</code>. <span class="pill verify">build revision</span></li>
       <li><b>Structured guide replies:</b> Build With Me's reply shape (say, cards, mock-up, plan). It uses <code>--json-schema</code> if that works with stream-json <span class="pill verify">E1</span>; otherwise the system prompt asks for JSON and <code>replySchema.ts</code> validates it, with one automatic retry.</li>
@@ -471,7 +471,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
       <li><b>Layer 2, live check</b> (<code>server/journey/safetyCheck.ts</code>):
         <ul>
           <li><code>personal.ts</code> masks the obvious details first.</li>
-          <li>The checker gets "KID SAID: …" alongside the guide, then "GUIDE SAID: …" before display. It answers <code>{verdict: ok|unsuitable|personal|wellbeing, category, masked}</code>.</li>
+          <li>The checker gets "What the person just said to the helper" alongside the guide, then "What the helper is about to say to the person" before display. It answers <code>{verdict: ok|unsuitable|personal|wellbeing, category, masked}</code>.</li>
           <li><b>Unsuitable input:</b> the guide's reply is discarded and replaced by a fixed kind redirect (or, for wellbeing, the trusted-grown-up message); the guide isn't asked again.</li>
           <li><b>Unsuitable output:</b> the reply is replaced by the same fixed redirect; it isn't regenerated.</li>
           <li>Every non-ok verdict appends a <b>flag</b> <code>{at, stage, direction, verdict, category, text}</code>.</li>
@@ -738,13 +738,12 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
 │   ├── kids.ts                      <span class="c"># family.json kids</span>
 │   ├── certs.ts                     <span class="c"># home certificate authority + server cert</span>
 │   ├── speech.ts                    <span class="c"># Moonshine (Transformers.js) speech-to-text</span>
-│   ├── safety.ts                    <span class="c"># checker orchestration, flags</span>
 │   ├── usage.ts                     <span class="c"># /usage readings, rate-limit tracking</span>
 │   ├── claude/
 │   │   └── runner.ts                <span class="c"># isolated claude -p (guide, checker, builder, reporter)</span>
 │   ├── journey/                     <span class="c"># ported from Build With Me functions/src</span>
 │   │   ├── guideTurn.ts  startSession.ts  getSession.ts  changeTurn.ts
-│   │   ├── generateApp.ts  edits.ts  checklist.ts  stages.ts  personal.ts
+│   │   ├── generateApp.ts  edits.ts  checklist.ts  stages.ts  personal.ts  safetyCheck.ts
 │   │   └── prompt/                  <span class="c"># buildPrompt, wrapperLayer, safety, dial, builderLayer, …</span>
 │   └── report/
 │       ├── reporter.ts              <span class="c"># reporter call + schema</span>
@@ -807,7 +806,7 @@ env: CLAUDE_CODE_DISABLE_CLAUDE_MDS=1 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
     <li><b>Device names come from the browser</b> ("iPad," "Windows laptop"), not names you type. Enough to tell devices apart in Active passes.</li>
     <li><b>Per-app plan usage is an estimate from the app's own calls at a learned rate,</b> shown next to the whole account's change in <code>/usage</code>, because <code>/usage</code> is one number for the whole account and Claude Code doesn't expose per-app plan accounting.</li>
     <li><b>One English Moonshine model,</b> not a language picker. Swappable later.</li>
-    <li><b>Lockout and sessions are in memory:</b> a restart clears the wrong-PIN counter. Fine for a home app.</li>
+    <li><b>Sessions are in memory; the PIN lockout is saved in <code>family.json</code>:</b> a restart signs the parent out but doesn't clear wrong-PIN lockouts.</li>
     <li><b>The release build is committed</b> (<code>app/dist</code>), so families never build anything, at the cost of repo size.</li>
   </ul></div>
 

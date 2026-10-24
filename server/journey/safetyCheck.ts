@@ -142,7 +142,7 @@ async function checkOne(text: string, direction: Direction, ageGroup: AgeGroup, 
   return { verdict: 'ok', failed: true };
 }
 
-/** A flag for the parent report (spec.md > Safety: {time, step, kidSaid/guideDid, kind}). */
+/** A flag for the parent report (spec.md > Safety: {at, stage, direction, verdict, category, text}). */
 /** The safety check couldn't run: noted for the report (not a safety flag), and the turn fails
  *  with the usual "let's try that again", so the kid simply retries. */
 export function heldBack(project: Project, direction: Direction, maskedText = ''): TurnError {

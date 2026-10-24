@@ -92,7 +92,7 @@ PRD ref: `prd.md > The Core Journey`.
 | Front end | **React 19 + Vite + Tailwind 4**, copied from Build With Me | Reuse the approved kid design | [react.dev](https://react.dev/), [vite.dev](https://vite.dev/) |
 | Claude | The parent's **Claude Code CLI**, `claude -p` with stream-json | The terms allow an unmodified Claude Code signed in with the user's own subscription | [Headless mode](https://code.claude.com/docs/en/headless), [CLI reference](https://code.claude.com/docs/en/cli-reference) |
 | Speech to text | **Moonshine base** (MIT) through **Transformers.js** in Node (`@huggingface/transformers`); Whisper `base.en` selectable | Runs locally; pure npm install; no Python. E2: 16/16 words, about 1.2 s wait on the learner's laptop (Whisper about 2.7 s). Accuracy on kids' voices is checked on the tablet | [Transformers.js](https://huggingface.co/docs/transformers.js), [Moonshine](https://huggingface.co/onnx-community/moonshine-base-ONNX) |
-| Voice out | The browser's **speechSynthesis** with the device's own voices | No keys, works on laptop and tablet, stays local | [MDN: SpeechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis) |
+| Voice out | The browser's **speechSynthesis** with the device's own voices | No keys, works on laptop and tablet; device voices stay local, while Chrome's Google and Edge's Online voices are remote | [MDN: SpeechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis) |
 | QR codes | `qrcode` (already used in Build With Me) | Reuse | [npm: qrcode](https://www.npmjs.com/package/qrcode) |
 | Certificates | `@peculiar/x509` (or `node-forge`) to make the home certificate | Makes a certificate restricted to the home's addresses | [@peculiar/x509](https://github.com/PeculiarVentures/x509) |
 | PIN | Node's built-in `crypto.scrypt` | Hashed PIN, no extra library | [Node crypto](https://nodejs.org/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback) |
@@ -186,7 +186,7 @@ Implements the plumbing for every PRD feature.
 ### Parent Gate
 Implements `prd.md > Parent Gate and Responsibility`.
 - **The PIN:** 4–8 digits, stored as `scrypt(pin, salt)` in `family.json`. It's never logged.
-- **Wrong PIN:** after 5 wrong tries, growing lockouts (1, 5, 15, 60, then 240 minutes), kept in family.json (the PRD assumption). During the lockout even the right PIN waits, so the lockout really slows guessing (the audit suggested otherwise, M3; the learner kept it).
+- **Wrong PIN:** after 5 wrong tries, growing lockouts (1, 5, 15, 60, then 240 minutes), kept in family.json (the PRD assumed a flat minute; the safety review made it grow and saved it). During the lockout even the right PIN waits, so the lockout really slows guessing (the audit suggested otherwise, M3; the learner kept it).
 - **The parent cookie:** `HttpOnly`, `SameSite=Strict`, loopback only. **🔒 Lock** clears it, and so do 2 hours without use or 8 hours in all.
 - **Forgot the PIN:** `/build-with-me:reset-pin` in Claude Code, a small command that clears the PIN hash so the next opening asks for a new PIN. Only someone at the parent's Claude Code can do it. This resolves the PRD open question.
 - **Never handles the Claude sign-in:** the server only runs `claude`. It never reads Claude's credential files or tokens.
@@ -222,7 +222,7 @@ Implements `prd.md > The Kid's Journey`.
 Implements the AI behind `prd.md > The Kid's Journey`, `prd.md > Safety`, `prd.md > The Parent Report`.
 - `server/claude/runner.ts` starts the parent's `claude` with **isolation flags** on every call:
   ```
-  # (the long-lived guide conversation only; one-shot calls omit --input-format)
+  # (--input-format is used only by the E1 test's long-lived Conversation; every app call is one-shot and omits it)
   claude -p --safe-mode --input-format stream-json --output-format stream-json --verbose
          --model <sonnet|haiku|opus>
          --system-prompt-file <privacy rule + layer file>
@@ -245,7 +245,7 @@ Implements the AI behind `prd.md > The Kid's Journey`, `prd.md > Safety`, `prd.m
   - It finds `claude` on PATH, then in the official install locations (`~/.local/bin`), with an override setting.
   - The `--setting-sources ""` form and isolation from `~/.claude/CLAUDE.md` are **to verify** in experiment E1. If CLAUDE.md still loads, a fallback is chosen there.
 - **One call per turn** (build revision, slice 5): the guide, the plan writer and the checker each run as one sealed-off `claude -p` call with the stage's system prompt (identical for every turn of a stage, so Claude Code's prompt cache reuses it) and the conversation so far as JSON. The ported turn logic asks again with app notes, writes plans in a separate call and changes the system prompt at every stage, which a single long-lived process can't do cleanly. Resume needs nothing special: the transcript is in `project.json`. E3 (slice 8) measures the cost.
-  - The checker reads each kid message and each guide reply on its own in mix A; in the default mix B the main checks are forks that carry the whole conversation, as in Build With Me.
+  - In mix A the checker reads each kid message and each guide reply on its own, as in Build With Me; in the default mix B the main checks are forks of the guide's call and see the same conversation the guide sees.
 - **One-shot jobs:** the **builder** and the **reporter** each start a fresh process per job. The reporter uses `--json-schema` for the report fields. The builder keeps Build With Me's plain-text output (build revision, slice 6): a whole HTML document, or small find-and-replace edits for changes and fixes, checked against the hard rules; what a change left out is found by a separate check and said honestly. Versions are saved as `versions/vN.html`.
 - **Structured guide replies:** the guide must return Build With Me's reply shape (say, cards, mock-up, plan). It uses `--json-schema` if that works with stream-json (to verify in E1). Otherwise it's told in its system prompt to answer in JSON, and `replySchema.ts` validates it, with one automatic retry.
 - **Limits:** every `rate_limit_event` is watched:
@@ -260,7 +260,7 @@ Implements `prd.md > Safety`.
 - **Layer 1, an age-aware guide:** Build With Me's `prompt/safety.ts`, `dial.ts` and `wrapperLayer.ts`, with the age group from `family.json`.
 - **Layer 2, the live check** (`server/journey/safetyCheck.ts`):
   - `personal.ts` masks the obvious details first.
-  - The checker gets "KID SAID: …" at the same time as the guide, then "GUIDE SAID: …" before display. It answers `{verdict: ok|unsuitable|personal|wellbeing, category, masked}`.
+  - The checker gets "What the person just said to the helper" at the same time as the guide, then "What the helper is about to say to the person" before display. It answers `{verdict: ok|unsuitable|personal|wellbeing, category, masked}`.
   - **Unsuitable input:** the guide's reply is discarded and replaced by a fixed kind redirect (or, for wellbeing, the trusted-grown-up message); the guide isn't asked again.
   - **Unsuitable output:** the reply is replaced by the same fixed redirect; it isn't regenerated.
   - Every non-ok verdict appends a **flag** `{at, stage, direction, verdict, category, text}` to the project.
@@ -458,13 +458,12 @@ build-with-me-home/                  # repo root = plugin root = marketplace
 │   ├── kids.ts                      # family.json kids
 │   ├── certs.ts                     # home certificate authority + server cert
 │   ├── speech.ts                    # Moonshine (Transformers.js) speech-to-text
-│   ├── safety.ts                    # checker orchestration, flags
 │   ├── usage.ts                     # /usage readings, rate-limit tracking
 │   ├── claude/
 │   │   └── runner.ts                # isolated claude -p processes (guide, checker, builder, reporter)
 │   ├── journey/                     # ported from Build With Me functions/src
 │   │   ├── guideTurn.ts  startSession.ts  getSession.ts  changeTurn.ts
-│   │   ├── generateApp.ts  edits.ts  checklist.ts  stages.ts  personal.ts
+│   │   ├── generateApp.ts  edits.ts  checklist.ts  stages.ts  personal.ts  safetyCheck.ts
 │   │   └── prompt/                  # buildPrompt, wrapperLayer, safety, dial, builderLayer, …
 │   └── report/
 │       ├── reporter.ts              # reporter call + schema
@@ -519,7 +518,7 @@ No other network calls. Kids' apps get a CSP that blocks network access.
 - **Device names come from the browser** ("iPad," "Windows laptop"), instead of names the parent types in. That's enough to tell devices apart in Active passes.
 - **The plan usage per app is an estimate from the app's own calls at a learned rate,** shown next to the whole account's before-and-after change in `/usage`, because `/usage` is one number for the whole account and Claude Code doesn't expose per-app plan accounting.
 - **One English Moonshine model,** instead of a language picker. The PRD didn't ask for other languages. It's swappable in settings later.
-- **Lockout and sessions are in memory:** a restart clears the wrong-PIN counter, which is acceptable for a home app.
+- **Sessions are in memory; the PIN lockout is saved in `family.json`:** a restart signs the parent out but doesn't clear wrong-PIN lockouts.
 - **The release build is committed** (`app/dist`), instead of building on each family's computer. That trades repo size for a no-build install.
 
 ## Build Order and Early Experiments
