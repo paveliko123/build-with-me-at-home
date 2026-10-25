@@ -372,3 +372,11 @@ Activity mode: brief recap through the app map (not hands-on).
   - What the learner found: on the laptop the first letter of the spoken reply was still cut, even with the half-second wait added on Oct 6.
   - What changed: `web/src/kid/journey/lib/voice.ts` plays a barely audible 0.3-second blip first to wake sleeping speakers, and starts the sentences when the silent warm-up has finished (at least half a second, at most 1.5 seconds). Nothing about the words changed.
   - Checked: `typecheck` clean, `verify:revisions` 73/73, built. Not checked by ear: needs the learner's test on the laptop after a restart.
+- **Idea cards were removed by the server; plan card lines stopped mid-sentence (fixed 2026-10-25, small fix under D-8).**
+  - What the learner found (teen, piano app): the first Idea reply said "here are two small ideas" with no cards; later "Which of these sounds better?" also came with none. The plan card cut "Leaving out for now" mid-sentence.
+  - Cause: `cleanReply` in `server/journey/guideTurn.ts` always removed cards from the first Idea reply, and at So-so removed them unless the person sounded unsure. The D-8 runs checked the guide's raw reply, not this filter, so D-8 only half worked until now. The plan card cut every line at 140 characters.
+  - What changed: kids' and teens' first Idea reply and a So-so "Which of these?" reply keep their cards (adults' first Idea reply stays open). Plan card lines keep whole sentences up to 240 characters.
+  - Checked: `typecheck` clean, `verify:revisions` 79/79, `verify:security` 23/23.
+- **The guide stops asking the same thing twice (owner yes D-10, 2026-10-25; build pending).**
+  - What the learner found: "…Which one sounds more fun?" followed by "Which idea sounds more fun to you?" (read aloud twice), and plan drafts asking four ways ("ready to look at", "Does this look right?", the buttons, the box hint).
+  - Agreed: the app drops a final question or "Pick…" sentence from the message when a question card is also shown; the So-so and Experienced instructions no longer tell the guide to say the plan is ready to look at, only to ask whether it looks good.
