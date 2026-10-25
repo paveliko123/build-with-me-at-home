@@ -6397,7 +6397,9 @@ function cleanReply(reply, profile, probeFirst, unsure = true, askedIdeas = fals
       clean.say = "";
     }
   }
-  if ((askedIdeas || !probeFirst && (profile.experience <= 1 || profile.experience === 2 && unsure)) && Array.isArray(reply.cards) && reply.cards.length) {
+  const firstOk = !probeFirst || ageGroupOf(profile) !== "adult";
+  const offersChoice = probeFirst || OPTIONS_REF.test(`${reply.say ?? ""} ${reply.question ?? ""}`);
+  if ((askedIdeas || firstOk && (profile.experience <= 1 || profile.experience === 2 && (unsure || offersChoice))) && Array.isArray(reply.cards) && reply.cards.length) {
     clean.cards = reply.cards.slice(0, askedIdeas ? 4 : profile.experience === 2 ? 2 : 4).map((c) => ({
       emoji: String(c.emoji ?? "").slice(0, 16),
       label: String(c.label ?? "").slice(0, 80),

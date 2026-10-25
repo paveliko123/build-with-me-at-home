@@ -135,6 +135,18 @@ async function main() {
     const icons = sum.points.map((p) => p.icon).join('');
     add('the plan card shows the title, the one-line summary and up to 5 key sections with icons', sum.title === "Biscuit's Feeding Helper" && /reminds me to feed/.test(sum.summary) && sum.points.length >= 4 && sum.points.length <= 5 && icons.includes('⭐') && icons.includes('🎨'), `${sum.title} · ${icons} · ${sum.points.map((p) => p.label).join(' / ')}`);
     add('…and leaves out "not discussed" lines', !JSON.stringify(sum).includes('not discussed'), 'none shown');
+    const longLine = 'Reading notes automatically from a photo, screenshot, or PDF. That needs a very advanced tool and the internet, which is too big for one simple page that works on its own. We\'ll find a smaller way to get notes in.';
+    const cut = summarizePlan(`# Plan\n\n## Leaving out for now\n- ${longLine}\n- ${'word '.repeat(80)}`).points[0]?.lines ?? [];
+    add('…and a long line keeps whole sentences, never stopping mid-sentence', cut[0] === longLine && cut[1].endsWith('word…') && cut[1].length <= 241, cut.map((l) => l.slice(-30)).join(' | '));
+
+    // ---------- teen's piano test (2026-10-25): idea cards removed by the server ----------
+    const { cleanReply } = await import('../server/journey/guideTurn.js');
+    const twoCards = [{ emoji: '🎹', label: 'Fingering helper' }, { emoji: '🎯', label: 'Fingering game' }];
+    const soSoTeen = { ageGroup: 'teen', experience: 2, theme: 'music', inputMode: 'type' } as any;
+    add('a teen\'s first Idea reply keeps its 2 idea cards (D-8)', cleanReply({ say: 'Let\'s think of something fun to make!', question: 'Which sounds fun?', stageComplete: false, cards: twoCards } as any, soSoTeen, true, false).cards?.length === 2, 'probe-first reply');
+    add('…an adult\'s first Idea reply stays an open question', !cleanReply({ say: 'Hi', question: 'What would you like to make?', stageComplete: false, cards: twoCards } as any, { ...soSoTeen, ageGroup: 'adult' }, true, false).cards, 'cards removed');
+    add('…and "Which of these?" at the So-so level keeps its cards', cleanReply({ say: 'Here are two smaller versions.', question: 'Which of these sounds better to you?', stageComplete: false, cards: twoCards } as any, soSoTeen, false, false).cards?.length === 2, 'options reply');
+    add('…while a plain So-so question still has none', !cleanReply({ say: 'Nice.', question: 'What should it look like?', stageComplete: false, cards: twoCards } as any, soSoTeen, false, false).cards, 'cards removed');
 
     const leo = kids.find((k) => k.nickname === 'Leo')!;
     const lid = 'verifyrevleo01';

@@ -18,6 +18,18 @@ const SECTIONS: { match: RegExp; icon: string }[] = [
 ];
 const MAX_POINTS = 5;
 const MAX_LINES = 3;
+const MAX_CHARS = 240;
+
+/** A long line keeps its whole sentences (a teen's test: a cut at 140 characters stopped
+ *  mid-sentence); only a single sentence longer than the limit ends at a word with "…". */
+function shorten(line: string): string {
+  if (line.length <= MAX_CHARS) return line;
+  const sentences = line.match(/[^.!?]+[.!?]+(\s+|$)/g) ?? [];
+  let kept = '';
+  for (const s of sentences) { if ((kept + s).trim().length > MAX_CHARS) break; kept += s; }
+  if (kept.trim()) return kept.trim();
+  return `${line.slice(0, MAX_CHARS).replace(/\s+\S*$/, '')}…`;
+}
 
 /** Plain text of one Markdown line (no bullets, numbers, bold or links). */
 function plain(line: string): string {
@@ -50,7 +62,7 @@ export function summarizePlan(markdown: string): PlanSummary {
     // "not discussed" lines tell a teen nothing.
     const body = s.body.filter(l => !/not discussed|not decided/i.test(l));
     if (!body.length) continue;
-    points.push({ icon, label: s.heading, lines: body.slice(0, MAX_LINES).map(l => (l.length > 140 ? `${l.slice(0, 137)}…` : l)) });
+    points.push({ icon, label: s.heading, lines: body.slice(0, MAX_LINES).map(shorten) });
   }
   return { title: title.replace(/:\s*the (design|tech) plan$/i, ''), summary, points };
 }

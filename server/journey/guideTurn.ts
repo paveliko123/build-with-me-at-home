@@ -127,7 +127,7 @@ export function cleanMarkdown(markdown: string): string {
     .trim();
 }
 
-function cleanReply(reply: GuideReply, profile: Profile, probeFirst: boolean, unsure = true, askedIdeas = false): GuideReply {
+export function cleanReply(reply: GuideReply, profile: Profile, probeFirst: boolean, unsure = true, askedIdeas = false): GuideReply {
   const clean: GuideReply = {
     say: String(reply.say ?? '').slice(0, MAX_TEXT),
     stageComplete: reply.stageComplete === true,
@@ -146,10 +146,14 @@ function cleanReply(reply: GuideReply, profile: Profile, probeFirst: boolean, un
       clean.say = '';
     }
   }
-  // prd.md > Idea: the first idea question is open-ended; cards only come after.
-  // So-so level: cards are an optional helper, only when the person seems unsure.
+  // prd.md > Idea: the first idea question is open-ended; cards only come after. Kids and teens
+  // with no idea yet get 2 idea cards in that first reply (owner yes D-8).
+  // So-so level: cards are an optional helper, when the person seems unsure or the guide asks
+  // them to pick between options (a teen's test: "Which of these?" arrived with no cards).
   // "💡 Show me ideas" asked for them: cards at every level.
-  if ((askedIdeas || (!probeFirst && (profile.experience <= 1 || (profile.experience === 2 && unsure)))) && Array.isArray(reply.cards) && reply.cards.length) {
+  const firstOk = !probeFirst || ageGroupOf(profile) !== 'adult';
+  const offersChoice = probeFirst || OPTIONS_REF.test(`${reply.say ?? ''} ${reply.question ?? ''}`);
+  if ((askedIdeas || (firstOk && (profile.experience <= 1 || (profile.experience === 2 && (unsure || offersChoice))))) && Array.isArray(reply.cards) && reply.cards.length) {
     clean.cards = reply.cards.slice(0, askedIdeas ? 4 : profile.experience === 2 ? 2 : 4).map(c => ({
       emoji: String(c.emoji ?? '').slice(0, 16),
       label: String(c.label ?? '').slice(0, 80),
