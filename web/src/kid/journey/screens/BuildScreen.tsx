@@ -297,6 +297,23 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
     void buildStep(0);
   }
 
+  // "Build it" during a running build is remembered: the list (as it is then) builds by itself when
+  // the build ends (robot app: nothing was built for 9 minutes; owner yes D-16, 2026-10-25).
+  const listWhenReady = useRef(false);
+  const changesRef = useRef(changes);
+  changesRef.current = changes;
+  useEffect(() => {
+    if (building || !listWhenReady.current) return;
+    // A moment's wait: fast mode starts its next step right after one ends.
+    const id = window.setTimeout(() => {
+      if (buildingRef.current || !listWhenReady.current) return;
+      listWhenReady.current = false;
+      if (!failed && !confirm) buildChanges(changesRef.current);
+    }, 500);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [building]);
+
   /** Build the whole change list as one new version. */
   function buildChanges(list = changes, confirmed = false) {
     if (!list.length || buildingRef.current) return;
@@ -322,7 +339,7 @@ export default function BuildScreen({ profile, intro, checklist, resume, onShip,
       if (result.reply) say({ from: 'guide', text: [result.reply.say, result.reply.question].filter(Boolean).join(' ') });
       if (result.ship && html && !buildingRef.current) { onShip(html); return; }
       if (result.ready) {
-        if (buildingRef.current) say({ from: 'guide', text: 'Got it! When this version is ready, tap "That\'s all, build it!" and I\'ll build your list.' });
+        if (buildingRef.current) { listWhenReady.current = true; say({ from: 'guide', text: 'Got it! I\'ll build your list as soon as this version is ready.' }); }
         else buildChanges(result.changes);
       }
     } catch (err) {

@@ -9,7 +9,7 @@ import { LEAK, LEAK_REPLY, personText, redirectReply, SAFETY_LAYER, WELLBEING_RE
 import { maskPersonal } from './personal.js';
 import { callSafetyCheck, flag, heldBack, mayBeHurting } from './safetyCheck.js';
 import { withoutEchoedQuestion, withoutSecondAsk } from './echo.js';
-import { addUsage, thread, type Project } from './project.js';
+import { addUsage, isBuilding, thread, type Project } from './project.js';
 import { ageGroupOf } from './types.js';
 import { TurnError } from './guideTurn.js';
 
@@ -63,7 +63,9 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
     // Already built: listed so the guide doesn't put them back (its earlier messages still show them).
     const built = builtChanges(p).slice(-12);
     const builtNote = built.length ? `\n\n[app] Already built into the app (done, NOT on the list; never add these again unless the person asks for one again in this message):\n${built.map((c) => `- ${c}`).join('\n')}` : '';
-    const askFor = (said: string) => `[app] Current change list (this is the whole list now; anything from earlier messages that isn't here was built or removed):\n${list.length ? list.map((c, i) => `${i + 1}. ${c}`).join('\n') : '(empty)'}${builtNote}${asked}\n\nThe person said: "${said}"`;
+    // A build is running: the list is built as soon as it's ready, never "now" (robot app; owner yes D-16, 2026-10-25).
+    const buildingNote = isBuilding(p.id) ? '\n\n[app] A version of the app is being built right now. If they want the list built, set "ready" as usual and say it will be built as soon as this version is ready, never that you are building it now.' : '';
+    const askFor = (said: string) => `[app] Current change list (this is the whole list now; anything from earlier messages that isn't here was built or removed):\n${list.length ? list.map((c, i) => `${i + 1}. ${c}`).join('\n') : '(empty)'}${builtNote}${asked}${buildingNote}\n\nThe person said: "${said}"`;
     let ask = askFor(text);
     // A redirect fits the change chat and keeps its current question (owner yes D-15, 2026-10-25).
     const lastQuestion = (() => { try { return JSON.parse(past.filter((m) => m.role === 'model').at(-1)?.text ?? '{}').question as string | undefined; } catch { return undefined; } })();
