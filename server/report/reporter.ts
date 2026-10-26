@@ -272,6 +272,24 @@ function afterFlag(p: Project, at: number, kidName: string, lines: ReportLine[])
   return events.length ? `${later(events[0].at)}: ${events[0].text}` : 'nothing more; the session ended';
 }
 
+/** The start is the first message, not when the project was made (piano: made a day before; owner yes D-18, 2026-10-25). */
+export const startOf = (p: Project) => (p.messages.length ? Math.min(...p.messages.map((m) => m.at)) : p.createdAt);
+
+/** Each step once (owner yes D-18, 2026-10-25): Ship comes from the shipped app only, the Build
+ *  note shows under Build only, and a second round of changes gets its own list. */
+export function timelineOf(p: Project, stageNotes: Record<string, string | undefined>, startedAt: number): ReportData['timeline'] {
+  const edits = (p.versions ?? []).filter((v) => v.mode === 'edit').length;
+  const hasBuild = p.timeline.some((t) => t.stage === 'build');
+  return [
+    ...p.timeline.filter((t) => !(t.stage === 'ship' && p.shipped)).map((t) => ({ at: Math.max(t.at, startedAt), label: STEP[t.stage] ?? t.stage, text: stageNotes[t.stage] ?? '' })),
+    ...(p.versions ?? []).map((v) => ({ at: v.at, label: v.mode === 'full' ? 'Built' : v.mode === 'edit' ? 'Changes' : 'Fixed', text: v.mode === 'edit' ? ((edits === 1 && stageNotes.changes) || v.note.replace(/^\d+\.\s*/gm, '').split('\n').join(' · ')) : v.mode === 'full' ? ((!hasBuild && stageNotes.build) || 'The first version was ready.') : 'A bug was found and fixed automatically.' })),
+    ...(p.shipped ? [{ at: p.shipped.at, label: 'Ship', text: stageNotes.ship ?? `Named it "${p.shipped.name}" and put it on My apps.` }] : []),
+  ].sort((a, b) => a.at - b.at);
+}
+
+/** For the checks and the report replay: the writer's input. */
+export const bundleForTests = bundle;
+
 // ---------- making and saving a report ----------
 
 const writing = new Set<string>();
@@ -290,8 +308,7 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
     const heldBack = saved.flags.filter((f) => f.verdict === 'unchecked').length;
     const p = { ...saved, flags: saved.flags.filter((f) => f.verdict !== 'unchecked') };
     const lines = transcriptOf(p);
-    // The start is the first message, not when the project was made (piano: made a day before; owner yes D-18, 2026-10-25).
-    const startedAt = p.messages.length ? Math.min(...p.messages.map((m) => m.at)) : p.createdAt;
+    const startedAt = startOf(p);
     const times = [...p.messages.map((m) => m.at), ...(p.versions ?? []).map((v) => v.at), ...p.timeline.map((t) => Math.max(t.at, startedAt))];
     const endedAt = Math.max(...times, p.shipped?.at ?? 0);
     const shelfApp = p.shipped ? shelf(kidId).find((a) => a.slug === p.shipped!.slug) : undefined;
@@ -316,15 +333,7 @@ export async function makeReport(kidId: string, projectId: string, opts: { finis
     const serious = kidUnsuitable >= 3 || p.flags.some((f) => f.verdict === 'wellbeing' || (f.direction !== 'input' && f.verdict !== 'personal'));
     const badge: Badge = !flags.length ? 'none' : serious || ai?.needsLook ? 'look' : 'handled';
     const stageNotes = ai?.stageNotes ?? {};
-    // Each step once (owner yes D-18, 2026-10-25): Ship comes from the shipped app only, the Build
-    // note shows under Build only, and a second round of changes gets its own list.
-    const edits = (p.versions ?? []).filter((v) => v.mode === 'edit').length;
-    const hasBuild = p.timeline.some((t) => t.stage === 'build');
-    const timeline = [
-      ...p.timeline.filter((t) => !(t.stage === 'ship' && p.shipped)).map((t) => ({ at: Math.max(t.at, startedAt), label: STEP[t.stage] ?? t.stage, text: stageNotes[t.stage] ?? '' })),
-      ...(p.versions ?? []).map((v) => ({ at: v.at, label: v.mode === 'full' ? 'Built' : v.mode === 'edit' ? 'Changes' : 'Fixed', text: v.mode === 'edit' ? ((edits === 1 && stageNotes.changes) || v.note.replace(/^\d+\.\s*/gm, '').split('\n').join(' · ')) : v.mode === 'full' ? ((!hasBuild && stageNotes.build) || 'The first version was ready.') : 'A bug was found and fixed automatically.' })),
-      ...(p.shipped ? [{ at: p.shipped.at, label: 'Ship', text: stageNotes.ship ?? `Named it "${p.shipped.name}" and put it on My apps.` }] : []),
-    ].sort((a, b) => a.at - b.at);
+    const timeline = timelineOf(p, stageNotes, startedAt);
     const fallbackTitle = opts.finished && shelfApp ? `${kid.nickname} built "${shelfApp.name}"` : `${kid.nickname} started an app (not finished)`;
 
     const data: ReportData = {
