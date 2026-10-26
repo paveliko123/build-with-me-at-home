@@ -410,3 +410,9 @@ Activity mode: brief recap through the app map (not hands-on).
 - **The parent report gets the facts right (owner yes D-18, 2026-10-25; build pending).**
   - What the review found (piano report): title used the plan's name, not the shelf name, and didn't mention the blocked name; the flag note said the teen "carried on asking about chords" though the flag came at Ship; Ship listed twice and the Build text repeated; start date from the project's creation (Oct 23).
   - Agreed (`server/report/reporter.ts`): the writer gets the shelf name and any blocked name; each flag says which step it came at and what followed; each step once in the timeline; the start is the first message. Check planned: regenerate the piano report once.
+- **Smaller review items (owner yes D-19, 2026-10-25, "all as suggested"; build pending).**
+  1. Builder told the device: new builder line "This app will be used on: ‹device› (for example "Android tablet"). On a tablet or phone, the how-to-play text and every control use on-screen buttons and taps, never keys." (robot app on an Android tablet said "arrows or WASD", "Shift", "E").
+  2. Builder games rule: "difficulty that rises slowly" → "difficulty that rises slowly, a win or goal a player can reach within a few minutes (goals that depend on chance included)" (robot win needed ~100 chests at 1 in 100).
+  3. Waiting chat, new line: "If they say they're happy with it or have no ideas, say that's great in one line and ask something light about the app instead (what they'll do first when it's ready); don't push for changes."
+  4–6. Left as is: "Ooh"/"Yay" openers; one two-questions slip (the rule exists); no sheet-music-specific rule (D-12 covers the bigger gap).
+  7. Build time "2 to 7 minutes" → "3 to 10 minutes" in `BuildProgress.tsx` (both lines) and `waitingLayer.ts` (today's builds: about 7, 8 and 9 minutes).
