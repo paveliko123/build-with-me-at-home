@@ -1,7 +1,7 @@
 {
   "name": "build-with-me",
   "displayName": "Build With Me at Home",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A fully local tool for parents to introduce their own kids to Claude Code and plan-first building, on the parent's own account and with the parent supervising. Kids' data is stored on your computer; nothing is sent to the developer, no analytics. Timed passes and a report after every project help you stay in the loop.",
   "author": { "name": "Build With Me at Home" },
   "license": "MIT",

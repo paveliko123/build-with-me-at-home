@@ -1,6 +1,6 @@
 {
   "name": "build-with-me-home",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "An open-source Claude Code plugin for parents: introduce your own kids to Claude Code and the plan-first approach, on your own account, with you supervising.",
   "license": "MIT",
