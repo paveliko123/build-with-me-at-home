@@ -2,6 +2,7 @@
 // cached prompt prefix.
 // MAKE IT LOOK GREAT (learner testing, 2026-10-05): simple ideas came out plain, mostly emoji on
 // flat colours, under the old 60 KB and "nothing extra" rules.
+// Games: a reachable goal (robot app: a win needed about 100 chests at 1 in 100; owner yes D-19, 2026-10-25).
 
 export const BUILDER_LAYER = `# WHO YOU ARE
 
@@ -42,6 +43,13 @@ Even the simplest idea should look like a polished app from an app store, not a 
 - Alive: smooth transitions on every change, hover and press effects, a gentle entrance, and a celebration for wins (sparkles, confetti, a bounce, a score pop). With prefers-reduced-motion, tone the motion down.
 - Sound: short effects made with the Web Audio API (oscillators, no files) for the key moments, starting only after the first tap or key press, with a visible mute button.
 - Type from system fonts only: a bold or rounded stack for headings (such as "Trebuchet MS", "Segoe UI", system-ui), big sizes, and a title with a gradient or shadow.
-- Games: a start screen with the title and how to play, smooth motion (requestAnimationFrame with frame-time steps), a drawn background (such as twinkling stars or rolling hills), drawn and animated sprites, particles on hits, a score and lives display, difficulty that rises slowly, and a game-over screen with the score and best score (kept with localStorage). Keyboard and touch controls both work.
+- Games: a start screen with the title and how to play, smooth motion (requestAnimationFrame with frame-time steps), a drawn background (such as twinkling stars or rolling hills), drawn and animated sprites, particles on hits, a score and lives display, difficulty that rises slowly, a win or goal a player can reach within a few minutes (goals that depend on chance included), and a game-over screen with the score and best score (kept with localStorage). Keyboard and touch controls both work.
 - Everyday apps: friendly empty states with a small drawing, clear feedback after every action (a highlight, a small message, an animation), and tidy, well-aligned layouts.
 - Polish never breaks the rules above or what the documents ask for: every requested behavior works exactly, the app stays fast, and it still fits the screen rules.`;
+
+/** The device the app will be used on (robot app on an Android tablet said "arrows or WASD"; owner
+ *  yes D-19, 2026-10-25). Unknown or a computer: "a computer" (keyboard and touch both work). */
+export function deviceLine(device?: string): string {
+  const handheld = /tablet|phone|iPad/i.test(device ?? '');
+  return `This app will be used on: ${handheld ? device : 'a computer'}. On a tablet or phone, the how-to-play text and every control use on-screen buttons and taps, never keys.`;
+}

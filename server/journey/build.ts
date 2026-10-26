@@ -12,7 +12,7 @@ import { dataPath } from '../store.js';
 import { checkApp, extractHtml } from './appCheck.js';
 import { callBuilder, callVerifyEdits, type CallMeta } from './claude.js';
 import { applyEdits, EDIT_FORMAT, lineDiff, withoutChangedNote } from './edits.js';
-import { BUILDER_LAYER } from './prompt/builderLayer.js';
+import { BUILDER_LAYER, deviceLine } from './prompt/builderLayer.js';
 import { personText, SAFETY_LAYER } from './prompt/safety.js';
 import { callSafetyCheck, flag, heldBack } from './safetyCheck.js';
 import { addUsage, readProject, type Project } from './project.js';
@@ -94,7 +94,7 @@ export async function buildApp(p: Project, mode: BuildMode, error = ''): Promise
       const system = [
         BUILDER_LAYER,
         SAFETY_LAYER,
-        `# THE PLAN\n\nTheme: ${p.profile.theme}. Builder: ${BUILDER_AGE[ageGroupOf(p.profile)]}, ${p.profile.experience <= 1 ? 'GUIDED (new to this)' : p.profile.experience === 2 ? 'some experience' : 'experienced'}.\n\n${planText(p)}`,
+        `# THE PLAN\n\nTheme: ${p.profile.theme}. Builder: ${BUILDER_AGE[ageGroupOf(p.profile)]}, ${p.profile.experience <= 1 ? 'GUIDED (new to this)' : p.profile.experience === 2 ? 'some experience' : 'experienced'}. ${deviceLine(p.device)}\n\n${planText(p)}`,
       ].join('\n\n');
       const ask = mode === 'full' ? 'Build the app described in THE PLAN.'
         : mode === 'edit' ? `Here is the current app:\n\n${current!.html}\n\nThe builder's list of changes (make ALL of them):\n${change}\n\nReturn the complete updated HTML document.`
