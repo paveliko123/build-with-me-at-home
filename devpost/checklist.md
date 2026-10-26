@@ -416,3 +416,10 @@ Activity mode: brief recap through the app map (not hands-on).
   3. Waiting chat, new line: "If they say they're happy with it or have no ideas, say that's great in one line and ask something light about the app instead (what they'll do first when it's ready); don't push for changes."
   4–6. Left as is: "Ooh"/"Yay" openers; one two-questions slip (the rule exists); no sheet-music-specific rule (D-12 covers the bigger gap).
   7. Build time "2 to 7 minutes" → "3 to 10 minutes" in `BuildProgress.tsx` (both lines) and `waitingLayer.ts` (today's builds: about 7, 8 and 9 minutes).
+- **D-12 to D-19 built (2026-10-25).** Checks: `verify:revisions` 97/97, `verify:security` 23/23, app rebuilt. Real runs:
+  - D-12 (4 piano replays): "How it works" never uses photo/PDF (4/4), no unnamed "we'll find a way" (4/4), grown-up suggestion 4/4; but the alternatives offered (tap a piano keyboard, type note letters) still mean entering each note, and none said plainly that nothing fits. Two runs said "Here are two ways" with their cards removed at So-so: fixed by widening `OPTIONS_REF` ("two ways", "which way") as a small fix.
+  - D-13 (4 unicorn replays, talk mode): "barren window" never said back (0/4); "Did you mean…?" only 2/4; the profile document still wrote "barren window" 4/4 (open).
+  - D-14 (3 checks): "Fingering Helper" with the piano plan passes; a rude name with the plan is blocked; "Fingering Helper" with no plan still blocked, as before.
+  - D-17 (3 robot replays): the neon-outline idea came back first and was asked about 3/3; nothing added without a yes; "silly hats" never offered.
+  - D-18 (piano report regenerated in tmp/): title uses "piano", the flag sits at Ship as a name blocked by mistake, each step once, start Oct 25.
+  - Not checked in a browser yet: D-16's build-by-itself and D-14's pre-filled name.

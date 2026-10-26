@@ -57,7 +57,7 @@ export function isChooseForMe(text: string): boolean {
 }
 
 /** A reply that points at options to pick from ("which of these two styles…"). */
-export const OPTIONS_REF = /\bwhich of (these|those|the two|the three)\b|\b(these|those|both) (two |three )?(options|styles|choices|ideas|looks|vibes|directions|designs)\b/i;
+export const OPTIONS_REF = /\bwhich of (these|those|the two|the three)\b|\b(these|those|both) (two |three )?(options|styles|choices|ideas|looks|vibes|directions|designs)\b|\b(two|three|2|3) (\w+ )?(ways|versions|options|ideas|choices)\b|\bwhich (way|version|option)\b/i;
 
 /** A reply that points at a picture on screen ("take a look at these new styles"). */
 export const PICTURE_REF = /\b(take a look|look at (these|this|the) (new |two |brand new )*(looks?|styles?|designs?|pictures?)|here they are|here are (the |two |some |your )[\w ,'-]{0,40}\b(looks|styles|designs)|(these|two) (brand )?new (looks|styles|designs)|(two|2|a few) ways\b[^.?!]{0,40}\b(could|might|can|would) look)\b/i;
@@ -71,6 +71,7 @@ export function guideSawApproval(reply: GuideReply, text: string): boolean {
   return reply.stageComplete && !isChangeRequest(text) && !REVIEW_ASK.test(reply.question ?? '') && !CHANGE_CLAIM.test(reply.say);
 }
 
+// Real runs (D-12, 2026-10-25): "Here are two ways… Which way?" lost its cards at the So-so level.
 /** Unsure answers that earn answer cards at the So-so level ("maybe", "hmm"). */
 export function isUnsure(text: string): boolean {
   const t = text.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim();

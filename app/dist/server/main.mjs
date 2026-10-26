@@ -6346,7 +6346,7 @@ function isChooseForMe(text) {
   const t = text.toLowerCase().replace(/[^a-z\s]/g, "").replace(/\s+/g, " ").trim();
   return t.length <= 60 && /\b(you (choose|pick|decide)|surprise me|whatever you (think|want|like)|up to you|your call)\b/.test(t);
 }
-var OPTIONS_REF = /\bwhich of (these|those|the two|the three)\b|\b(these|those|both) (two |three )?(options|styles|choices|ideas|looks|vibes|directions|designs)\b/i;
+var OPTIONS_REF = /\bwhich of (these|those|the two|the three)\b|\b(these|those|both) (two |three )?(options|styles|choices|ideas|looks|vibes|directions|designs)\b|\b(two|three|2|3) (\w+ )?(ways|versions|options|ideas|choices)\b|\bwhich (way|version|option)\b/i;
 var PICTURE_REF = /\b(take a look|look at (these|this|the) (new |two |brand new )*(looks?|styles?|designs?|pictures?)|here they are|here are (the |two |some |your )[\w ,'-]{0,40}\b(looks|styles|designs)|(these|two) (brand )?new (looks|styles|designs)|(two|2|a few) ways\b[^.?!]{0,40}\b(could|might|can|would) look)\b/i;
 var CHANGE_CLAIM = /\bi('ve| have) (now |also )?(updated|revised|rewritten|changed|added|put)\b|\b(added|put) (it|that|this|them) (to|in|into) (your|the) (plan|draft)\b/i;
 function guideSawApproval(reply, text) {

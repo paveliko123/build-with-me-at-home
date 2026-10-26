@@ -154,6 +154,7 @@ async function main() {
     add('the guide finishing after "I\'ve added it… Does this look right?" is not the teen\'s yes (D-11)', !guideSawApproval({ say: "Chords work too. I've added it to your plan.", question: 'Does this look right, or would you change anything?', stageComplete: true } as any, 'how about chords how would you do that'), 'stage stays open');
     add('…while a plain "let\'s move on" still approves', guideSawApproval({ say: 'Great, on to the next part!', stageComplete: true } as any, "I like it, let's move on"), 'approved');
     add('"Here are two smaller versions" is not a plan, and "two ways it could look" needs a picture', !DOC_CLAIM.test('Here are two smaller versions that skip the slow part.') && DOC_CLAIM.test("Here's your updated plan.") && PICTURE_REF.test('Here are two ways "normal" could look.'), 'patterns');
+    add('…and "Here are two ways… Which way?" keeps its cards too', cleanReply({ say: 'Here are two ways to get notes in.', question: 'Which way sounds easier?', stageComplete: false, cards: twoCards } as any, soSoTeen, false, false).cards?.length === 2, 'two ways');
     add('…while a plain So-so question still has none',!cleanReply({ say: 'Nice.', question: 'What should it look like?', stageComplete: false, cards: twoCards } as any, soSoTeen, false, false).cards, 'cards removed');
 
     const leo = kids.find((k) => k.nickname === 'Leo')!;
