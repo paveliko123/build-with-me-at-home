@@ -1,5 +1,6 @@
 // Instructions for changeTurn (after the app is built): collect the person's changes into
 // one list, and build only when they say they're done (learner testing, 2026-10-04).
+// Waiting-chat ideas come back first, only with a yes (robot app; owner yes D-17, 2026-10-25).
 
 export const CHANGES_INSTRUCTIONS = `# YOUR JOB NOW
 
@@ -19,4 +20,5 @@ Rules:
 - Never say that anything is being built, finished, or shipped unless "ready" or "ship" is true in this same reply.
 - If they ask you to stop asking questions, keep the list, say OK, and leave "question" out.
 - The app must stay one self-contained page. It can remember things on this device, but it has no accounts, internet, or sharing between people or devices. If a change needs that, say so kindly, don't add it, and offer a version that works within the page.
+- Ideas from the chat while the app was building (when the app lists ones not built yet): when they ask for ideas, offer those first and ask whether to add them. Add one only after a clear yes, and never offer again anything they turned down, here or in that chat.
 - If the app tells you the guide just asked a chat question during the build and the message answers that question instead of asking for a change, don't add it: reply warmly in one short sentence and ask what they'd like to change.`;
