@@ -3,7 +3,7 @@
 // Ported from Build With Me's functions/src/safetyCheck.ts. Flags go into the project for the
 // parent report. If the check fails twice, the text is held back (heldBack) and the turn asks the kid to try again.
 import { callCheck, LimitError, type CallMeta, type ForkFrom } from './claude.js';
-import type { Project } from './project.js';
+import type { Flag, Project } from './project.js';
 import { addAlert } from '../report/alerts.js';
 import { SignInError } from '../claude/signin.js';
 import { TurnError } from './guideTurn.js';
@@ -160,10 +160,10 @@ export function heldBack(project: Project, direction: Direction, maskedText = ''
 const HURTING = /\b(hurt(ing)? (my ?self|me)|kill(ing)? my ?self|want(ed)? to die|wish i (was|were) dead|wish i was never born|suicid\w*|self[- ]?harm|cut(ting)? my ?self|(hits?|hitting|beats?|beating|touch(es|ed)?) me\b|abus\w*|nobody (loves|likes|cares about|wants) me|everyone hates me|i hate my ?self|i'?m (worthless|useless|a burden)|run(ning)? away from home|scared (of|to go) home|(live|living) in fear|bull(y|ies|ied|ying) me|keep (it|this) (a )?secret|(don'?t|not to) tell (my |your )?(mom|mum|dad|parents?)|(wants?|asked) (for )?(my|a) (photo|picture|pic)|no food (at home|for me)|i'?m (always|so) hungry)/i;
 export const mayBeHurting = (text: string) => HURTING.test(text);
 
-export function flag(project: Project, direction: Direction, result: SafetyResult, maskedText: string) {
+export function flag(project: Project, direction: Direction, result: SafetyResult, maskedText: string, extra: Partial<Pick<Flag, 'stage' | 'appName'>> = {}) {
   // Talk mode: the report says the words were spoken and may be misheard (owner yes D-15, 2026-10-25).
   const spoken = direction === 'input' && project.profile?.inputMode === 'talk';
-  project.flags.push({ at: Date.now(), stage: project.stage, direction, verdict: result.verdict, category: result.category ?? '', text: maskedText.slice(0, 2000), ...(spoken ? { spoken: true } : {}) });
+  project.flags.push({ at: Date.now(), stage: project.stage, direction, verdict: result.verdict, category: result.category ?? '', text: maskedText.slice(0, 2000), ...(spoken ? { spoken: true } : {}), ...extra });
   console.warn(JSON.stringify({ event: 'flag', project: project.id, direction, verdict: result.verdict, category: result.category }));
   // A kid who may be hurting or unsafe: the parent hears at once, not only in the report at the
   // end of the pass (learner request). The kid already got the "tell a trusted grown-up" reply.

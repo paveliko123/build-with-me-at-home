@@ -253,7 +253,8 @@ export function journeyRoutes(opts: { httpsPort: number }): Router {
       metasOf(p, check);
       if (check.failed) throw heldBack(p, 'input', masked.text);
       if (check.verdict !== 'ok') {
-        flag(p, 'input', check, masked.text);
+        // A blocked name is flagged at Ship, so the report doesn't place it in the step before (owner yes D-18, 2026-10-25).
+        flag(p, 'input', check, masked.text, { stage: 'ship', appName: true });
         throw new TurnError(409, check.verdict === 'personal' ? "Let's pick a name without real names or details in it. 🙂" : check.verdict === 'wellbeing' ? WELLBEING_REPLY : "Let's pick a different name! 🙂");
       }
     }

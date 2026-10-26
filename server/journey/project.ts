@@ -11,7 +11,8 @@ import type { DocKind, Profile, Stage, StageDoc } from './types.js';
 
 export interface Row { thread: string; role: 'user' | 'model'; text: string; seq: number; at: number }
 // spoken: said in talk mode, so speech recognition may have misheard it (owner yes D-15, 2026-10-25).
-export interface Flag { at: number; stage: Stage; direction: 'input' | 'output' | 'app'; verdict: string; category: string; text: string; spoken?: boolean }
+// appName: the app's name, blocked at Ship (owner yes D-18, 2026-10-25).
+export interface Flag { at: number; stage: Stage; direction: 'input' | 'output' | 'app'; verdict: string; category: string; text: string; spoken?: boolean; appName?: boolean }
 export interface Usage { calls: number; costUsd: number; inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number; byModel: Record<string, number> }
 
 export interface Project {
