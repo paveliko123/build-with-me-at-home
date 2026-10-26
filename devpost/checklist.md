@@ -390,3 +390,7 @@ Activity mode: brief recap through the app map (not hands-on).
   - Agreed wording, added after the "tooBig" sentence in `server/journey/prompt/wrapperLayer.ts` (all ages): "The plan's other sections then describe only the smaller version; the part that won't fit appears only under "Leaving out for now". Don't promise a way around it ("we'll find a way without…") unless you name that way now. If they turn down the smaller version, offer one that avoids what they objected to, or say plainly that none fits one page."
   - Owner's addition: for kids and teens (`YOUNG_STAGE_RULES` in `dial.ts`): "- Too big: also suggest they tell the grown-up who set up Build With Me about the bigger idea, since grown-ups can build bigger projects on their computer with the same AI helper."
   - Check planned: replay the piano chat about 4 times.
+- **Talk mode: misheard words are checked, never quoted back (owner yes D-13, 2026-10-25; build pending).**
+  - What the learner found (kid, unicorn app, talk mode): "on a barren window" (most likely "on a rainbow") was quoted back twice; the kid got stuck and a window ended up in the app.
+  - Agreed wording, added to the talk-mode line in `server/journey/prompt/dial.ts`: "Their words come through speech recognition and can be misheard: when a word seems odd for the moment, guess what they most likely meant and check it in one short question ("Did you mean a rainbow?"). Never quote odd words back."
+  - Check planned: replay the unicorn's first answers about 4 times.
