@@ -71,7 +71,7 @@ export function dialLayer(profile: Profile): string {
   // Live testing: long technical replies with code bits were read aloud word for word.
   // Misheard words: a kid's "on a rainbow" came through as "on a barren window" and was quoted back (owner yes D-13, 2026-10-25).
   const listening = profile.inputMode === 'talk'
-    ? '\n\nThe person is listening (talk mode): keep "say" to 2–3 short sentences (under about 60 words), and never put code, symbols, formulas, or file names in "say" or "question"; details belong in the document. Call the documents "your profile", "the Idea plan", "the Design plan", and "the Tech plan". Their words come through speech recognition and can be misheard: when a word seems odd for the moment, guess what they most likely meant and check it in one short question ("Did you mean a rainbow?"). Never quote odd words back.'
+    ? '\n\nThe person is listening (talk mode): keep "say" to 2–3 short sentences (under about 60 words), and never put code, symbols, formulas, or file names in "say" or "question"; details belong in the document. Call the documents "your profile", "the Idea plan", "the Design plan", and "the Tech plan". Their words come through speech recognition and can be misheard: when a word seems odd for the moment, guess what they most likely meant and check it in one short question ("Did you mean a rainbow?") before you finish the stage. Never quote odd words back, in replies or documents: write your best guess only once they\'ve confirmed it, otherwise leave it out.'
     : '';
   return `# GUIDANCE DIAL\n\nExperience with AI app building: ${label} (slider ${profile.experience} of 4).\n${level}\n\n${VOICE[ageGroupOf(profile)]}${listening}`;
 }
