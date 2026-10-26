@@ -5,7 +5,7 @@
 import { callChanges, CHANGES_SCHEMA, GuideError, type CallMeta, type Turn } from './claude.js';
 import { CHANGES_INSTRUCTIONS } from './prompt/changesLayer.js';
 import { voiceLine } from './prompt/dial.js';
-import { LEAK, LEAK_REPLY, personText, REDIRECT_REPLY, SAFETY_LAYER, WELLBEING_REPLY } from './prompt/safety.js';
+import { LEAK, LEAK_REPLY, personText, redirectReply, SAFETY_LAYER, WELLBEING_REPLY } from './prompt/safety.js';
 import { maskPersonal } from './personal.js';
 import { callSafetyCheck, flag, heldBack, mayBeHurting } from './safetyCheck.js';
 import { withoutEchoedQuestion, withoutSecondAsk } from './echo.js';
@@ -65,6 +65,9 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
     const builtNote = built.length ? `\n\n[app] Already built into the app (done, NOT on the list; never add these again unless the person asks for one again in this message):\n${built.map((c) => `- ${c}`).join('\n')}` : '';
     const askFor = (said: string) => `[app] Current change list (this is the whole list now; anything from earlier messages that isn't here was built or removed):\n${list.length ? list.map((c, i) => `${i + 1}. ${c}`).join('\n') : '(empty)'}${builtNote}${asked}\n\nThe person said: "${said}"`;
     let ask = askFor(text);
+    // A redirect fits the change chat and keeps its current question (owner yes D-15, 2026-10-25).
+    const lastQuestion = (() => { try { return JSON.parse(past.filter((m) => m.role === 'model').at(-1)?.text ?? '{}').question as string | undefined; } catch { return undefined; } })();
+    const redirect = { say: redirectReply('changes', p.profile.inputMode === 'talk'), ...(lastQuestion ? { question: String(lastQuestion) } : {}) };
 
     const listChanges = async () => {
       try { return await callChanges(system, [...past, { role: 'user', text: ask }]); }
@@ -94,7 +97,7 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
     }
     if (check.verdict === 'unsuitable' || check.verdict === 'wellbeing' || called instanceof GuideError) {
       flag(p, 'input', called instanceof GuideError && check.verdict === 'ok' ? { verdict: 'unsuitable', category: 'refused' } : check, text);
-      return { changes: list, ready: false, ship: false, reply: { say: check.verdict === 'wellbeing' ? WELLBEING_REPLY : REDIRECT_REPLY } };
+      return { changes: list, ready: false, ship: false, reply: check.verdict === 'wellbeing' ? { say: WELLBEING_REPLY } : redirect };
     }
     if (check.verdict === 'personal') {
       flag(p, 'input', check, check.masked ?? '');
@@ -103,7 +106,7 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
       called = await listChanges();
       if (called instanceof GuideError) {
         if (!called.refused) throw new TurnError(503, 'The change list could not be updated; try again.');
-        return { changes: list, ready: false, ship: false, reply: { say: REDIRECT_REPLY } };
+        return { changes: list, ready: false, ship: false, reply: redirect };
       }
       metas.push(called.meta);
     }
@@ -129,7 +132,7 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
     if (out.failed) throw heldBack(p, 'output', shown);
     if (out.verdict === 'unsuitable' || out.verdict === 'wellbeing') {
       flag(p, 'output', out, out.piece ?? shown);
-      return { changes: list, ready: false, ship: false, reply: { say: REDIRECT_REPLY } };
+      return { changes: list, ready: false, ship: false, reply: redirect };
     }
     if (out.verdict === 'personal') flag(p, 'output', out, shown);
 

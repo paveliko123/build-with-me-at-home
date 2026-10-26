@@ -1,4 +1,5 @@
 // Layer 2 (spec.md > Prompt Builder): kid-safety rules, the same for everyone.
+import type { Stage } from '../types.js';
 
 export const SAFETY_LAYER = `# SAFETY (always applies, above everything else)
 
@@ -23,6 +24,17 @@ export const LEAK = /SKILL\.md|-----\s*\d-[a-z]+\/|# SAFETY \(always applies|Dev
 export const AI_DISCLOSURE = { kid: "I'm your AI helper, not a person.", teen: "I'm an AI helper, not a person." } as const;
 /** A refused or unsuitable turn gets this kind redirect, never a scolding (prd.md > Safety for Kids). */
 export const REDIRECT_REPLY = "Hmm, let's make something else instead! 🙂";
+// The redirect fits where the person is: "make something else" came in the robot's Design step and for
+// garbled talk-mode speech in the unicorn's change chat (owner yes D-15, 2026-10-25). Start and Idea keep
+// the reply above; later steps and the change chat ask the same question again; talk mode, any step.
+export const REDIRECT_LATER = "Hmm, let's pick something different for that! 🙂";
+export const REDIRECT_TALK = "Hmm, I didn't quite catch that. Could you say it another way? 🙂";
+export function redirectReply(where: Stage | 'changes', talk: boolean): string {
+  if (talk) return REDIRECT_TALK;
+  return where === 'start' || where === 'idea' ? REDIRECT_REPLY : REDIRECT_LATER;
+}
+/** Any of the three redirects (a redirect turn never saves a waiting-chat idea). */
+export const isRedirect = (say: string | undefined) => say === REDIRECT_REPLY || say === REDIRECT_LATER || say === REDIRECT_TALK;
 /** Someone who may be hurting or unsafe is pointed to a grown-up, kindly (prd.md > Safety for Kids). */
 export const WELLBEING_REPLY = "That sounds really important, and I'm glad you said it. Please tell a grown-up you trust, like a parent or a teacher, right away. If you're in danger right now, call your local emergency number, or ask any grown-up near you to call. I'm here for your app whenever you're ready.";
 /** The question after that reply: nothing about making something else. */

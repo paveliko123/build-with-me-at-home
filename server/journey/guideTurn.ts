@@ -7,7 +7,7 @@ import { ideaById, ideaNote } from './ideas.js';
 import { oneEmoji } from './appIcon.js';
 import { callDocWriter, callGuide, GuideError, type CallMeta } from './claude.js';
 import { buildContents, buildSystemInstruction, stageKickoff, type StoredMessage } from './prompt/buildPrompt.js';
-import { AI_DISCLOSURE, PERSONAL_NOTE, personText, REDIRECT_REPLY, WELLBEING_QUESTION, WELLBEING_REPLY } from './prompt/safety.js';
+import { AI_DISCLOSURE, isRedirect, PERSONAL_NOTE, personText, redirectReply, REDIRECT_REPLY, WELLBEING_QUESTION, WELLBEING_REPLY } from './prompt/safety.js';
 import { maskPersonal } from './personal.js';
 import { appWords } from './words.js';
 import { callSafetyCheck, flag, heldBack, mayBeHurting, type SafetyResult } from './safetyCheck.js';
@@ -313,8 +313,11 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
     if (instant.kinds.length) flag(session, 'input', { verdict: 'personal', category: instant.kinds.join(', ') }, text);
     const probeFirst = stage === 'idea' && messages.length === 0;
     const age = ageGroupOf(session.profile);
+    // The redirect for this step (owner yes D-15, 2026-10-25): after Idea and in talk mode it asks the
+    // same question again, whatever it was.
+    const redirect = redirectReply(stage, session.profile.inputMode === 'talk');
     // After a redirect, an open question (repeating a yes/no one like "Sound good?" read oddly).
-    const sameQuestion = lastReply.question && !/^(sound|sounds|does that|is that|ready|ok|okay)\b/i.test(lastReply.question.trim()) && lastReply.question.trim().split(/\s+/).length > 3
+    const sameQuestion = redirect !== REDIRECT_REPLY && lastReply.question?.trim() ? lastReply.question : lastReply.question && !/^(sound|sounds|does that|is that|ready|ok|okay)\b/i.test(lastReply.question.trim()) && lastReply.question.trim().split(/\s+/).length > 3
       ? lastReply.question
       : 'What would you like to make instead?';
     // No answer from the guide twice is treated like a refusal: the kind redirect, same question.
@@ -327,7 +330,7 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
         if (!err.refused) throw new TurnError(503, 'The guide could not answer; try again.');
         console.warn(JSON.stringify({ event: 'refusal', fn: 'guideTurn', project: session.id, stage }));
         flag(session, 'input', { verdict: 'unsuitable', category: 'refused' }, text);
-        return { reply: { say: REDIRECT_REPLY, question: sameQuestion, stageComplete: false }, meta: (err as any).metas ?? [] };
+        return { reply: { say: redirect, question: sameQuestion, stageComplete: false }, meta: (err as any).metas ?? [] };
       }
     };
     // The kid's words are checked at the same time as the guide answers (no extra wait).
@@ -367,7 +370,7 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
       flag(session, 'input', inputCheck, flagText);
       // After the "trusted grown-up" reply, a gentle question (never "What would you like to make instead?").
       const after = inputCheck.verdict === 'wellbeing' ? WELLBEING_QUESTION : sameQuestion;
-      raw = { say: inputCheck.verdict === 'wellbeing' ? WELLBEING_REPLY : REDIRECT_REPLY, question: after, stageComplete: false };
+      raw = { say: inputCheck.verdict === 'wellbeing' ? WELLBEING_REPLY : redirect, question: after, stageComplete: false };
       const mine = newMessages.find(m => m.role === 'user' && m.text === text);
       if (mine) mine.text = '(A message that was left out because it was not suitable.)';
       text = '';
@@ -475,7 +478,7 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
       if (outputCheck.failed) throw heldBack(session, 'output', shown);
       if (outputCheck.verdict === 'unsuitable' || outputCheck.verdict === 'wellbeing') {
         flag(session, 'output', outputCheck, outputCheck.piece ?? shown);
-        reply = { say: REDIRECT_REPLY, question: sameQuestion, stageComplete: false };
+        reply = { say: redirect, question: sameQuestion, stageComplete: false };
       } else if (outputCheck.verdict === 'personal') {
         flag(session, 'output', outputCheck, outputCheck.piece ?? shown); // the guide repeated a personal detail: the parent sees it
       }
@@ -486,7 +489,7 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
 
     // Waiting chat: keep the kid's idea so the app can offer it when the build is ready
     // (family trial: ideas asked "for later" were lost). Only from a real answer.
-    if (waiting && reply.laterIdea && text && reply.say !== REDIRECT_REPLY) {
+    if (waiting && reply.laterIdea && text && !isRedirect(reply.say)) {
       const ideas = session.laterIdeas ?? [];
       if (!ideas.some(i => i.toLowerCase() === reply.laterIdea!.toLowerCase())) session.laterIdeas = [...ideas, reply.laterIdea].slice(-8);
     } else delete reply.laterIdea;
