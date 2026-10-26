@@ -8,7 +8,7 @@ import { voiceLine } from './prompt/dial.js';
 import { LEAK, LEAK_REPLY, personText, REDIRECT_REPLY, SAFETY_LAYER, WELLBEING_REPLY } from './prompt/safety.js';
 import { maskPersonal } from './personal.js';
 import { callSafetyCheck, flag, heldBack, mayBeHurting } from './safetyCheck.js';
-import { withoutEchoedQuestion } from './echo.js';
+import { withoutEchoedQuestion, withoutSecondAsk } from './echo.js';
 import { addUsage, thread, type Project } from './project.js';
 import { ageGroupOf } from './types.js';
 import { TurnError } from './guideTurn.js';
@@ -119,7 +119,7 @@ export async function changeTurn(p: Project, input: { text?: string; remove?: nu
     const ready = result.ready === true && changes.length > 0;
     const ship = result.ship === true && changes.length === 0;
     const question = result.question && !ready && !ship ? String(result.question).slice(0, 300) : undefined;
-    let reply: { say: string; question?: string } = { say: LEAK.test(String(result.say ?? '')) ? LEAK_REPLY : withoutEchoedQuestion(String(result.say ?? '').slice(0, 600), question), ...(question ? { question } : {}) };
+    let reply: { say: string; question?: string } = { say: LEAK.test(String(result.say ?? '')) ? LEAK_REPLY : withoutSecondAsk(withoutEchoedQuestion(String(result.say ?? '').slice(0, 600), question), question), ...(question ? { question } : {}) };
 
     // Safety review: the reply and the list are checked before the kid sees them (only the kid's
     // words used to be checked here). An unsuitable item never reaches the builder.

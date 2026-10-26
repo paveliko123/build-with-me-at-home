@@ -146,7 +146,15 @@ async function main() {
     add('a teen\'s first Idea reply keeps its 2 idea cards (D-8)', cleanReply({ say: 'Let\'s think of something fun to make!', question: 'Which sounds fun?', stageComplete: false, cards: twoCards } as any, soSoTeen, true, false).cards?.length === 2, 'probe-first reply');
     add('…an adult\'s first Idea reply stays an open question', !cleanReply({ say: 'Hi', question: 'What would you like to make?', stageComplete: false, cards: twoCards } as any, { ...soSoTeen, ageGroup: 'adult' }, true, false).cards, 'cards removed');
     add('…and "Which of these?" at the So-so level keeps its cards', cleanReply({ say: 'Here are two smaller versions.', question: 'Which of these sounds better to you?', stageComplete: false, cards: twoCards } as any, soSoTeen, false, false).cards?.length === 2, 'options reply');
-    add('…while a plain So-so question still has none', !cleanReply({ say: 'Nice.', question: 'What should it look like?', stageComplete: false, cards: twoCards } as any, soSoTeen, false, false).cards, 'cards removed');
+    // ---------- D-10 / D-11 (2026-10-25): asking twice; approval without a yes ----------
+    const { withoutSecondAsk } = await import('../server/journey/echo.js');
+    const { guideSawApproval, DOC_CLAIM, PICTURE_REF } = await import('../server/journey/guideTurn.js');
+    add('a message ending in its own question loses it when a question card is shown (D-10)', withoutSecondAsk('Sure! Here are two ideas. Which one sounds more fun?', 'Which idea sounds more fun to you?') === 'Sure! Here are two ideas.', 'question kept once');
+    add('…"Pick the one…" above answer cards goes too, and a plain message stays', withoutSecondAsk('No problem! Here are three ways. Pick the one that feels the most fun.', 'Which sounds best?', true) === 'No problem! Here are three ways.' && withoutSecondAsk('Ooh, magic? So cool!', 'What should it do?') === 'Ooh, magic? So cool!' && withoutSecondAsk("Here's your Idea plan. Take a look and see if it matches what you pictured.", 'Does this look good?') === "Here's your Idea plan.", 'pick and take-a-look lines dropped');
+    add('the guide finishing after "I\'ve added it… Does this look right?" is not the teen\'s yes (D-11)', !guideSawApproval({ say: "Chords work too. I've added it to your plan.", question: 'Does this look right, or would you change anything?', stageComplete: true } as any, 'how about chords how would you do that'), 'stage stays open');
+    add('…while a plain "let\'s move on" still approves', guideSawApproval({ say: 'Great, on to the next part!', stageComplete: true } as any, "I like it, let's move on"), 'approved');
+    add('"Here are two smaller versions" is not a plan, and "two ways it could look" needs a picture', !DOC_CLAIM.test('Here are two smaller versions that skip the slow part.') && DOC_CLAIM.test("Here's your updated plan.") && PICTURE_REF.test('Here are two ways "normal" could look.'), 'patterns');
+    add('…while a plain So-so question still has none',!cleanReply({ say: 'Nice.', question: 'What should it look like?', stageComplete: false, cards: twoCards } as any, soSoTeen, false, false).cards, 'cards removed');
 
     const leo = kids.find((k) => k.nickname === 'Leo')!;
     const lid = 'verifyrevleo01';

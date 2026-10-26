@@ -12,7 +12,7 @@ import { maskPersonal } from './personal.js';
 import { appWords } from './words.js';
 import { callSafetyCheck, flag, heldBack, mayBeHurting, type SafetyResult } from './safetyCheck.js';
 import { REPLY_SCHEMA } from './prompt/replySchema.js';
-import { withoutEchoedQuestion } from './echo.js';
+import { withoutEchoedQuestion, withoutSecondAsk } from './echo.js';
 import { GUIDE_STAGES, nextStage, stageDocKind, STAGE_ORDER } from './stages.js';
 import { addUsage, thread, type Project } from './project.js';
 import { ageGroupOf, type GuideReply, type Profile, type StageDoc } from './types.js';
@@ -47,7 +47,7 @@ export function isDontKnow(text: string): boolean {
  * sending one). Then the document must be on screen, whatever words the guide used. */
 export const REVIEW_ASK = /\b(look|looks|seem|seems) (good|right|accurate|ok(ay)?)|would you (like to )?(change|adjust|tweak|edit)|anything (you'?d like )?to (change|adjust|tweak)|before we (move|lock|go)|capture (your|the|it)|ready to approve|review (it|the|this|your)/i;
 
-export const DOC_CLAIM = /\b(here('s| is| are) (the |your |a |an |my )?([\w-]+ ){0,3}(draft|scope|prd|spec|plan|checklist|document|version|profile)|i('ve| have) (now )?(updated|revised|written|drafted|rewritten|changed|added|put together)|(updated|revised) (the |your )?(draft|document|scope|prd|spec|checklist|plan)|draft (is )?(below|ready|on (the|your) screen)|take a look at the (draft|document)|^\s*(drafted|updated)[.!])/i;
+export const DOC_CLAIM = /\b(here('s| is| are) (the |your |a |an |my )?([\w-]+ ){0,3}(draft|scope|prd|spec|plan|checklist|document|version|profile)\b|i('ve| have) (now )?(updated|revised|written|drafted|rewritten|changed|added|put together)|(updated|revised) (the |your )?(draft|document|scope|prd|spec|checklist|plan)|draft (is )?(below|ready|on (the|your) screen)|take a look at the (draft|document)|^\s*(drafted|updated)[.!])/i;
 
 /** Enforce the dial and size limits on whatever Gemini sent back. */
 /** "You choose": the guide picks for them instead of asking again. */
@@ -60,7 +60,16 @@ export function isChooseForMe(text: string): boolean {
 export const OPTIONS_REF = /\bwhich of (these|those|the two|the three)\b|\b(these|those|both) (two |three )?(options|styles|choices|ideas|looks|vibes|directions|designs)\b/i;
 
 /** A reply that points at a picture on screen ("take a look at these new styles"). */
-export const PICTURE_REF = /\b(take a look|look at (these|this|the) (new |two |brand new )*(looks?|styles?|designs?|pictures?)|here they are|here are (the |two |some |your )[\w ,'-]{0,40}\b(looks|styles|designs)|(these|two) (brand )?new (looks|styles|designs))\b/i;
+export const PICTURE_REF = /\b(take a look|look at (these|this|the) (new |two |brand new )*(looks?|styles?|designs?|pictures?)|here they are|here are (the |two |some |your )[\w ,'-]{0,40}\b(looks|styles|designs)|(these|two) (brand )?new (looks|styles|designs)|(two|2|a few) ways\b[^.?!]{0,40}\b(could|might|can|would) look)\b/i;
+
+/** The guide finished the stage on the person's message, and nothing says the plan changed or
+ *  still needs a look. A teen's test (owner yes D-11, 2026-10-25): "how about chords how would
+ *  you do that" got "I've added it to your plan… Does this look right?" with the stage finished,
+ *  and the plan without chords was approved. */
+const CHANGE_CLAIM = /\bi('ve| have) (now |also )?(updated|revised|rewritten|changed|added|put)\b|\b(added|put) (it|that|this|them) (to|in|into) (your|the) (plan|draft)\b/i;
+export function guideSawApproval(reply: GuideReply, text: string): boolean {
+  return reply.stageComplete && !isChangeRequest(text) && !REVIEW_ASK.test(reply.question ?? '') && !CHANGE_CLAIM.test(reply.say);
+}
 
 /** Unsure answers that earn answer cards at the So-so level ("maybe", "hmm"). */
 export function isUnsure(text: string): boolean {
@@ -160,6 +169,7 @@ export function cleanReply(reply: GuideReply, profile: Profile, probeFirst: bool
       ...(c.detail ? { detail: String(c.detail).slice(0, 200) } : {}),
     }));
   }
+  clean.say = withoutSecondAsk(clean.say, clean.question, !!clean.cards?.length);
   if (reply.visualHtml && reply.visualHtml.length <= MAX_VISUAL) clean.visualHtml = withoutScripts(reply.visualHtml);
   else if (reply.visualHtml) console.warn(JSON.stringify({ event: 'visual-too-big', length: reply.visualHtml.length }));
   if (reply.doc?.markdown) clean.doc = { ...reply.doc, markdown: scrubText(cleanMarkdown(reply.doc.markdown), plainLevel(profile)) };
@@ -375,7 +385,7 @@ export async function guideTurn(project: Project, rawText?: string, opts: { idea
     let reply = cleanReply(raw, session.profile, probeFirst, !!text && isUnsure(text), askIdeas);
     // The guide judged the draft approved and the person asked for no change: that's an
     // approval too (live testing: four natural approvals in a row were refused).
-    if (!personApproved && needsPerson && stored?.status === 'draft' && reviewAsked && !!text && reply.stageComplete && !isChangeRequest(text)) personApproved = true;
+    if (!personApproved && needsPerson && stored?.status === 'draft' && reviewAsked && !!text && guideSawApproval(reply, text)) personApproved = true;
     const asksSuggestion = !!text && (dontKnow || isChooseForMe(text) || /what (do|would) you (suggest|recommend|think)|your (suggestion|recommendation)/i.test(text));
     const jumpsToDraft = reply.stageComplete || !!reply.doc || DOC_CLAIM.test(reply.say) || REVIEW_ASK.test(reply.question ?? '');
 

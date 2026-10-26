@@ -5812,7 +5812,7 @@ var MIDDLE = `Level: SUPPORTED (some experience).
 - Clear, friendly sentences.
 ${PLAIN}
 - Ask open questions first. Right after they say they don't know or sound unsure ("maybe", "hmm"), offer 2 answer cards. If they say "you choose" or "you pick", choose for them, say what you chose in one short line, and move on (don't ask the same question again).
-- The person decides the idea, the look, and the main behaviors. You propose the technical plan and give a one-paragraph summary; ask for approval only for the Idea and Design documents, and approve the Tech plan yourself. When you send the Idea or Design document as a draft, say in one short line that their plan is ready to look at (the app shows it as a card with \u{1F44D} Looks good and \u270F\uFE0F Change something), then ask whether it looks good.
+- The person decides the idea, the look, and the main behaviors. You propose the technical plan and give a one-paragraph summary; ask for approval only for the Idea and Design documents, and approve the Tech plan yourself. When you send the Idea or Design document as a draft, ask whether it looks good, without saying the plan is ready (the app shows it as a card with \u{1F44D} Looks good and \u270F\uFE0F Change something).
 - Idea stage: before the draft, recap the idea in one line and check it's right.
 - Keep stages focused (usually 3\u20135 questions).`;
 var EXPERIENCED = `Level: FOLLOW THE COURSE CLOSELY (experienced).
@@ -5820,7 +5820,7 @@ var EXPERIENCED = `Level: FOLLOW THE COURSE CLOSELY (experienced).
 - Calibrate to the learner profile: don't explain what the person already knows (a product manager knows what a PRD is; a developer knows what a spec is). Keep explanations short unless asked.
 - Never include "cards".
 - When they say they don't know, ask what you suggest, or say "you choose": recommend ONE option for the current question with a one-sentence reason, and ask whether that works. Don't jump ahead to writing the document.
-- Show every document as a draft ("status": "draft", in "doc"), say in one short line that it's ready to look at (the app shows it as a card with \u{1F44D} Looks good and \u270F\uFE0F Change something), and ask whether it looks good or needs changes. Mark it "approved" and set "stageComplete": true only after a clear approval such as "looks good".
+- Show every document as a draft ("status": "draft", in "doc"), and ask whether it looks good or needs changes, without saying it's ready (the app shows it as a card with \u{1F44D} Looks good and \u270F\uFE0F Change something). Mark it "approved" and set "stageComplete": true only after a clear approval such as "looks good".
 - In the Start stage, include the question about what they'd like to get better at or understand by the end.`;
 var YOUNG_STAGE_RULES = `
 - Start stage: you already know their age group, experience level, and theme from the profile screens. Never ask about them (no "have you built an app before?"). Ask what they like doing and, above the GUIDED level, what they'd like to get better at or understand by the end.
@@ -6186,6 +6186,13 @@ function withoutEchoedQuestion(say, question) {
   }
   return say;
 }
+function withoutSecondAsk(say, question, hasCards = false) {
+  if (!question || !say) return say;
+  const sentences = say.match(/[^.!?…]+[.!?…]*(\s+|$)/g) ?? [say];
+  const last = sentences[sentences.length - 1].trim();
+  const asks = /\?$/.test(last) || /^(take a look|have a (look|read)|look it over)\b/i.test(last) || hasCards && /^(pick|choose|tap|tell me)\b/i.test(last);
+  return asks ? sentences.slice(0, -1).join("").trim() : say;
+}
 
 // server/journey/project.ts
 import { randomBytes as randomBytes5 } from "node:crypto";
@@ -6320,13 +6327,17 @@ function isDontKnow(text) {
   return /\b(idk|dunno|no idea|no clue|not sure|unsure|(i )?(dont|do not|dnt|donno) (know|no|knw)|nothing comes to mind)\b/.test(t);
 }
 var REVIEW_ASK = /\b(look|looks|seem|seems) (good|right|accurate|ok(ay)?)|would you (like to )?(change|adjust|tweak|edit)|anything (you'?d like )?to (change|adjust|tweak)|before we (move|lock|go)|capture (your|the|it)|ready to approve|review (it|the|this|your)/i;
-var DOC_CLAIM = /\b(here('s| is| are) (the |your |a |an |my )?([\w-]+ ){0,3}(draft|scope|prd|spec|plan|checklist|document|version|profile)|i('ve| have) (now )?(updated|revised|written|drafted|rewritten|changed|added|put together)|(updated|revised) (the |your )?(draft|document|scope|prd|spec|checklist|plan)|draft (is )?(below|ready|on (the|your) screen)|take a look at the (draft|document)|^\s*(drafted|updated)[.!])/i;
+var DOC_CLAIM = /\b(here('s| is| are) (the |your |a |an |my )?([\w-]+ ){0,3}(draft|scope|prd|spec|plan|checklist|document|version|profile)\b|i('ve| have) (now )?(updated|revised|written|drafted|rewritten|changed|added|put together)|(updated|revised) (the |your )?(draft|document|scope|prd|spec|checklist|plan)|draft (is )?(below|ready|on (the|your) screen)|take a look at the (draft|document)|^\s*(drafted|updated)[.!])/i;
 function isChooseForMe(text) {
   const t = text.toLowerCase().replace(/[^a-z\s]/g, "").replace(/\s+/g, " ").trim();
   return t.length <= 60 && /\b(you (choose|pick|decide)|surprise me|whatever you (think|want|like)|up to you|your call)\b/.test(t);
 }
 var OPTIONS_REF = /\bwhich of (these|those|the two|the three)\b|\b(these|those|both) (two |three )?(options|styles|choices|ideas|looks|vibes|directions|designs)\b/i;
-var PICTURE_REF = /\b(take a look|look at (these|this|the) (new |two |brand new )*(looks?|styles?|designs?|pictures?)|here they are|here are (the |two |some |your )[\w ,'-]{0,40}\b(looks|styles|designs)|(these|two) (brand )?new (looks|styles|designs))\b/i;
+var PICTURE_REF = /\b(take a look|look at (these|this|the) (new |two |brand new )*(looks?|styles?|designs?|pictures?)|here they are|here are (the |two |some |your )[\w ,'-]{0,40}\b(looks|styles|designs)|(these|two) (brand )?new (looks|styles|designs)|(two|2|a few) ways\b[^.?!]{0,40}\b(could|might|can|would) look)\b/i;
+var CHANGE_CLAIM = /\bi('ve| have) (now |also )?(updated|revised|rewritten|changed|added|put)\b|\b(added|put) (it|that|this|them) (to|in|into) (your|the) (plan|draft)\b/i;
+function guideSawApproval(reply, text) {
+  return reply.stageComplete && !isChangeRequest(text) && !REVIEW_ASK.test(reply.question ?? "") && !CHANGE_CLAIM.test(reply.say);
+}
 function isUnsure(text) {
   const t = text.toLowerCase().replace(/[^a-z\s]/g, "").replace(/\s+/g, " ").trim();
   if (isChooseForMe(text)) return false;
@@ -6406,6 +6417,7 @@ function cleanReply(reply, profile, probeFirst, unsure = true, askedIdeas = fals
       ...c.detail ? { detail: String(c.detail).slice(0, 200) } : {}
     }));
   }
+  clean.say = withoutSecondAsk(clean.say, clean.question, !!clean.cards?.length);
   if (reply.visualHtml && reply.visualHtml.length <= MAX_VISUAL) clean.visualHtml = withoutScripts(reply.visualHtml);
   else if (reply.visualHtml) console.warn(JSON.stringify({ event: "visual-too-big", length: reply.visualHtml.length }));
   if (reply.doc?.markdown) clean.doc = { ...reply.doc, markdown: scrubText2(cleanMarkdown(reply.doc.markdown), plainLevel(profile)) };
@@ -6552,7 +6564,7 @@ async function guideTurn(project, rawText, opts = {}) {
       metas.push(...again.meta);
     }
     let reply = cleanReply(raw, session.profile, probeFirst, !!text && isUnsure(text), askIdeas);
-    if (!personApproved && needsPerson && stored?.status === "draft" && reviewAsked && !!text && reply.stageComplete && !isChangeRequest(text)) personApproved = true;
+    if (!personApproved && needsPerson && stored?.status === "draft" && reviewAsked && !!text && guideSawApproval(reply, text)) personApproved = true;
     const asksSuggestion = !!text && (dontKnow || isChooseForMe(text) || /what (do|would) you (suggest|recommend|think)|your (suggestion|recommendation)/i.test(text));
     const jumpsToDraft = reply.stageComplete || !!reply.doc || DOC_CLAIM.test(reply.say) || REVIEW_ASK.test(reply.question ?? "");
     const problem = waiting2 || personApproved || blocked ? null : askIdeas && (!reply.cards?.length || reply.stageComplete) ? '[app] The person asked for ideas: send the reply again with 3 answer cards for your current question, the same question, and "stageComplete": false.' : cardsAllowed && (dontKnow || session.profile.experience === 2 && !!text && isUnsure(text)) && (stage === "idea" || stage === "design") && (reply.stageComplete || !reply.cards?.length) ? "[app] The person just said they don't know or sounded unsure. Don't finish the stage and don't decide for them: offer 2 answer cards that point in clearly different directions, and ask which one they like." : session.profile.experience >= 3 && asksSuggestion && jumpsToDraft && stored?.status !== "draft" ? "[app] The person asked for your suggestion on the current question. Don't write the document yet: recommend one option for this question with a one-sentence reason, and ask whether that works for them." : !reply.visualHtml && PICTURE_REF.test(reply.say) ? '[app] Your reply tells the person to look at a picture, but no picture came through. Send the reply again with the picture in "visualHtml" (self-contained, under 6 KB).' : cardsAllowed && !reply.cards?.length && OPTIONS_REF.test(`${reply.say} ${reply.question ?? ""}`) ? "[app] Your reply asks the person to pick between options, but none are on screen. Send the reply again with those options as 2 or 3 answer cards." : !reply.question && !reply.stageComplete ? '[app] That reply has no question, so the person has nothing to answer. Send the reply again with your one question in the "question" field.' : null;
@@ -8211,7 +8223,7 @@ The person said: "${said}"`;
     const ready = result.ready === true && changes.length > 0;
     const ship = result.ship === true && changes.length === 0;
     const question = result.question && !ready && !ship ? String(result.question).slice(0, 300) : void 0;
-    let reply = { say: LEAK.test(String(result.say ?? "")) ? LEAK_REPLY : withoutEchoedQuestion(String(result.say ?? "").slice(0, 600), question), ...question ? { question } : {} };
+    let reply = { say: LEAK.test(String(result.say ?? "")) ? LEAK_REPLY : withoutSecondAsk(withoutEchoedQuestion(String(result.say ?? "").slice(0, 600), question), question), ...question ? { question } : {} };
     const shown = [reply.say, reply.question, ...changes].filter(Boolean).join("\n");
     const out = await callSafetyCheck(shown, "output", ageGroupOf(p.profile));
     metas.push(...out.metas ?? [out.meta]);

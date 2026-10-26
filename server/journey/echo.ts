@@ -15,3 +15,16 @@ export function withoutEchoedQuestion(say: string, question?: string): string {
   }
   return say;
 }
+
+// Learner tests (2026-10-25, owner yes D-10): "…Which one sounds more fun?" + "Which idea sounds
+// more fun to you?", and "Pick the one…" above answer cards, were shown and read aloud as two
+// asks. With a question card on screen, a last sentence of "say" that asks again is dropped.
+export function withoutSecondAsk(say: string, question?: string, hasCards = false): string {
+  if (!question || !say) return say;
+  const sentences = say.match(/[^.!?…]+[.!?…]*(\s+|$)/g) ?? [say];
+  const last = sentences[sentences.length - 1].trim();
+  // Real runs after D-10: drafts still ended "Take a look and see if it matches…" or "Have a read."
+  const asks = /\?$/.test(last) || /^(take a look|have a (look|read)|look it over)\b/i.test(last)
+    || (hasCards && /^(pick|choose|tap|tell me)\b/i.test(last));
+  return asks ? sentences.slice(0, -1).join('').trim() : say;
+}
