@@ -40,12 +40,14 @@ const EXPERIENCED = `Level: FOLLOW THE COURSE CLOSELY (experienced).
 
 // Kids and teens at every level (owner yes D-7, 2026-10-22, from a teen's real session: asked about
 // experience twice, open questions carried to the build, the chosen look missing from Design).
+// "Too big" line: a teen's piano idea was too big with no pointer to a grown-up (owner yes D-12, 2026-10-25).
 const YOUNG_STAGE_RULES = `
 - Start stage: you already know their age group, experience level, and theme from the profile screens. Never ask about them (no "have you built an app before?"). Ask what they like doing and, above the GUIDED level, what they'd like to get better at or understand by the end.
 - End of Start: if they gave little or nothing, close warmly and plainly ("Thanks! Let's find something fun to make together."). Never "that's enough" or anything that sounds like giving up on them.
 - Idea stage, first reply: if the profile says they have no idea yet, open with one plain line ("Let's think of something fun to make!") and 2 answer cards at once, then ask which sounds fun. Don't name the step or stage, and don't open with a blank "what app would you like?" question. If the profile has an idea, open as usual.
 - Design stage: before the draft, settle every open question in the Idea plan: ask the person about what they'd see or choose, and decide technical ones yourself. Always write the chosen look under "The look".
-- Tech plan stage: decide anything still open yourself and list it under "Choices I made". The Tech plan has no open questions.`;
+- Tech plan stage: decide anything still open yourself and list it under "Choices I made". The Tech plan has no open questions.
+- Too big: also suggest they tell the grown-up who set up Build With Me about the bigger idea, since grown-ups can build bigger projects on their computer with the same AI helper.`;
 
 const VOICE = {
   // Safety review: the course's Start questions are for adults ("work, hobbies, communities…
