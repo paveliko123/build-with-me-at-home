@@ -53,8 +53,9 @@ const LABEL: Record<Direction, string> = {
 
 /** Checks one text. Two tries; if both fail the result has failed: true, and the caller holds the
  *  text back (heldBack): never shown or built unchecked (learner decision after the pre-install
- *  review; it used to go through). */
-export async function callSafetyCheck(text: string, direction: Direction, ageGroup: AgeGroup, fork?: ForkFrom): Promise<SafetyResult> {
+ *  review; it used to go through). context: what the check reads before the text (an app's name
+ *  gets its approved plan, as data; owner yes D-14, 2026-10-25). */
+export async function callSafetyCheck(text: string, direction: Direction, ageGroup: AgeGroup, fork?: ForkFrom, context?: string): Promise<SafetyResult> {
   if (!text.trim()) return { verdict: 'ok' };
   // Safety review: long texts (a whole app, a plan) are checked in pieces, all of them, and the
   // worst verdict wins (only the first 6,000 characters used to be read).
@@ -66,10 +67,10 @@ export async function callSafetyCheck(text: string, direction: Direction, ageGro
   }
   if (stand_in) return stand_in(text, direction);
   if (pieces.length === 1) {
-    const one = await checkOne(pieces[0], direction, ageGroup, fork);
+    const one = await checkOne(pieces[0], direction, ageGroup, fork, context);
     return direction === 'input' ? hurtingWins(one, text) : one;
   }
-  const results = await Promise.all(pieces.map((piece) => checkOne(piece, direction, ageGroup)));
+  const results = await Promise.all(pieces.map((piece) => checkOne(piece, direction, ageGroup, undefined, context)));
   const metaAll = results.map((r) => r.meta).filter((m): m is CallMeta => !!m);
   const failed = results.find((r) => r.failed);
   if (failed) return direction === 'input' ? hurtingWins({ ...failed, metas: metaAll }, text) : { ...failed, metas: metaAll };
@@ -121,11 +122,11 @@ export function chunks(text: string, size: number): string[] {
 
 /** One piece. An answer that can't be read counts as "the check couldn't run" (safety review:
  *  it used to count as "ok", so a slip in the answer's format could hide a wellbeing concern). */
-async function checkOne(text: string, direction: Direction, ageGroup: AgeGroup, fork?: ForkFrom): Promise<SafetyResult> {
+async function checkOne(text: string, direction: Direction, ageGroup: AgeGroup, fork?: ForkFrom, context?: string): Promise<SafetyResult> {
   const who = ageGroup === 'kid' ? 'a kid under 13' : 'a teen (13-17)';
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const { result, ok, meta, broken } = await callCheck(`safety-${direction}`, RULES, `${LABEL[direction]} (the person is ${who}), as a JSON string:\n${JSON.stringify(text)}`, SCHEMA, 30_000, fork);
+      const { result, ok, meta, broken } = await callCheck(`safety-${direction}`, RULES, `${context ? `${context}\n\n` : ''}${LABEL[direction]} (the person is ${who}), as a JSON string:\n${JSON.stringify(text)}`, SCHEMA, 30_000, fork);
       // claude didn't run at all: try again, then hold the text back (never a flag on the kid).
       if (broken) { console.warn(JSON.stringify({ event: 'safety-check-failed', direction, attempt, error: 'claude did not run' })); continue; }
       const parsed = (result ?? {}) as { verdict?: unknown; category?: string; masked?: string };

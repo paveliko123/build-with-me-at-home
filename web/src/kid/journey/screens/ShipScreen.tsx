@@ -67,7 +67,8 @@ export default function ShipScreen({ profile, html, alreadyShipped = false, appE
   const young = profile.ageGroup === 'kid' || (profile.ageGroup === 'teen' && profile.experience <= 1);
   const theme = themeById(profile.theme);
   const suggested = suggestedName(html);
-  const [name, setName] = useState('');
+  // The box starts with the suggested name, like the pre-picked icon, so they can just ship it (owner yes D-14, 2026-10-25).
+  const [name, setName] = useState(suggested);
   const finalName = name.trim() || suggested;
   const [busy, setBusy] = useState(alreadyShipped);
   const [error, setError] = useState<string | null>(null);
