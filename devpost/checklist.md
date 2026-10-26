@@ -394,3 +394,7 @@ Activity mode: brief recap through the app map (not hands-on).
   - What the learner found (kid, unicorn app, talk mode): "on a barren window" (most likely "on a rainbow") was quoted back twice; the kid got stuck and a window ended up in the app.
   - Agreed wording, added to the talk-mode line in `server/journey/prompt/dial.ts`: "Their words come through speech recognition and can be misheard: when a word seems odd for the moment, guess what they most likely meant and check it in one short question ("Did you mean a rainbow?"). Never quote odd words back."
   - Check planned: replay the unicorn's first answers about 4 times.
+- **App names: the safety check sees the plan, and a name is suggested (owner yes D-14, 2026-10-25; build pending).**
+  - What the learner found (teen, piano app): "Fingering Helper" was blocked as sexual at Ship because the check saw only the name; the teen renamed the app "piano".
+  - Agreed: the name check in `server/journey/routes.ts` also gets the approved Idea plan as context; it stays as strict otherwise. Check planned: "Fingering Helper" with the piano plan passes; a rude name with the same plan is still blocked; an unclear name with no plan behaves as today.
+  - Owner's addition: the name box on the Ship screen (`web/src/kid/journey/screens/ShipScreen.tsx`) comes pre-filled with the suggested name, like the pre-picked icon, so they can just ship it. Today it shows only as grey hint text ('Like "…"'), though an empty box already ships with it.
