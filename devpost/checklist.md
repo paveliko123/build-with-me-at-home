@@ -423,3 +423,7 @@ Activity mode: brief recap through the app map (not hands-on).
   - D-17 (3 robot replays): the neon-outline idea came back first and was asked about 3/3; nothing added without a yes; "silly hats" never offered.
   - D-18 (piano report regenerated in tmp/): title uses "piano", the flag sits at Ship as a name blocked by mistake, each step once, start Oct 25.
   - Not checked in a browser yet: D-16's build-by-itself and D-14's pre-filled name.
+- **Misheard words stay out of the plans too (owner yes D-20, 2026-10-25; build pending).**
+  - What the real runs found after D-13: the profile still wrote "barren window" 4/4, and "Did you mean…?" came only 2/4 (Start finished first).
+  - Agreed wording for the talk-mode line in `dial.ts`: "…check it in one short question ("Did you mean a rainbow?") before you finish the stage. Never quote odd words back, in replies or documents: write your best guess only once they've confirmed it, otherwise leave it out."
+  - Check planned: 4 unicorn replays.
